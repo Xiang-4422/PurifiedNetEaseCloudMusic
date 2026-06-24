@@ -28,10 +28,10 @@ class UserHomeLocalData {
   bool get hasData => todayRecommendSongs.isNotEmpty;
 }
 
-/// 首页推荐需要的当前账号 session 能力。
-class RecommendationSessionAccess {
-  /// 创建首页推荐 session 访问边界。
-  const RecommendationSessionAccess({
+/// 首页内容需要的当前账号 session 能力。
+class HomeContentSessionAccess {
+  /// 创建首页内容 session 访问边界。
+  const HomeContentSessionAccess({
     required this.ensureCacheLoaded,
     required this.currentSession,
     required this.watchSession,
@@ -62,10 +62,10 @@ class UserHomePlaylistPlaybackPlan {
   final String playlistName;
 }
 
-/// 首页推荐需要的资料库能力，避免推荐控制器直接依赖全局资料库控制器。
-class RecommendationLibraryAccess {
-  /// 创建首页推荐资料库访问边界。
-  const RecommendationLibraryAccess({
+/// 首页内容需要的资料库能力，避免首页内容控制器直接依赖全局资料库控制器。
+class HomeContentLibraryAccess {
+  /// 创建首页内容资料库访问边界。
+  const HomeContentLibraryAccess({
     required this.ensureCacheLoaded,
     required this.loadScopedLocalData,
     required this.refreshUserLibrary,
@@ -93,20 +93,20 @@ class RecommendationLibraryAccess {
   final String Function() randomLikedSongAlbumUrl;
 }
 
-/// 持有首页轻量推荐和日推歌曲状态。
-class RecommendationController extends GetxController {
+/// 持有首页轻量内容和日推歌曲状态。
+class HomeContentController extends GetxController {
   static const Duration _startupDataTtl = Duration(minutes: 10);
   static const String _startupSyncMarker = 'startup_home';
 
-  /// 当前推荐控制器实例。
-  static RecommendationController get to => Get.find();
+  /// 当前首页内容控制器实例。
+  static HomeContentController get to => Get.find();
 
-  /// 创建推荐控制器。
-  RecommendationController({
+  /// 创建首页内容控制器。
+  HomeContentController({
     required UserRepository repository,
     required PlaylistRepository playlistRepository,
-    required RecommendationSessionAccess sessionAccess,
-    required RecommendationLibraryAccess libraryAccess,
+    required HomeContentSessionAccess sessionAccess,
+    required HomeContentLibraryAccess libraryAccess,
     Future<void> Function()? validateLoginStateInBackground,
   })  : _repository = repository,
         _playlistRepository = playlistRepository,
@@ -116,14 +116,14 @@ class RecommendationController extends GetxController {
 
   final UserRepository _repository;
   final PlaylistRepository _playlistRepository;
-  final RecommendationSessionAccess _sessionAccess;
-  final RecommendationLibraryAccess _libraryAccess;
+  final HomeContentSessionAccess _sessionAccess;
+  final HomeContentLibraryAccess _libraryAccess;
   final Future<void> Function()? _validateLoginStateInBackground;
 
   /// 首页下拉刷新控制器。
   final RefreshController refreshController = RefreshController();
 
-  /// 首页推荐数据是否已经完成首轮加载。
+  /// 首页内容数据是否已经完成首轮加载。
   final RxBool dateLoaded = false.obs;
 
   /// 每日推荐歌曲队列。
@@ -226,7 +226,7 @@ class RecommendationController extends GetxController {
     }
   }
 
-  /// 刷新首页推荐和日推数据。
+  /// 刷新首页轻量内容和日推数据。
   Future<void> updateData() async {
     if (_disposed) {
       return;

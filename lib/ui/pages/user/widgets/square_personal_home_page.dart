@@ -1,7 +1,7 @@
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/recent_playback_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
-import 'package:bujuan/features/user/recommendation_controller.dart';
+import 'package:bujuan/features/user/home_content_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/ui/pages/user/widgets/quick_start_section.dart';
 import 'package:bujuan/ui/pages/user/widgets/square_library_page.dart';
@@ -15,7 +15,7 @@ class SquarePersonalHomePage extends StatefulWidget {
   const SquarePersonalHomePage({
     super.key,
     required this.metrics,
-    required this.recommendationController,
+    required this.homeContentController,
     required this.libraryController,
     required this.playbackAction,
     required this.recentPlaybackController,
@@ -25,8 +25,8 @@ class SquarePersonalHomePage extends StatefulWidget {
   /// 方屏布局尺寸参数。
   final PersonalHomeLayoutMetrics metrics;
 
-  /// 首页推荐控制器。
-  final RecommendationController recommendationController;
+  /// 首页内容控制器。
+  final HomeContentController homeContentController;
 
   /// 用户资料库控制器。
   final UserLibraryController libraryController;
@@ -65,13 +65,13 @@ class _SquarePersonalHomePageState extends State<SquarePersonalHomePage> {
             children: [
               SquareQuickStartPage(
                 metrics: widget.metrics,
-                recommendationController: widget.recommendationController,
+                homeContentController: widget.homeContentController,
                 playbackAction: widget.playbackAction,
                 shellController: widget.shellController,
               ),
               SquareLibraryPage(
                 metrics: widget.metrics,
-                recommendationController: widget.recommendationController,
+                homeContentController: widget.homeContentController,
                 libraryController: widget.libraryController,
                 playbackAction: widget.playbackAction,
                 recentPlaybackController: widget.recentPlaybackController,

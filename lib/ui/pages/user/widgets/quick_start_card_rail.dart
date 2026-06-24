@@ -5,7 +5,7 @@ import 'package:bujuan/app/routing/router.gr.dart' as gr;
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
-import 'package:bujuan/features/user/recommendation_controller.dart';
+import 'package:bujuan/features/user/home_content_controller.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:bujuan/ui/widgets/common/image/async_image_color.dart';
@@ -29,7 +29,7 @@ class QuickStartCardRail extends StatelessWidget {
     super.key,
     required this.width,
     required this.height,
-    required this.recommendationController,
+    required this.homeContentController,
     required this.playbackAction,
     required this.shellController,
   });
@@ -40,8 +40,8 @@ class QuickStartCardRail extends StatelessWidget {
   /// 单张入口卡片高度。
   final double height;
 
-  /// 首页推荐控制器。
-  final RecommendationController recommendationController;
+  /// 首页内容控制器。
+  final HomeContentController homeContentController;
 
   /// 播放控制器。
   final PlayerController playbackAction;
@@ -80,7 +80,7 @@ class QuickStartCardRail extends StatelessWidget {
         card = _DailyRecommendQuickStartCard(
           width: width,
           height: height,
-          recommendationController: recommendationController,
+          homeContentController: homeContentController,
           playbackAction: playbackAction,
         );
       default:
@@ -97,19 +97,19 @@ class _DailyRecommendQuickStartCard extends StatelessWidget {
   const _DailyRecommendQuickStartCard({
     required this.width,
     required this.height,
-    required this.recommendationController,
+    required this.homeContentController,
     required this.playbackAction,
   });
 
   final double width;
   final double height;
-  final RecommendationController recommendationController;
+  final HomeContentController homeContentController;
   final PlayerController playbackAction;
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final songs = recommendationController.todayRecommendSongs;
+      final songs = homeContentController.todayRecommendSongs;
       final isPlayingDaily = playbackAction.isPlaying.value && playbackAction.sessionState.value.playlistName == '每日推荐';
       return QuickStartCard(
         width: width,

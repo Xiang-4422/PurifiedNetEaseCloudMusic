@@ -1,6 +1,6 @@
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
-import 'package:bujuan/features/user/recommendation_controller.dart';
+import 'package:bujuan/features/user/home_content_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/ui/widgets/common/layout/section_header.dart';
@@ -14,7 +14,7 @@ class FrequentPlaylistSection extends StatelessWidget {
   const FrequentPlaylistSection({
     super.key,
     required this.libraryController,
-    required this.recommendationController,
+    required this.homeContentController,
     required this.playbackAction,
     required this.albumCountInWidget,
     this.headerHeight = AppDimensions.headerHeight,
@@ -24,8 +24,8 @@ class FrequentPlaylistSection extends StatelessWidget {
   /// 用户资料库控制器。
   final UserLibraryController libraryController;
 
-  /// 首页推荐控制器。
-  final RecommendationController recommendationController;
+  /// 首页内容控制器。
+  final HomeContentController homeContentController;
 
   /// 播放控制器。
   final PlayerController playbackAction;
@@ -59,7 +59,7 @@ class FrequentPlaylistSection extends StatelessWidget {
             isPlaying: playbackAction.isPlaying.value,
             playingPlaylistName: playbackAction.sessionState.value.playlistName,
             onPlayPlaylist: (playlist) => _playPlaylistSummary(
-              recommendationController,
+              homeContentController,
               playbackAction,
               playlist,
             ),
@@ -71,7 +71,7 @@ class FrequentPlaylistSection extends StatelessWidget {
 }
 
 Future<void> _playPlaylistSummary(
-  RecommendationController recommendationController,
+  HomeContentController homeContentController,
   PlayerController playerController,
   PlaylistSummaryData playlist,
 ) async {
@@ -79,7 +79,7 @@ Future<void> _playPlaylistSummary(
     await playerController.playOrPause();
     return;
   }
-  final plan = await recommendationController.resolveFrequentPlaylistPlayback(
+  final plan = await homeContentController.resolveFrequentPlaylistPlayback(
     playlist,
   );
   await playerController.playPlaylist(

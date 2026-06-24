@@ -21,7 +21,7 @@ import 'package:bujuan/features/playback/application/playback_user_content_port.
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
-import 'package:bujuan/features/user/recommendation_controller.dart';
+import 'package:bujuan/features/user/home_content_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:get/get.dart';
 
@@ -54,7 +54,7 @@ void registerPlaybackDependencies() {
       likedSongIds: _likedSongIdsSnapshot,
       ensureLikedSongsLoaded: () => Get.find<UserLibraryController>().ensureLikedSongsLoaded(),
       likedSongs: () => Get.find<UserLibraryController>().likedSongs.toList(),
-      loadFmSongs: () => Get.find<RecommendationController>().getFmSongs(),
+      loadFmSongs: () => Get.find<HomeContentController>().getFmSongs(),
       loadHeartBeatSongs: (startSongId, randomLikedSongId, fromPlayAll) => Get.find<UserLibraryController>().getHeartBeatSongs(
         startSongId,
         randomLikedSongId,

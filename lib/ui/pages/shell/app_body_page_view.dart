@@ -86,7 +86,7 @@ class DrawerMainScreenView extends GetView<ShellController> {
           PersonalPageView(
             playerController: personalHomeControllers.playerController,
             recentPlaybackController: personalHomeControllers.recentPlaybackController,
-            recommendationController: personalHomeControllers.recommendationController,
+            homeContentController: personalHomeControllers.homeContentController,
             userLibraryController: personalHomeControllers.userLibraryController,
             shellController: controller,
           ),

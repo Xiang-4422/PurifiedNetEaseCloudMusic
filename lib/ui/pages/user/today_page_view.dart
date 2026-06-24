@@ -3,7 +3,7 @@ import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/ui/layout/adaptive_layout_metrics.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
-import 'package:bujuan/features/user/recommendation_controller.dart';
+import 'package:bujuan/features/user/home_content_controller.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:bujuan/ui/widgets/common/music/music_list_tile.dart';
 import 'package:bujuan/ui/widgets/common/image/simple_extended_image.dart';
@@ -13,7 +13,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
 /// 每日推荐歌曲页面。
-class TodayPageView extends GetView<RecommendationController> {
+class TodayPageView extends GetView<HomeContentController> {
   /// 创建每日推荐歌曲页面。
   const TodayPageView({Key? key}) : super(key: key);
 

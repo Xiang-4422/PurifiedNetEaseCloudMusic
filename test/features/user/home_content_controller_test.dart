@@ -7,7 +7,7 @@ import 'package:bujuan/core/entities/user_library_kinds.dart';
 import 'package:bujuan/core/entities/user_session_data.dart';
 import 'package:bujuan/data/app_storage/app_key_value_store.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
-import 'package:bujuan/features/user/recommendation_controller.dart';
+import 'package:bujuan/features/user/home_content_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_repository.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
@@ -17,13 +17,13 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('RecommendationController', () {
+  group('HomeContentController', () {
     test('keeps local home data visible when library refresh fails', () async {
       final sessionController = _buildSessionController('user-1');
       final libraryController = _FakeUserLibraryController(
         refreshError: Exception('offline'),
       );
-      final controller = RecommendationController(
+      final controller = HomeContentController(
         repository: _FakeUserRepository(),
         playlistRepository: _FakePlaylistRepository(),
         sessionAccess: _sessionAccess(sessionController),
@@ -45,7 +45,7 @@ void main() {
       final repository = _FakeUserRepository(
         cachedDailyRecommendSongs: [_song('cached-today')],
       );
-      final controller = RecommendationController(
+      final controller = HomeContentController(
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
         sessionAccess: _sessionAccess(sessionController),
@@ -69,7 +69,7 @@ void main() {
       final repository = _FakeUserRepository(
         loadCachedDailyRecommendSongsError: StateError('broken daily cache'),
       );
-      final controller = RecommendationController(
+      final controller = HomeContentController(
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
         sessionAccess: _sessionAccess(sessionController),
@@ -89,7 +89,7 @@ void main() {
       final sessionController = _buildSessionController('   ');
       final libraryController = _FakeUserLibraryController();
       final repository = _FakeUserRepository();
-      final controller = RecommendationController(
+      final controller = HomeContentController(
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
         sessionAccess: _sessionAccess(sessionController),
@@ -113,7 +113,7 @@ void main() {
         cachedDailyRecommendSongs: [_song('cached-today')],
         isSyncMarkerFreshError: StateError('broken marker cache'),
       );
-      final controller = RecommendationController(
+      final controller = HomeContentController(
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
         sessionAccess: _sessionAccess(sessionController),
@@ -131,7 +131,7 @@ void main() {
     test('reloads scoped local data through session access when account changes', () async {
       final sessionController = _buildSessionController('user-1');
       final libraryController = _FakeUserLibraryController();
-      final controller = RecommendationController(
+      final controller = HomeContentController(
         repository: _FakeUserRepository(),
         playlistRepository: _FakePlaylistRepository(),
         sessionAccess: _sessionAccess(sessionController),
@@ -164,7 +164,7 @@ void main() {
           return todayFetches.removeAt(0).future;
         },
       );
-      final controller = RecommendationController(
+      final controller = HomeContentController(
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
         sessionAccess: _sessionAccess(sessionController),
@@ -193,7 +193,7 @@ void main() {
       final sessionController = _buildSessionController('   ');
       final libraryController = _FakeUserLibraryController();
       final repository = _FakeUserRepository();
-      final controller = RecommendationController(
+      final controller = HomeContentController(
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
         sessionAccess: _sessionAccess(sessionController),
@@ -218,7 +218,7 @@ void main() {
       final sessionController = _buildSessionController(' user-1 ');
       final libraryController = _FakeUserLibraryController();
       final repository = _FakeUserRepository();
-      final controller = RecommendationController(
+      final controller = HomeContentController(
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
         sessionAccess: _sessionAccess(sessionController),
@@ -241,7 +241,7 @@ void main() {
       final sessionController = _buildSessionController('user-1');
       final libraryController = _FakeUserLibraryController()..likedSongIds.addAll([202, 101, 202]);
       final repository = _FakeUserRepository();
-      final controller = RecommendationController(
+      final controller = HomeContentController(
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
         sessionAccess: _sessionAccess(sessionController),
@@ -280,7 +280,7 @@ void main() {
           return todaySongs.future;
         },
       );
-      final controller = RecommendationController(
+      final controller = HomeContentController(
         repository: repository,
         playlistRepository: _FakePlaylistRepository(),
         sessionAccess: _sessionAccess(sessionController),
@@ -319,7 +319,7 @@ void main() {
           return Future.value([_song('song-${likedSongIds.join('-')}')]);
         },
       );
-      final controller = RecommendationController(
+      final controller = HomeContentController(
         repository: _FakeUserRepository(),
         playlistRepository: playlistRepository,
         sessionAccess: _sessionAccess(sessionController),
@@ -357,8 +357,8 @@ void main() {
   });
 }
 
-RecommendationLibraryAccess _libraryAccess(_FakeUserLibraryController controller) {
-  return RecommendationLibraryAccess(
+HomeContentLibraryAccess _libraryAccess(_FakeUserLibraryController controller) {
+  return HomeContentLibraryAccess(
     ensureCacheLoaded: controller.ensureCacheLoaded,
     loadScopedLocalData: controller.loadScopedLocalData,
     refreshUserLibrary: controller.refreshUserLibrary,
@@ -368,8 +368,8 @@ RecommendationLibraryAccess _libraryAccess(_FakeUserLibraryController controller
   );
 }
 
-RecommendationSessionAccess _sessionAccess(UserSessionController controller) {
-  return RecommendationSessionAccess(
+HomeContentSessionAccess _sessionAccess(UserSessionController controller) {
+  return HomeContentSessionAccess(
     ensureCacheLoaded: controller.ensureCacheLoaded,
     currentSession: () => controller.userInfo.value,
     watchSession: (onChanged) {

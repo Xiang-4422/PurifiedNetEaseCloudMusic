@@ -1,6 +1,6 @@
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
-import 'package:bujuan/features/user/recommendation_controller.dart';
+import 'package:bujuan/features/user/home_content_controller.dart';
 import 'package:bujuan/ui/pages/user/widgets/quick_start_card_rail.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/ui/widgets/common/layout/section_header.dart';
@@ -14,7 +14,7 @@ class QuickStartSection extends StatelessWidget {
   const QuickStartSection({
     super.key,
     required this.itemCountInScreen,
-    required this.recommendationController,
+    required this.homeContentController,
     required this.playbackAction,
     required this.shellController,
   });
@@ -22,8 +22,8 @@ class QuickStartSection extends StatelessWidget {
   /// 横向区域中一屏展示的快速入口卡片数量。
   final double itemCountInScreen;
 
-  /// 首页推荐控制器。
-  final RecommendationController recommendationController;
+  /// 首页内容控制器。
+  final HomeContentController homeContentController;
 
   /// 播放控制器。
   final PlayerController playbackAction;
@@ -50,7 +50,7 @@ class QuickStartSection extends StatelessWidget {
               child: QuickStartCardRail(
                 width: userItemWidth,
                 height: cardHeight,
-                recommendationController: recommendationController,
+                homeContentController: homeContentController,
                 playbackAction: playbackAction,
                 shellController: shellController,
               ),
@@ -68,7 +68,7 @@ class SquareQuickStartPage extends StatelessWidget {
   const SquareQuickStartPage({
     super.key,
     required this.metrics,
-    required this.recommendationController,
+    required this.homeContentController,
     required this.playbackAction,
     required this.shellController,
   });
@@ -76,8 +76,8 @@ class SquareQuickStartPage extends StatelessWidget {
   /// 方屏布局尺寸参数。
   final PersonalHomeLayoutMetrics metrics;
 
-  /// 首页推荐控制器。
-  final RecommendationController recommendationController;
+  /// 首页内容控制器。
+  final HomeContentController homeContentController;
 
   /// 播放控制器。
   final PlayerController playbackAction;
@@ -111,7 +111,7 @@ class SquareQuickStartPage extends StatelessWidget {
                     child: QuickStartCardRail(
                       width: cardSize.width,
                       height: cardSize.height,
-                      recommendationController: recommendationController,
+                      homeContentController: homeContentController,
                       playbackAction: playbackAction,
                       shellController: shellController,
                     ),

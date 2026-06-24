@@ -4,7 +4,7 @@ import 'package:bujuan/ui/pages/user/widgets/square_personal_home_page.dart';
 import 'package:bujuan/ui/pages/user/widgets/standard_personal_home_page.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/ui/widgets/user/personal_home_layout_metrics.dart';
-import 'package:bujuan/features/user/recommendation_controller.dart';
+import 'package:bujuan/features/user/home_content_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +17,7 @@ class PersonalPageView extends StatelessWidget {
   const PersonalPageView({
     required this.playerController,
     required this.recentPlaybackController,
-    required this.recommendationController,
+    required this.homeContentController,
     required this.userLibraryController,
     required this.shellController,
     Key? key,
@@ -29,8 +29,8 @@ class PersonalPageView extends StatelessWidget {
   /// 最近播放控制器。
   final RecentPlaybackController recentPlaybackController;
 
-  /// 首页推荐控制器。
-  final RecommendationController recommendationController;
+  /// 首页内容控制器。
+  final HomeContentController homeContentController;
 
   /// 用户资料库控制器。
   final UserLibraryController userLibraryController;
@@ -47,7 +47,7 @@ class PersonalPageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (recommendationController.dateLoaded.isFalse) {
+      if (homeContentController.dateLoaded.isFalse) {
         return const LoadingView();
       }
       final layoutMetrics = PersonalHomeLayoutMetrics(
@@ -56,7 +56,7 @@ class PersonalPageView extends StatelessWidget {
       if (layoutMetrics.isSquareLike) {
         return SquarePersonalHomePage(
           metrics: layoutMetrics,
-          recommendationController: recommendationController,
+          homeContentController: homeContentController,
           libraryController: userLibraryController,
           playbackAction: playerController,
           recentPlaybackController: recentPlaybackController,
@@ -66,7 +66,7 @@ class PersonalPageView extends StatelessWidget {
       return StandardPersonalHomePage(
         albumCountInScreen: albumCountInScreen,
         userItemCountInScreen: userItemCountInScreen,
-        recommendationController: recommendationController,
+        homeContentController: homeContentController,
         libraryController: userLibraryController,
         playbackAction: playerController,
         recentPlaybackController: recentPlaybackController,

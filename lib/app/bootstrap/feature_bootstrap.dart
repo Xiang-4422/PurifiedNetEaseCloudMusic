@@ -54,7 +54,7 @@ import 'package:bujuan/features/shell/app_home_controller_bundle.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:bujuan/features/shell/personal_home_controller_bundle.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
-import 'package:bujuan/features/user/recommendation_controller.dart';
+import 'package:bujuan/features/user/home_content_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/features/user/user_profile_controller_factory.dart';
 import 'package:bujuan/features/user/user_repository.dart';
@@ -96,10 +96,10 @@ void registerUserControllers() {
     fenix: true,
   );
   Get.lazyPut(
-    () => RecommendationController(
+    () => HomeContentController(
       repository: Get.find<UserRepository>(),
       playlistRepository: Get.find<PlaylistRepository>(),
-      sessionAccess: RecommendationSessionAccess(
+      sessionAccess: HomeContentSessionAccess(
         ensureCacheLoaded: () => Get.find<UserSessionController>().ensureCacheLoaded(),
         currentSession: () => Get.find<UserSessionController>().userInfo.value,
         watchSession: (onChanged) {
@@ -110,7 +110,7 @@ void registerUserControllers() {
           return worker.dispose;
         },
       ),
-      libraryAccess: RecommendationLibraryAccess(
+      libraryAccess: HomeContentLibraryAccess(
         ensureCacheLoaded: () => Get.find<UserLibraryController>().ensureCacheLoaded(),
         loadScopedLocalData: (userId) => Get.find<UserLibraryController>().loadScopedLocalData(userId),
         refreshUserLibrary: () => Get.find<UserLibraryController>().refreshUserLibrary(),
@@ -218,7 +218,7 @@ void registerFeatureControllers() {
     PersonalHomeControllerBundle(
       playerController: Get.find<PlayerController>(),
       recentPlaybackController: Get.find<RecentPlaybackController>(),
-      recommendationController: Get.find<RecommendationController>(),
+      homeContentController: Get.find<HomeContentController>(),
       userLibraryController: Get.find<UserLibraryController>(),
     ),
     permanent: true,

@@ -1,7 +1,7 @@
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/recent_playback_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
-import 'package:bujuan/features/user/recommendation_controller.dart';
+import 'package:bujuan/features/user/home_content_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/ui/pages/user/widgets/frequent_playlist_section.dart';
 import 'package:bujuan/ui/pages/user/widgets/library_shortcut_section.dart';
@@ -22,7 +22,7 @@ class StandardPersonalHomePage extends StatelessWidget {
     super.key,
     required this.albumCountInScreen,
     required this.userItemCountInScreen,
-    required this.recommendationController,
+    required this.homeContentController,
     required this.libraryController,
     required this.playbackAction,
     required this.recentPlaybackController,
@@ -35,8 +35,8 @@ class StandardPersonalHomePage extends StatelessWidget {
   /// 横向区域中一屏展示的快速入口卡片数量。
   final double userItemCountInScreen;
 
-  /// 首页推荐控制器。
-  final RecommendationController recommendationController;
+  /// 首页内容控制器。
+  final HomeContentController homeContentController;
 
   /// 用户资料库控制器。
   final UserLibraryController libraryController;
@@ -53,7 +53,7 @@ class StandardPersonalHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppSmartRefresher(
-      controller: recommendationController.refreshController,
+      controller: homeContentController.refreshController,
       child: CustomScrollView(
         cacheExtent: standardPersonalHomeScrollCacheExtent,
         physics: const ClampingScrollPhysics(),
@@ -66,7 +66,7 @@ class StandardPersonalHomePage extends StatelessWidget {
           SliverToBoxAdapter(
             child: QuickStartSection(
               itemCountInScreen: userItemCountInScreen,
-              recommendationController: recommendationController,
+              homeContentController: homeContentController,
               playbackAction: playbackAction,
               shellController: shellController,
             ),
@@ -80,7 +80,7 @@ class StandardPersonalHomePage extends StatelessWidget {
           SliverToBoxAdapter(
             child: FrequentPlaylistSection(
               libraryController: libraryController,
-              recommendationController: recommendationController,
+              homeContentController: homeContentController,
               playbackAction: playbackAction,
               albumCountInWidget: albumCountInScreen,
               headerTopMargin: AppDimensions.paddingSmall,

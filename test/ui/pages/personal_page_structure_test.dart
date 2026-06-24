@@ -312,16 +312,16 @@ void main() {
     expect(source, contains('StandardPersonalHomePage('));
     expect(source, isNot(contains('RecommendedPlaylistPinnedHeaderSliver(')));
     expect(standardSource, isNot(contains('RecommendedPlaylistPinnedHeaderSliver(')));
-    expect(standardSource, isNot(contains('RecommendedPlaylistListSliver(controller: recommendationController)')));
+    expect(standardSource, isNot(contains('RecommendedPlaylistListSliver(controller: homeContentController)')));
     expect(standardSource, contains('const double standardPersonalHomeScrollCacheExtent = 360;'));
     expect(standardSource, contains('cacheExtent: standardPersonalHomeScrollCacheExtent'));
     expect(standardSource, isNot(contains('cacheExtent: 120')));
     expect(standardSource, isNot(contains('enablePullUp: true')));
-    expect(standardSource, isNot(contains('onLoading: () => recommendationController.updateRecoPlayLists(getMore: true)')));
+    expect(standardSource, isNot(contains('onLoading: () => homeContentController.updateRecoPlayLists(getMore: true)')));
     expect(standardSource, isNot(contains('PlayListItem(')));
     expect(source, isNot(contains('class RecommendedPlaylistsPageView')));
     expect(source, isNot(contains('SliverList.builder(')));
-    expect(source, isNot(contains('PlayListItem(recommendationController.recoPlayLists')));
+    expect(source, isNot(contains('PlayListItem(homeContentController.recoPlayLists')));
     expect(File('lib/ui/pages/user/recommended_playlists_page.dart').existsSync(), isFalse);
     expect(File('lib/ui/pages/user/widgets/recommended_playlist_slivers.dart').existsSync(), isFalse);
     expect(appBodySource, isNot(contains('recommended_playlists_page.dart')));
@@ -338,7 +338,7 @@ void main() {
     expect(appBodySource, contains('homeShellController: homeShellController'));
     expect(
       appBodySource,
-      contains('recommendationController: personalHomeControllers.recommendationController'),
+      contains('homeContentController: personalHomeControllers.homeContentController'),
     );
     expect(
       appBodySource,
@@ -401,11 +401,11 @@ void main() {
     final libraryHeaderIndex = standardSource.indexOf('LibraryShortcutSection(');
 
     expect(source, contains('required this.recentPlaybackController'));
-    expect(source, contains('required this.recommendationController'));
+    expect(source, contains('required this.homeContentController'));
     expect(source, contains('required this.userLibraryController'));
     expect(source, contains('required this.playerController'));
     expect(source, contains('required this.shellController'));
-    expect(source, isNot(contains('RecommendationController.to')));
+    expect(source, isNot(contains('HomeContentController.to')));
     expect(source, isNot(contains('UserLibraryController.to')));
     expect(source, isNot(contains('RecentPlaybackController.to')));
     expect(source, isNot(contains('Get.find<PlayerController>')));
@@ -491,13 +491,13 @@ void main() {
     expect(recentPlaybackSource, contains('SimpleExtendedImage('));
     expect(recentPlaybackSource, matches(RegExp(r'SimpleExtendedImage\(\s*artworkPath,')));
     expect(recentPlaybackSource, isNot(contains('artworkPath.isEmpty')));
-    expect(todayPageSource, contains('class TodayPageView extends GetView<RecommendationController>'));
+    expect(todayPageSource, contains('class TodayPageView extends GetView<HomeContentController>'));
     expect(todayPageSource, contains('final songs = controller.todayRecommendSongs'));
     expect(todayPageSource, contains('todayPlayAllControlLabel('));
     expect(todayPageSource, contains('final canPlayDailyRecommendations = songs.isNotEmpty'));
     expect(todayPageSource, contains('tooltip: playAllLabel'));
     expect(todayPageSource, contains('onPressed: canPlayDailyRecommendations'));
-    expect(todayPageSource, isNot(contains('RecommendationController.to')));
+    expect(todayPageSource, isNot(contains('HomeContentController.to')));
     expect(todayPageSource, contains('ArtworkPathResolver.resolvePlaybackArtwork'));
 
     expect(source, isNot(contains('currentSong.artworkUrl ??')));

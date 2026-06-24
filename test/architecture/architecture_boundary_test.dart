@@ -3352,12 +3352,12 @@ void main() {
       final page = pageFile.readAsStringSync();
       final bootstrap = bootstrapFile.readAsStringSync();
       final violations = <String>[
-        if (page.contains('RecommendationController.to')) '${_relativePath(pageFile)} reads recommendation controller globally',
+        if (page.contains('HomeContentController.to')) '${_relativePath(pageFile)} reads home content controller globally',
         if (page.contains('UserLibraryController.to')) '${_relativePath(pageFile)} reads user library controller globally',
         if (page.contains('RecentPlaybackController.to')) '${_relativePath(pageFile)} reads recent playback controller globally',
         if (page.contains('Get.find<PlayerController>')) '${_relativePath(pageFile)} reads player controller globally',
         if (body.contains('Get.find<UserLibraryController>')) '${_relativePath(bodyFile)} reads user library controller directly',
-        if (!page.contains('required this.recommendationController')) '${_relativePath(pageFile)} does not receive recommendation controller',
+        if (!page.contains('required this.homeContentController')) '${_relativePath(pageFile)} does not receive home content controller',
         if (!page.contains('required this.userLibraryController')) '${_relativePath(pageFile)} does not receive user library controller',
         if (!page.contains('required this.recentPlaybackController')) '${_relativePath(pageFile)} does not receive recent playback controller',
         if (!page.contains('required this.playerController')) '${_relativePath(pageFile)} does not receive player controller',
@@ -3367,7 +3367,7 @@ void main() {
         if (!bootstrap.contains('Get.put<PersonalHomeControllerBundle>')) 'feature bootstrap does not register personal home controller bundle',
         if (!bootstrap.contains('userLibraryController: Get.find<UserLibraryController>()')) 'feature bootstrap does not inject user library controller into personal home bundle',
         if (!body.contains('PersonalPageView(')) '${_relativePath(bodyFile)} does not compose personal page',
-        if (!body.contains('recommendationController: personalHomeControllers.recommendationController')) '${_relativePath(bodyFile)} does not inject recommendation controller',
+        if (!body.contains('homeContentController: personalHomeControllers.homeContentController')) '${_relativePath(bodyFile)} does not inject home content controller',
         if (!body.contains('userLibraryController: personalHomeControllers.userLibraryController')) '${_relativePath(bodyFile)} does not inject user library controller',
         if (!body.contains('recentPlaybackController: personalHomeControllers.recentPlaybackController')) '${_relativePath(bodyFile)} does not inject recent playback controller',
         if (!body.contains('playerController: personalHomeControllers.playerController')) '${_relativePath(bodyFile)} does not inject player controller',
@@ -3376,7 +3376,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason: '个人首页主文件只负责布局模式分发，推荐、资料库、播放和最近播放控制器必须由首页主体组合层注入。',
+        reason: '个人首页主文件只负责布局模式分发，首页内容、资料库、播放和最近播放控制器必须由首页主体组合层注入。',
       );
     });
 
@@ -3466,7 +3466,7 @@ void main() {
         '${projectRoot.path}/lib/ui/pages/user/widgets/frequent_playlist_section.dart',
       );
       final controllerFile = File(
-        '${projectRoot.path}/lib/features/user/recommendation_controller.dart',
+        '${projectRoot.path}/lib/features/user/home_content_controller.dart',
       );
       final bootstrapFile = File('${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart');
       final section = sectionFile.readAsStringSync();
@@ -3478,32 +3478,32 @@ void main() {
         if (section.contains('Get.find<PlayerController>')) '${_relativePath(sectionFile)} reads player controller from container',
         if (section.contains('fetchPlaylistIndex(')) '${_relativePath(sectionFile)} fetches playlist index directly',
         if (section.contains('fetchPlaylistSongs(')) '${_relativePath(sectionFile)} fetches playlist songs directly',
-        if (!section.contains('recommendationController.resolveFrequentPlaylistPlayback')) '${_relativePath(sectionFile)} does not resolve playlist playback through home controller',
-        if (controller.contains('UserLibraryController')) 'recommendation controller reads user library controller directly',
-        if (controller.contains("package:bujuan/features/user/user_session_controller.dart")) 'recommendation controller imports user session controller',
-        if (controller.contains('UserSessionController')) 'recommendation controller names user session controller directly',
-        if (!controller.contains('Future<UserHomePlaylistPlaybackPlan> resolveFrequentPlaylistPlayback')) 'recommendation controller does not expose frequent playlist playback resolution',
-        if (!controller.contains('required PlaylistRepository playlistRepository')) 'recommendation controller does not receive playlist repository explicitly',
-        if (!controller.contains('required RecommendationLibraryAccess libraryAccess')) 'recommendation controller does not receive library access boundary',
-        if (!controller.contains('required RecommendationSessionAccess sessionAccess')) 'recommendation controller does not receive session access boundary',
-        if (!controller.contains('String _normalizedUserId(String userId)')) 'recommendation controller does not normalize session user ids',
-        if (!controller.contains('bool _isSignedInUserId(String userId)')) 'recommendation controller does not centralize signed-in account checks',
-        if (!controller.contains('List<int> _likedSongIdsSnapshot()')) 'recommendation controller does not define a liked ids snapshot normalizer',
-        if (!controller.contains('return normalizeLikedSongIds(_libraryAccess.likedSongIds());')) 'recommendation controller liked ids snapshot does not use shared normalizer',
-        if (!controller.contains('final likedSongIds = _likedSongIdsSnapshot();')) 'recommendation controller does not reuse normalized liked ids snapshots for home requests',
-        if (controller.contains('likedSongIds: _libraryAccess.likedSongIds()')) 'recommendation controller still passes raw liked ids provider output',
-        if (controller.contains('final likedSongIds = _libraryAccess.likedSongIds();')) 'recommendation controller still snapshots raw liked ids provider output',
-        if (!controller.contains('_currentUserId() == userId')) 'recommendation controller does not compare scoped loads against normalized current user',
-        if (!bootstrap.contains('sessionAccess: RecommendationSessionAccess(')) 'feature bootstrap does not inject recommendation session access boundary',
-        if (!bootstrap.contains('watchSession: (onChanged)')) 'feature bootstrap does not bind recommendation session watcher',
-        if (!controller.contains('currentUserId: userId')) 'recommendation controller does not pass current user when resolving frequent playlist',
-        if (!controller.contains('playlistIndex: index')) 'recommendation controller does not reuse fetched playlist index for playback songs',
+        if (!section.contains('homeContentController.resolveFrequentPlaylistPlayback')) '${_relativePath(sectionFile)} does not resolve playlist playback through home controller',
+        if (controller.contains('UserLibraryController')) 'home content controller reads user library controller directly',
+        if (controller.contains("package:bujuan/features/user/user_session_controller.dart")) 'home content controller imports user session controller',
+        if (controller.contains('UserSessionController')) 'home content controller names user session controller directly',
+        if (!controller.contains('Future<UserHomePlaylistPlaybackPlan> resolveFrequentPlaylistPlayback')) 'home content controller does not expose frequent playlist playback resolution',
+        if (!controller.contains('required PlaylistRepository playlistRepository')) 'home content controller does not receive playlist repository explicitly',
+        if (!controller.contains('required HomeContentLibraryAccess libraryAccess')) 'home content controller does not receive library access boundary',
+        if (!controller.contains('required HomeContentSessionAccess sessionAccess')) 'home content controller does not receive session access boundary',
+        if (!controller.contains('String _normalizedUserId(String userId)')) 'home content controller does not normalize session user ids',
+        if (!controller.contains('bool _isSignedInUserId(String userId)')) 'home content controller does not centralize signed-in account checks',
+        if (!controller.contains('List<int> _likedSongIdsSnapshot()')) 'home content controller does not define a liked ids snapshot normalizer',
+        if (!controller.contains('return normalizeLikedSongIds(_libraryAccess.likedSongIds());')) 'home content controller liked ids snapshot does not use shared normalizer',
+        if (!controller.contains('final likedSongIds = _likedSongIdsSnapshot();')) 'home content controller does not reuse normalized liked ids snapshots for home requests',
+        if (controller.contains('likedSongIds: _libraryAccess.likedSongIds()')) 'home content controller still passes raw liked ids provider output',
+        if (controller.contains('final likedSongIds = _libraryAccess.likedSongIds();')) 'home content controller still snapshots raw liked ids provider output',
+        if (!controller.contains('_currentUserId() == userId')) 'home content controller does not compare scoped loads against normalized current user',
+        if (!bootstrap.contains('sessionAccess: HomeContentSessionAccess(')) 'feature bootstrap does not inject home content session access boundary',
+        if (!bootstrap.contains('watchSession: (onChanged)')) 'feature bootstrap does not bind home content session watcher',
+        if (!controller.contains('currentUserId: userId')) 'home content controller does not pass current user when resolving frequent playlist',
+        if (!controller.contains('playlistIndex: index')) 'home content controller does not reuse fetched playlist index for playback songs',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: '常用歌单 Widget 只发起播放意图，歌单摘要到播放队列的解析必须留在 RecommendationController，避免 UI 直接读喜欢列表和 PlaylistRepository。',
+        reason: '常用歌单 Widget 只发起播放意图，歌单摘要到播放队列的解析必须留在 HomeContentController，避免 UI 直接读喜欢列表和 PlaylistRepository。',
       );
     });
 
@@ -3513,17 +3513,17 @@ void main() {
       );
       final page = pageFile.readAsStringSync();
       final violations = <String>[
-        if (page.contains('RecommendationController.to')) '${_relativePath(pageFile)} reads recommendation controller globally',
+        if (page.contains('HomeContentController.to')) '${_relativePath(pageFile)} reads home content controller globally',
         if (page.contains('PlaylistRepository')) '${_relativePath(pageFile)} names playlist repository directly',
         if (page.contains('UserLibraryController')) '${_relativePath(pageFile)} reads user library directly',
-        if (!page.contains('class TodayPageView extends GetView<RecommendationController>')) '${_relativePath(pageFile)} does not use page controller boundary',
+        if (!page.contains('class TodayPageView extends GetView<HomeContentController>')) '${_relativePath(pageFile)} does not use page controller boundary',
         if (!page.contains('final songs = controller.todayRecommendSongs')) '${_relativePath(pageFile)} does not read songs through page controller boundary',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: '今日推荐页只能展示 RecommendationController 暴露的推荐队列并提交播放意图，不能直接读取资料库或 repository。',
+        reason: '今日推荐页只能展示 HomeContentController 暴露的推荐队列并提交播放意图，不能直接读取资料库或 repository。',
       );
     });
 
@@ -3537,8 +3537,8 @@ void main() {
       final standardHomeFile = File(
         '${projectRoot.path}/lib/ui/pages/user/widgets/standard_personal_home_page.dart',
       );
-      final recommendationControllerFile = File(
-        '${projectRoot.path}/lib/features/user/recommendation_controller.dart',
+      final homeContentControllerFile = File(
+        '${projectRoot.path}/lib/features/user/home_content_controller.dart',
       );
       final recommendedPageFile = File(
         '${projectRoot.path}/lib/ui/pages/user/recommended_playlists_page.dart',
@@ -3549,7 +3549,7 @@ void main() {
       final shell = shellFile.readAsStringSync();
       final appBody = appBodyFile.readAsStringSync();
       final standardHome = standardHomeFile.readAsStringSync();
-      final recommendationController = recommendationControllerFile.readAsStringSync();
+      final homeContentController = homeContentControllerFile.readAsStringSync();
       final violations = <String>[
         if (recommendedPageFile.existsSync()) '${_relativePath(recommendedPageFile)} still exposes a dedicated recommendation page',
         if (recommendedSliversFile.existsSync()) '${_relativePath(recommendedSliversFile)} still exposes recommendation feed slivers',
@@ -3560,10 +3560,10 @@ void main() {
         if (standardHome.contains('RecommendedPlaylist')) '${_relativePath(standardHomeFile)} renders recommendation feed widgets',
         if (standardHome.contains('updateRecoPlayLists(getMore: true)')) '${_relativePath(standardHomeFile)} keeps recommendation feed pagination',
         if (standardHome.contains('enablePullUp: true')) '${_relativePath(standardHomeFile)} keeps home feed pull-up loading',
-        if (recommendationController.contains('recoPlayLists')) '${_relativePath(recommendationControllerFile)} keeps recommendation feed state',
-        if (recommendationController.contains('updateRecoPlayLists')) '${_relativePath(recommendationControllerFile)} keeps recommendation feed refresh API',
-        if (recommendationController.contains('_recoPlaylist')) '${_relativePath(recommendationControllerFile)} keeps recommendation feed generation state',
-        if (recommendationController.contains('fetchRecommendedPlaylists(')) '${_relativePath(recommendationControllerFile)} fetches recommendation feed data',
+        if (homeContentController.contains('recoPlayLists')) '${_relativePath(homeContentControllerFile)} keeps recommended playlist feed state',
+        if (homeContentController.contains('updateRecoPlayLists')) '${_relativePath(homeContentControllerFile)} keeps recommended playlist feed refresh API',
+        if (homeContentController.contains('_recoPlaylist')) '${_relativePath(homeContentControllerFile)} keeps recommended playlist feed generation state',
+        if (homeContentController.contains('fetchRecommendedPlaylists(')) '${_relativePath(homeContentControllerFile)} fetches recommended playlist feed data',
       ];
 
       expect(

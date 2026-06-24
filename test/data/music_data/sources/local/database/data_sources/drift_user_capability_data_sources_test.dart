@@ -51,6 +51,19 @@ void main() {
       expect(userB?.nickname, 'Bob');
     });
 
+    test('normalizes profile user ids at dao boundary', () async {
+      await profileDataSource.saveProfile(_profile(' user-a ', nickname: 'Alice'));
+      await profileDataSource.saveProfile(_profile(' ', nickname: 'Blank'));
+
+      final normalized = await profileDataSource.loadProfile('user-a');
+      final spaced = await profileDataSource.loadProfile(' user-a ');
+      final blank = await profileDataSource.loadProfile(' ');
+
+      expect(normalized?.nickname, 'Alice');
+      expect(spaced?.nickname, 'Alice');
+      expect(blank, isNull);
+    });
+
     test('stores track lists by user id and list kind', () async {
       await trackListDataSource.replaceTrackList(
         'user-a',
@@ -117,6 +130,67 @@ void main() {
       expect(userBState, isFalse);
     });
 
+    test('normalizes scoped track list and subscription keys at dao boundary', () async {
+      await trackListDataSource.replaceTrackList(
+        ' user-a ',
+        UserTrackListKind.liked,
+        const [' 1 ', ' ', '2'],
+      );
+      await trackListDataSource.appendTrackList(
+        'user-a',
+        UserTrackListKind.liked,
+        const [' 3 ', ''],
+        startOrder: 2,
+      );
+      await trackListDataSource.replaceTrackList(
+        ' ',
+        UserTrackListKind.cloud,
+        const ['cloud-1'],
+      );
+      await subscriptionDataSource.savePlaylistSubscriptionState(
+        ' user-a ',
+        ' playlist ',
+        true,
+      );
+      await subscriptionDataSource.savePlaylistSubscriptionState(
+        ' ',
+        'playlist',
+        false,
+      );
+
+      final liked = await trackListDataSource.loadTrackIds(
+        'user-a',
+        UserTrackListKind.liked,
+      );
+      final spacedLiked = await trackListDataSource.loadTrackIds(
+        ' user-a ',
+        UserTrackListKind.liked,
+      );
+      final blankCloud = await trackListDataSource.loadTrackIds(
+        ' ',
+        UserTrackListKind.cloud,
+      );
+      final subscription = await subscriptionDataSource.loadPlaylistSubscriptionState(
+        'user-a',
+        'playlist',
+      );
+      final spacedSubscription = await subscriptionDataSource.loadPlaylistSubscriptionState(
+        ' user-a ',
+        ' playlist ',
+      );
+      final blankSubscription = await subscriptionDataSource.loadPlaylistSubscriptionState(
+        ' ',
+        'playlist',
+      );
+
+      expect(liked, ['1', '2', '3']);
+      expect(spacedLiked, ['1', '2', '3']);
+      expect(blankCloud, isEmpty);
+      expect(subscription, isTrue);
+      expect(spacedSubscription, isTrue);
+      expect(blankSubscription, isNull);
+    });
+
     test('stores sync markers by user id and marker key', () async {
       await syncMarkerDataSource.markSyncMarkerUpdated('user-a', 'liked');
       await syncMarkerDataSource.markSyncMarkerUpdated('user-b', 'liked');
@@ -139,6 +213,34 @@ void main() {
       expect(userALiked, isNotNull);
       expect(userACloud, isNotNull);
       expect(userBLiked, isNull);
+    });
+
+    test('normalizes sync marker scope at dao boundary', () async {
+      await syncMarkerDataSource.markSyncMarkerUpdated(' user-a ', ' liked ');
+      await syncMarkerDataSource.markSyncMarkerUpdated(' ', 'ignored');
+
+      final normalized = await syncMarkerDataSource.loadSyncMarker(
+        'user-a',
+        'liked',
+      );
+      final spaced = await syncMarkerDataSource.loadSyncMarker(
+        ' user-a ',
+        ' liked ',
+      );
+      final blank = await syncMarkerDataSource.loadSyncMarker(
+        ' ',
+        'ignored',
+      );
+      await syncMarkerDataSource.clearSyncMarker('user-a', 'liked');
+      final cleared = await syncMarkerDataSource.loadSyncMarker(
+        ' user-a ',
+        ' liked ',
+      );
+
+      expect(normalized, isNotNull);
+      expect(spaced, isNotNull);
+      expect(blank, isNull);
+      expect(cleared, isNull);
     });
   });
 }

@@ -3453,6 +3453,50 @@ void main() {
       );
     });
 
+    test('user scoped dao normalizes persisted scope keys', () {
+      final profileDaoFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/database/dao/user_profile_dao.dart',
+      );
+      final trackListDaoFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/database/dao/user_track_list_dao.dart',
+      );
+      final subscriptionDaoFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/database/dao/user_playlist_subscription_dao.dart',
+      );
+      final syncMarkerDaoFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/database/dao/user_sync_marker_dao.dart',
+      );
+      final profileDao = profileDaoFile.readAsStringSync();
+      final trackListDao = trackListDaoFile.readAsStringSync();
+      final subscriptionDao = subscriptionDaoFile.readAsStringSync();
+      final syncMarkerDao = syncMarkerDaoFile.readAsStringSync();
+      final violations = <String>[
+        if (!profileDao.contains('String _normalizedUserId(String userId)')) '${_relativePath(profileDaoFile)} does not normalize profile user ids',
+        if (!profileDao.contains('if (_isBlankUserId(normalizedUserId))')) '${_relativePath(profileDaoFile)} can still read or write blank profile user ids',
+        if (!profileDao.contains('userId: drift.Value(normalizedUserId)')) '${_relativePath(profileDaoFile)} can still write raw profile user ids',
+        if (!trackListDao.contains('String _normalizedUserId(String userId)')) '${_relativePath(trackListDaoFile)} does not normalize track list user ids',
+        if (!trackListDao.contains('String _normalizedTrackId(String trackId)')) '${_relativePath(trackListDaoFile)} does not normalize scoped track ids',
+        if (!trackListDao.contains('List<String> _normalizedTrackIds(List<String> trackIds)')) '${_relativePath(trackListDaoFile)} does not filter track lists through a normalized helper',
+        if (!trackListDao.contains('userId: normalizedUserId')) '${_relativePath(trackListDaoFile)} can still insert raw replacement user ids',
+        if (!trackListDao.contains('userId: drift.Value(normalizedUserId)')) '${_relativePath(trackListDaoFile)} can still upsert raw user ids',
+        if (!trackListDao.contains('trackId: drift.Value(normalizedTrackId)')) '${_relativePath(trackListDaoFile)} can still upsert raw track ids',
+        if (!subscriptionDao.contains('String _normalizedUserId(String userId)')) '${_relativePath(subscriptionDaoFile)} does not normalize subscription user ids',
+        if (!subscriptionDao.contains('String _normalizedPlaylistId(String playlistId)')) '${_relativePath(subscriptionDaoFile)} does not normalize subscription playlist ids',
+        if (!subscriptionDao.contains('userId: drift.Value(normalizedUserId)')) '${_relativePath(subscriptionDaoFile)} can still write raw subscription user ids',
+        if (!subscriptionDao.contains('playlistId: drift.Value(normalizedPlaylistId)')) '${_relativePath(subscriptionDaoFile)} can still write raw subscription playlist ids',
+        if (!syncMarkerDao.contains('String _normalizedUserId(String userId)')) '${_relativePath(syncMarkerDaoFile)} does not normalize sync marker user ids',
+        if (!syncMarkerDao.contains('String _normalizedMarkerKey(String markerKey)')) '${_relativePath(syncMarkerDaoFile)} does not normalize marker keys',
+        if (!syncMarkerDao.contains('userId: drift.Value(normalizedUserId)')) '${_relativePath(syncMarkerDaoFile)} can still write raw marker user ids',
+        if (!syncMarkerDao.contains('markerKey: drift.Value(normalizedMarkerKey)')) '${_relativePath(syncMarkerDaoFile)} can still write raw marker keys',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '账号作用域事实表的 DAO 持久化边界必须归一 userId、playlistId、trackId 和 markerKey，并拒绝空白 key，不能只依赖上层 repository。',
+      );
+    });
+
     test('core entities and data do not import legacy common UI constants', () {
       final violations = _dartFiles(libDirectory)
           .where((file) {

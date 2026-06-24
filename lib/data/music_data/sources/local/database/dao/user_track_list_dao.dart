@@ -14,9 +14,13 @@ class UserTrackListDao {
     String userId,
     UserTrackListKind kind,
   ) async {
+    final normalizedUserId = _normalizedUserId(userId);
+    if (_isBlankUserId(normalizedUserId)) {
+      return const <String>[];
+    }
     final rows = await (_database.select(_database.userTrackListRefs)
           ..where(
-            (tbl) => tbl.userId.equals(userId) & tbl.listKind.equals(kind.name),
+            (tbl) => tbl.userId.equals(normalizedUserId) & tbl.listKind.equals(kind.name),
           )
           ..orderBy([(tbl) => drift.OrderingTerm.asc(tbl.sortOrder)]))
         .get();
@@ -29,25 +33,30 @@ class UserTrackListDao {
     UserTrackListKind kind,
     List<String> trackIds,
   ) async {
+    final normalizedUserId = _normalizedUserId(userId);
+    if (_isBlankUserId(normalizedUserId)) {
+      return;
+    }
+    final normalizedTrackIds = _normalizedTrackIds(trackIds);
     await _database.transaction(() async {
       await (_database.delete(_database.userTrackListRefs)
             ..where(
-              (tbl) => tbl.userId.equals(userId) & tbl.listKind.equals(kind.name),
+              (tbl) => tbl.userId.equals(normalizedUserId) & tbl.listKind.equals(kind.name),
             ))
           .go();
-      if (trackIds.isEmpty) {
+      if (normalizedTrackIds.isEmpty) {
         return;
       }
       final now = DateTime.now().millisecondsSinceEpoch;
       await _database.batch((batch) {
         batch.insertAll(
           _database.userTrackListRefs,
-          trackIds
+          normalizedTrackIds
               .asMap()
               .entries
               .map(
                 (entry) => db.UserTrackListRefsCompanion.insert(
-                  userId: userId,
+                  userId: normalizedUserId,
                   listKind: kind.name,
                   trackId: entry.value,
                   sortOrder: entry.key,
@@ -67,19 +76,21 @@ class UserTrackListDao {
     List<String> trackIds, {
     required int startOrder,
   }) async {
-    if (trackIds.isEmpty) {
+    final normalizedUserId = _normalizedUserId(userId);
+    final normalizedTrackIds = _normalizedTrackIds(trackIds);
+    if (_isBlankUserId(normalizedUserId) || normalizedTrackIds.isEmpty) {
       return;
     }
     final now = DateTime.now().millisecondsSinceEpoch;
     await _database.batch((batch) {
       batch.insertAllOnConflictUpdate(
         _database.userTrackListRefs,
-        trackIds
+        normalizedTrackIds
             .asMap()
             .entries
             .map(
               (entry) => db.UserTrackListRefsCompanion(
-                userId: drift.Value(userId),
+                userId: drift.Value(normalizedUserId),
                 listKind: drift.Value(kind.name),
                 trackId: drift.Value(entry.value),
                 sortOrder: drift.Value(startOrder + entry.key),
@@ -98,13 +109,18 @@ class UserTrackListDao {
     String trackId, {
     int? sortOrder,
   }) async {
-    await deleteTrackRef(userId, kind, trackId);
-    final resolvedOrder = sortOrder ?? await nextTrackSortOrder(userId, kind);
+    final normalizedUserId = _normalizedUserId(userId);
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankUserId(normalizedUserId) || _isBlankTrackId(normalizedTrackId)) {
+      return;
+    }
+    await deleteTrackRef(normalizedUserId, kind, normalizedTrackId);
+    final resolvedOrder = sortOrder ?? await nextTrackSortOrder(normalizedUserId, kind);
     await _database.into(_database.userTrackListRefs).insertOnConflictUpdate(
           db.UserTrackListRefsCompanion(
-            userId: drift.Value(userId),
+            userId: drift.Value(normalizedUserId),
             listKind: drift.Value(kind.name),
-            trackId: drift.Value(trackId),
+            trackId: drift.Value(normalizedTrackId),
             sortOrder: drift.Value(resolvedOrder),
             updatedAtMs: drift.Value(DateTime.now().millisecondsSinceEpoch),
           ),
@@ -117,9 +133,14 @@ class UserTrackListDao {
     UserTrackListKind kind,
     String trackId,
   ) {
+    final normalizedUserId = _normalizedUserId(userId);
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankUserId(normalizedUserId) || _isBlankTrackId(normalizedTrackId)) {
+      return Future<void>.value();
+    }
     return (_database.delete(_database.userTrackListRefs)
           ..where(
-            (tbl) => tbl.userId.equals(userId) & tbl.listKind.equals(kind.name) & tbl.trackId.equals(trackId),
+            (tbl) => tbl.userId.equals(normalizedUserId) & tbl.listKind.equals(kind.name) & tbl.trackId.equals(normalizedTrackId),
           ))
         .go();
   }
@@ -129,9 +150,13 @@ class UserTrackListDao {
     String userId,
     UserTrackListKind kind,
   ) async {
+    final normalizedUserId = _normalizedUserId(userId);
+    if (_isBlankUserId(normalizedUserId)) {
+      return 0;
+    }
     final row = await (_database.select(_database.userTrackListRefs)
           ..where(
-            (tbl) => tbl.userId.equals(userId) & tbl.listKind.equals(kind.name),
+            (tbl) => tbl.userId.equals(normalizedUserId) & tbl.listKind.equals(kind.name),
           )
           ..orderBy([(tbl) => drift.OrderingTerm.desc(tbl.sortOrder)])
           ..limit(1))
@@ -140,5 +165,25 @@ class UserTrackListDao {
       return 0;
     }
     return row.sortOrder + 1;
+  }
+
+  String _normalizedUserId(String userId) {
+    return userId.trim();
+  }
+
+  bool _isBlankUserId(String userId) {
+    return userId.isEmpty;
+  }
+
+  String _normalizedTrackId(String trackId) {
+    return trackId.trim();
+  }
+
+  bool _isBlankTrackId(String trackId) {
+    return trackId.isEmpty;
+  }
+
+  List<String> _normalizedTrackIds(List<String> trackIds) {
+    return trackIds.map(_normalizedTrackId).where((trackId) => !_isBlankTrackId(trackId)).toList();
   }
 }

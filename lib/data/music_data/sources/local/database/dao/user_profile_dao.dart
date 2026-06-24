@@ -11,7 +11,11 @@ class UserProfileDao {
 
   /// 读取用户资料。
   Future<UserProfileData?> loadProfile(String userId) async {
-    final row = await (_database.select(_database.userProfiles)..where((tbl) => tbl.userId.equals(userId))).getSingleOrNull();
+    final normalizedUserId = _normalizedUserId(userId);
+    if (_isBlankUserId(normalizedUserId)) {
+      return null;
+    }
+    final row = await (_database.select(_database.userProfiles)..where((tbl) => tbl.userId.equals(normalizedUserId))).getSingleOrNull();
     if (row == null) {
       return null;
     }
@@ -28,9 +32,13 @@ class UserProfileDao {
 
   /// 保存用户资料。
   Future<void> saveProfile(UserProfileData profile) {
+    final normalizedUserId = _normalizedUserId(profile.userId);
+    if (_isBlankUserId(normalizedUserId)) {
+      return Future<void>.value();
+    }
     return _database.into(_database.userProfiles).insertOnConflictUpdate(
           db.UserProfilesCompanion(
-            userId: drift.Value(profile.userId),
+            userId: drift.Value(normalizedUserId),
             nickname: drift.Value(profile.nickname),
             signature: drift.Value(profile.signature),
             follows: drift.Value(profile.follows),
@@ -40,5 +48,13 @@ class UserProfileDao {
             updatedAtMs: drift.Value(DateTime.now().millisecondsSinceEpoch),
           ),
         );
+  }
+
+  String _normalizedUserId(String userId) {
+    return userId.trim();
+  }
+
+  bool _isBlankUserId(String userId) {
+    return userId.isEmpty;
   }
 }

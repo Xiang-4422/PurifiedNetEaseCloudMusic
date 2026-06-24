@@ -6,6 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+const _loginQrRefreshControlLabel = '刷新登录二维码';
+
+/// 登录二维码刷新按钮的稳定标签。
+@visibleForTesting
+String loginQrRefreshControlLabel() => _loginQrRefreshControlLabel;
+
 /// 二维码登录页面，负责展示登录二维码并在登录成功后跳转首页。
 class LoginPageView extends StatefulWidget {
   /// 创建二维码登录页面。
@@ -59,33 +65,50 @@ class _LoginPageViewState extends State<LoginPageView> {
                     message: controller.hintText.value,
                     onRetry: controller.refreshQrCode,
                   )
-                : GestureDetector(
-                    onTap: controller.refreshQrCode,
-                    child: Container(
-                      color: Colors.white,
-                      alignment: Alignment.center,
-                      child: Stack(
-                        alignment: Alignment.bottomCenter,
-                        children: [
-                          QrImageView(
-                            backgroundColor: Colors.white,
-                            data: controller.qrCodeUrl.value,
-                            version: QrVersions.auto,
-                            padding: const EdgeInsets.all(100),
-                          ),
-                          Container(
-                            height: 100,
-                            alignment: Alignment.center,
-                            child: Text(
+                : Container(
+                    color: Colors.white,
+                    alignment: Alignment.center,
+                    child: SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Flexible(
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 420,
+                                  maxHeight: 420,
+                                ),
+                                child: QrImageView(
+                                  backgroundColor: Colors.white,
+                                  data: controller.qrCodeUrl.value,
+                                  version: QrVersions.auto,
+                                  padding: const EdgeInsets.all(32),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            Text(
                               controller.hintText.value,
+                              textAlign: TextAlign.center,
                               style: const TextStyle(
-                                fontSize: 28,
+                                fontSize: 24,
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 16),
+                            Tooltip(
+                              message: loginQrRefreshControlLabel(),
+                              child: OutlinedButton.icon(
+                                onPressed: controller.refreshQrCode,
+                                icon: const Icon(Icons.refresh),
+                                label: Text(loginQrRefreshControlLabel()),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

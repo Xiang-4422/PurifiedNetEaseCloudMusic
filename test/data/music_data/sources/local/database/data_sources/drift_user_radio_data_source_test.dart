@@ -52,6 +52,57 @@ void main() {
       expect(items.map((item) => item.name), ['First Radio', 'Second Radio']);
     });
 
+    test('normalizes subscribed radio scope keys at dao boundary', () async {
+      await dataSource.replaceSubscribedRadios(
+        ' user ',
+        const [
+          RadioSummaryData(
+            id: ' radio-1 ',
+            name: 'First Radio',
+            coverUrl: 'cover-1',
+            lastProgramName: 'first latest',
+          ),
+          RadioSummaryData(
+            id: ' ',
+            name: 'Blank Radio',
+            coverUrl: 'blank-cover',
+            lastProgramName: 'blank latest',
+          ),
+        ],
+      );
+      await dataSource.appendSubscribedRadios(
+        'user',
+        const [
+          RadioSummaryData(
+            id: ' radio-2 ',
+            name: 'Second Radio',
+            coverUrl: 'cover-2',
+            lastProgramName: 'second latest',
+          ),
+        ],
+        startOrder: 1,
+      );
+      await dataSource.replaceSubscribedRadios(
+        ' ',
+        const [
+          RadioSummaryData(
+            id: 'radio-blank-user',
+            name: 'Blank User Radio',
+            coverUrl: 'blank-user-cover',
+            lastProgramName: 'blank user latest',
+          ),
+        ],
+      );
+
+      final normalized = await dataSource.loadSubscribedRadios('user');
+      final spaced = await dataSource.loadSubscribedRadios(' user ');
+      final blank = await dataSource.loadSubscribedRadios(' ');
+
+      expect(normalized.map((item) => item.id), ['radio-1', 'radio-2']);
+      expect(spaced.map((item) => item.id), ['radio-1', 'radio-2']);
+      expect(blank, isEmpty);
+    });
+
     test('stores programs per radio and direction', () async {
       await dataSource.replacePrograms(
         'user',
@@ -116,6 +167,88 @@ void main() {
 
       expect(ascItems.map((item) => item.id), ['program-1', 'program-2']);
       expect(descItems.map((item) => item.id), ['program-desc']);
+    });
+
+    test('normalizes program scope keys at dao boundary', () async {
+      await dataSource.replacePrograms(
+        ' user ',
+        ' radio ',
+        asc: true,
+        items: const [
+          RadioProgramData(
+            id: ' program-1 ',
+            mainTrackId: ' track-1 ',
+            title: 'First Program',
+            coverUrl: 'cover-1',
+            artistName: 'Artist 1',
+            albumTitle: 'Album 1',
+            durationMs: 1000,
+          ),
+          RadioProgramData(
+            id: ' ',
+            mainTrackId: 'blank-track',
+            title: 'Blank Program',
+            coverUrl: 'blank-cover',
+            artistName: 'Blank Artist',
+            albumTitle: 'Blank Album',
+            durationMs: 0,
+          ),
+        ],
+      );
+      await dataSource.appendPrograms(
+        'user',
+        'radio',
+        asc: true,
+        items: const [
+          RadioProgramData(
+            id: ' program-2 ',
+            mainTrackId: ' track-2 ',
+            title: 'Second Program',
+            coverUrl: 'cover-2',
+            artistName: 'Artist 2',
+            albumTitle: 'Album 2',
+            durationMs: 2000,
+          ),
+        ],
+        startOrder: 1,
+      );
+      await dataSource.replacePrograms(
+        ' ',
+        'radio',
+        asc: true,
+        items: const [
+          RadioProgramData(
+            id: 'blank-user-program',
+            mainTrackId: 'blank-user-track',
+            title: 'Blank User Program',
+            coverUrl: 'blank-user-cover',
+            artistName: 'Blank User Artist',
+            albumTitle: 'Blank User Album',
+            durationMs: 3000,
+          ),
+        ],
+      );
+
+      final normalized = await dataSource.loadPrograms(
+        'user',
+        'radio',
+        asc: true,
+      );
+      final spaced = await dataSource.loadPrograms(
+        ' user ',
+        ' radio ',
+        asc: true,
+      );
+      final blank = await dataSource.loadPrograms(
+        ' ',
+        'radio',
+        asc: true,
+      );
+
+      expect(normalized.map((item) => item.id), ['program-1', 'program-2']);
+      expect(normalized.map((item) => item.mainTrackId), ['track-1', 'track-2']);
+      expect(spaced.map((item) => item.id), ['program-1', 'program-2']);
+      expect(blank, isEmpty);
     });
   });
 }

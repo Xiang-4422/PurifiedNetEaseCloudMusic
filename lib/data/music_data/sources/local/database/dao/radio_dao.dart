@@ -11,8 +11,12 @@ class RadioDao {
 
   /// 读取用户订阅电台列表。
   Future<List<RadioSummaryData>> loadSubscribedRadios(String userId) async {
+    final normalizedUserId = _normalizedUserId(userId);
+    if (_isBlankUserId(normalizedUserId)) {
+      return const <RadioSummaryData>[];
+    }
     final rows = await (_database.select(_database.userRadioSubscriptions)
-          ..where((tbl) => tbl.userId.equals(userId))
+          ..where((tbl) => tbl.userId.equals(normalizedUserId))
           ..orderBy([(tbl) => drift.OrderingTerm.asc(tbl.sortOrder)]))
         .get();
     return rows
@@ -32,21 +36,26 @@ class RadioDao {
     String userId,
     List<RadioSummaryData> items,
   ) async {
+    final normalizedUserId = _normalizedUserId(userId);
+    if (_isBlankUserId(normalizedUserId)) {
+      return;
+    }
+    final normalizedItems = _normalizedRadioSummaries(items);
     await _database.transaction(() async {
-      await (_database.delete(_database.userRadioSubscriptions)..where((tbl) => tbl.userId.equals(userId))).go();
-      if (items.isEmpty) {
+      await (_database.delete(_database.userRadioSubscriptions)..where((tbl) => tbl.userId.equals(normalizedUserId))).go();
+      if (normalizedItems.isEmpty) {
         return;
       }
       final now = DateTime.now().millisecondsSinceEpoch;
       await _database.batch((batch) {
         batch.insertAll(
           _database.userRadioSubscriptions,
-          items
+          normalizedItems
               .asMap()
               .entries
               .map(
                 (entry) => db.UserRadioSubscriptionsCompanion.insert(
-                  userId: userId,
+                  userId: normalizedUserId,
                   radioId: entry.value.id,
                   sortOrder: entry.key,
                   name: entry.value.name,
@@ -67,19 +76,21 @@ class RadioDao {
     List<RadioSummaryData> items, {
     required int startOrder,
   }) async {
-    if (items.isEmpty) {
+    final normalizedUserId = _normalizedUserId(userId);
+    final normalizedItems = _normalizedRadioSummaries(items);
+    if (_isBlankUserId(normalizedUserId) || normalizedItems.isEmpty) {
       return;
     }
     final now = DateTime.now().millisecondsSinceEpoch;
     await _database.batch((batch) {
       batch.insertAllOnConflictUpdate(
         _database.userRadioSubscriptions,
-        items
+        normalizedItems
             .asMap()
             .entries
             .map(
               (entry) => db.UserRadioSubscriptionsCompanion(
-                userId: drift.Value(userId),
+                userId: drift.Value(normalizedUserId),
                 radioId: drift.Value(entry.value.id),
                 sortOrder: drift.Value(startOrder + entry.key),
                 name: drift.Value(entry.value.name),
@@ -99,9 +110,14 @@ class RadioDao {
     String radioId, {
     required bool asc,
   }) async {
+    final normalizedUserId = _normalizedUserId(userId);
+    final normalizedRadioId = _normalizedRadioId(radioId);
+    if (_isBlankUserId(normalizedUserId) || _isBlankRadioId(normalizedRadioId)) {
+      return const <RadioProgramData>[];
+    }
     final rows = await (_database.select(_database.userRadioPrograms)
           ..where(
-            (tbl) => tbl.userId.equals(userId) & tbl.radioId.equals(radioId) & tbl.asc.equals(asc),
+            (tbl) => tbl.userId.equals(normalizedUserId) & tbl.radioId.equals(normalizedRadioId) & tbl.asc.equals(asc),
           )
           ..orderBy([(tbl) => drift.OrderingTerm.asc(tbl.sortOrder)]))
         .get();
@@ -127,26 +143,32 @@ class RadioDao {
     required bool asc,
     required List<RadioProgramData> items,
   }) async {
+    final normalizedUserId = _normalizedUserId(userId);
+    final normalizedRadioId = _normalizedRadioId(radioId);
+    if (_isBlankUserId(normalizedUserId) || _isBlankRadioId(normalizedRadioId)) {
+      return;
+    }
+    final normalizedItems = _normalizedPrograms(items);
     await _database.transaction(() async {
       await (_database.delete(_database.userRadioPrograms)
             ..where(
-              (tbl) => tbl.userId.equals(userId) & tbl.radioId.equals(radioId) & tbl.asc.equals(asc),
+              (tbl) => tbl.userId.equals(normalizedUserId) & tbl.radioId.equals(normalizedRadioId) & tbl.asc.equals(asc),
             ))
           .go();
-      if (items.isEmpty) {
+      if (normalizedItems.isEmpty) {
         return;
       }
       final now = DateTime.now().millisecondsSinceEpoch;
       await _database.batch((batch) {
         batch.insertAll(
           _database.userRadioPrograms,
-          items
+          normalizedItems
               .asMap()
               .entries
               .map(
                 (entry) => db.UserRadioProgramsCompanion.insert(
-                  userId: userId,
-                  radioId: radioId,
+                  userId: normalizedUserId,
+                  radioId: normalizedRadioId,
                   asc: asc,
                   programId: entry.value.id,
                   sortOrder: entry.key,
@@ -173,20 +195,23 @@ class RadioDao {
     required List<RadioProgramData> items,
     required int startOrder,
   }) async {
-    if (items.isEmpty) {
+    final normalizedUserId = _normalizedUserId(userId);
+    final normalizedRadioId = _normalizedRadioId(radioId);
+    final normalizedItems = _normalizedPrograms(items);
+    if (_isBlankUserId(normalizedUserId) || _isBlankRadioId(normalizedRadioId) || normalizedItems.isEmpty) {
       return;
     }
     final now = DateTime.now().millisecondsSinceEpoch;
     await _database.batch((batch) {
       batch.insertAllOnConflictUpdate(
         _database.userRadioPrograms,
-        items
+        normalizedItems
             .asMap()
             .entries
             .map(
               (entry) => db.UserRadioProgramsCompanion(
-                userId: drift.Value(userId),
-                radioId: drift.Value(radioId),
+                userId: drift.Value(normalizedUserId),
+                radioId: drift.Value(normalizedRadioId),
                 asc: drift.Value(asc),
                 programId: drift.Value(entry.value.id),
                 sortOrder: drift.Value(startOrder + entry.key),
@@ -202,5 +227,60 @@ class RadioDao {
             .toList(),
       );
     });
+  }
+
+  String _normalizedUserId(String userId) {
+    return userId.trim();
+  }
+
+  bool _isBlankUserId(String userId) {
+    return userId.isEmpty;
+  }
+
+  String _normalizedRadioId(String radioId) {
+    return radioId.trim();
+  }
+
+  bool _isBlankRadioId(String radioId) {
+    return radioId.isEmpty;
+  }
+
+  String _normalizedProgramId(String programId) {
+    return programId.trim();
+  }
+
+  bool _isBlankProgramId(String programId) {
+    return programId.isEmpty;
+  }
+
+  List<RadioSummaryData> _normalizedRadioSummaries(List<RadioSummaryData> items) {
+    return items
+        .map(
+          (item) => RadioSummaryData(
+            id: _normalizedRadioId(item.id),
+            name: item.name,
+            coverUrl: item.coverUrl,
+            lastProgramName: item.lastProgramName,
+          ),
+        )
+        .where((item) => !_isBlankRadioId(item.id))
+        .toList();
+  }
+
+  List<RadioProgramData> _normalizedPrograms(List<RadioProgramData> items) {
+    return items
+        .map(
+          (item) => RadioProgramData(
+            id: _normalizedProgramId(item.id),
+            mainTrackId: item.mainTrackId.trim(),
+            title: item.title,
+            coverUrl: item.coverUrl,
+            artistName: item.artistName,
+            albumTitle: item.albumTitle,
+            durationMs: item.durationMs,
+          ),
+        )
+        .where((item) => !_isBlankProgramId(item.id))
+        .toList();
   }
 }

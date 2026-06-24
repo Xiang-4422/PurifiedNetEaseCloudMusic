@@ -3466,10 +3466,14 @@ void main() {
       final syncMarkerDaoFile = File(
         '${projectRoot.path}/lib/data/music_data/sources/local/database/dao/user_sync_marker_dao.dart',
       );
+      final radioDaoFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/database/dao/radio_dao.dart',
+      );
       final profileDao = profileDaoFile.readAsStringSync();
       final trackListDao = trackListDaoFile.readAsStringSync();
       final subscriptionDao = subscriptionDaoFile.readAsStringSync();
       final syncMarkerDao = syncMarkerDaoFile.readAsStringSync();
+      final radioDao = radioDaoFile.readAsStringSync();
       final violations = <String>[
         if (!profileDao.contains('String _normalizedUserId(String userId)')) '${_relativePath(profileDaoFile)} does not normalize profile user ids',
         if (!profileDao.contains('if (_isBlankUserId(normalizedUserId))')) '${_relativePath(profileDaoFile)} can still read or write blank profile user ids',
@@ -3488,12 +3492,23 @@ void main() {
         if (!syncMarkerDao.contains('String _normalizedMarkerKey(String markerKey)')) '${_relativePath(syncMarkerDaoFile)} does not normalize marker keys',
         if (!syncMarkerDao.contains('userId: drift.Value(normalizedUserId)')) '${_relativePath(syncMarkerDaoFile)} can still write raw marker user ids',
         if (!syncMarkerDao.contains('markerKey: drift.Value(normalizedMarkerKey)')) '${_relativePath(syncMarkerDaoFile)} can still write raw marker keys',
+        if (!radioDao.contains('String _normalizedUserId(String userId)')) '${_relativePath(radioDaoFile)} does not normalize radio user ids',
+        if (!radioDao.contains('String _normalizedRadioId(String radioId)')) '${_relativePath(radioDaoFile)} does not normalize radio ids',
+        if (!radioDao.contains('String _normalizedProgramId(String programId)')) '${_relativePath(radioDaoFile)} does not normalize program ids',
+        if (!radioDao.contains('List<RadioSummaryData> _normalizedRadioSummaries(List<RadioSummaryData> items)')) '${_relativePath(radioDaoFile)} does not normalize subscribed radio lists through a helper',
+        if (!radioDao.contains('List<RadioProgramData> _normalizedPrograms(List<RadioProgramData> items)')) '${_relativePath(radioDaoFile)} does not normalize radio program lists through a helper',
+        if (!radioDao.contains('userId: normalizedUserId')) '${_relativePath(radioDaoFile)} can still insert raw radio replacement user ids',
+        if (!radioDao.contains('radioId: normalizedRadioId')) '${_relativePath(radioDaoFile)} can still insert raw program radio ids',
+        if (!radioDao.contains('userId: drift.Value(normalizedUserId)')) '${_relativePath(radioDaoFile)} can still upsert raw radio user ids',
+        if (!radioDao.contains('radioId: drift.Value(normalizedRadioId)')) '${_relativePath(radioDaoFile)} can still upsert raw program radio ids',
+        if (!radioDao.contains('id: _normalizedRadioId(item.id)')) '${_relativePath(radioDaoFile)} can still write raw subscribed radio ids',
+        if (!radioDao.contains('id: _normalizedProgramId(item.id)')) '${_relativePath(radioDaoFile)} can still write raw program ids',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: '账号作用域事实表的 DAO 持久化边界必须归一 userId、playlistId、trackId 和 markerKey，并拒绝空白 key，不能只依赖上层 repository。',
+        reason: '账号作用域事实表的 DAO 持久化边界必须归一 userId、playlistId、trackId、radioId、programId 和 markerKey，并拒绝空白 key，不能只依赖上层 repository。',
       );
     });
 

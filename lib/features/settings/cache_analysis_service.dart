@@ -86,11 +86,18 @@ class CacheAnalysisService {
   Future<CacheAnalysisResult> analyze() async {
     final supportDirectory = await getApplicationSupportDirectory();
     final temporaryDirectory = await getTemporaryDirectory();
-    final retainedResourcePaths = _retainedResourcePaths(
-      await _resourceIndexRepository.listResources(),
-    );
+    final indexedResources = await _resourceIndexRepository.listResources();
+    final retainedResourcePaths = _retainedResourcePaths(indexedResources);
     final playbackResources = await _resourceIndexRepository.listResources(
       origins: const {TrackResourceOrigin.playbackCache},
+    );
+    final playbackRetainedPaths = _retainedResourcePathsAfterRemoving(
+      indexedResources,
+      shouldRemove: (resource) => resource.origin == TrackResourceOrigin.playbackCache,
+    );
+    final playbackStats = _indexedResourceStats(
+      playbackResources,
+      retainedPaths: playbackRetainedPaths,
     );
     final categories = [
       await _analyzeDirectory(
@@ -107,11 +114,8 @@ class CacheAnalysisService {
         category: CacheCategory.playback,
         title: _titleFor(CacheCategory.playback),
         description: _descriptionFor(CacheCategory.playback),
-        sizeBytes: playbackResources.fold<int>(
-          0,
-          (sum, item) => sum + item.sizeBytes,
-        ),
-        fileCount: playbackResources.length,
+        sizeBytes: playbackStats.sizeBytes,
+        fileCount: playbackStats.fileCount,
       ),
       await _analyzeDirectory(
         CacheCategory.temporary,
@@ -173,6 +177,24 @@ class CacheAnalysisService {
       sizeBytes: stats.sizeBytes,
       fileCount: stats.fileCount,
     );
+  }
+
+  ({int sizeBytes, int fileCount}) _indexedResourceStats(
+    List<LocalResourceEntry> resources, {
+    required Set<String> retainedPaths,
+  }) {
+    final countedPaths = <String>{};
+    var sizeBytes = 0;
+    var fileCount = 0;
+    for (final resource in resources) {
+      final path = _resourceFilePath(resource);
+      if (path.isEmpty || retainedPaths.contains(path) || !countedPaths.add(path)) {
+        continue;
+      }
+      sizeBytes += resource.sizeBytes;
+      fileCount++;
+    }
+    return (sizeBytes: sizeBytes, fileCount: fileCount);
   }
 
   Future<CacheCategoryAnalysis> _analyzeIndexedResourceCacheDirectory(

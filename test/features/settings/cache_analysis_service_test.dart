@@ -95,6 +95,76 @@ void main() {
       );
     });
 
+    test('counts only clearable unique playback cache resource paths', () async {
+      final playbackCacheDirectory = Directory('${supportDirectory.path}/zmusic/playback-cache')..createSync(recursive: true);
+      final sharedPlayback = await _writeFile(
+        playbackCacheDirectory,
+        'shared.mp3',
+        size: 10,
+      );
+      final retainedPlayback = await _writeFile(
+        playbackCacheDirectory,
+        'retained.mp3',
+        size: 20,
+      );
+      final clearablePlayback = await _writeFile(
+        playbackCacheDirectory,
+        'clearable.mp3',
+        size: 30,
+      );
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        resources: [
+          _resource(
+            trackId: 'netease:1',
+            kind: LocalResourceKind.audio,
+            path: sharedPlayback.path,
+            sizeBytes: 10,
+            origin: TrackResourceOrigin.playbackCache,
+          ),
+          _resource(
+            trackId: 'netease:2',
+            kind: LocalResourceKind.audio,
+            path: sharedPlayback.uri.replace(queryParameters: {'token': 'legacy'}).toString(),
+            sizeBytes: 10,
+            origin: TrackResourceOrigin.playbackCache,
+          ),
+          _resource(
+            trackId: 'netease:3',
+            kind: LocalResourceKind.audio,
+            path: retainedPlayback.path,
+            sizeBytes: 20,
+            origin: TrackResourceOrigin.playbackCache,
+          ),
+          _resource(
+            trackId: 'netease:4',
+            kind: LocalResourceKind.audio,
+            path: retainedPlayback.path,
+            sizeBytes: 20,
+            origin: TrackResourceOrigin.managedDownload,
+          ),
+          _resource(
+            trackId: 'netease:5',
+            kind: LocalResourceKind.audio,
+            path: clearablePlayback.path,
+            sizeBytes: 30,
+            origin: TrackResourceOrigin.playbackCache,
+          ),
+        ],
+      );
+      final service = CacheAnalysisService(
+        musicDataRepository: _ThrowingMusicDataRepository(),
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      final result = await service.analyze();
+      final playback = result.categories.singleWhere(
+        (category) => category.category == CacheCategory.playback,
+      );
+
+      expect(playback.sizeBytes, 40);
+      expect(playback.fileCount, 2);
+    });
+
     test('keeps indexed resources in image directory while analyzing and clearing image cache', () async {
       final imageDirectory = Directory('${supportDirectory.path}/zmusic/image-cache')..createSync(recursive: true);
       final retainedImage = await _writeFile(

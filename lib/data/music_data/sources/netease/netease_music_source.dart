@@ -1,8 +1,10 @@
 import 'package:netease_music_api/netease_music_api.dart';
+import 'package:bujuan/core/entities/music_resource_id.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_album_mapper.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_artist_mapper.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_playlist_mapper.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_track_mapper.dart';
+import 'package:bujuan/data/music_data/sources/netease/netease_song_detail_batch_planner.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/artist_entity.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
@@ -45,7 +47,11 @@ class NeteaseMusicSource {
 
   /// 获取网易云曲目。
   Future<Track?> getTrack(String trackId) async {
-    final wrap = await _api.songDetail([_normalizeTrackId(trackId)]);
+    final normalizedTrackId = normalizeNeteaseSongId(trackId);
+    if (normalizedTrackId.isEmpty) {
+      return null;
+    }
+    final wrap = await _api.songDetail([normalizedTrackId]);
     final songs = wrap.songs;
     final song = songs == null || songs.isEmpty ? null : songs.first;
     if (song == null) {
@@ -59,8 +65,12 @@ class NeteaseMusicSource {
     String trackId, {
     String? qualityLevel,
   }) async {
+    final normalizedTrackId = normalizeNeteaseSongId(trackId);
+    if (normalizedTrackId.isEmpty) {
+      return null;
+    }
     final wrap = await _api.songDownloadUrl(
-      [_normalizeTrackId(trackId)],
+      [normalizedTrackId],
       level: qualityLevel ?? 'exhigh',
     );
     final data = wrap.data;
@@ -69,7 +79,11 @@ class NeteaseMusicSource {
 
   /// 获取网易云歌词。
   Future<TrackLyrics?> getLyrics(String trackId) async {
-    final wrap = await _api.songLyric(_normalizeTrackId(trackId));
+    final normalizedTrackId = normalizeNeteaseSongId(trackId);
+    if (normalizedTrackId.isEmpty) {
+      return null;
+    }
+    final wrap = await _api.songLyric(normalizedTrackId);
     return TrackLyrics(
       main: wrap.lrc?.lyric ?? '',
       translated: wrap.tlyric?.lyric ?? '',
@@ -78,7 +92,11 @@ class NeteaseMusicSource {
 
   /// 获取网易云歌单。
   Future<PlaylistEntity?> getPlaylist(String playlistId) async {
-    final wrap = await _api.playListDetail(_normalizePlaylistId(playlistId));
+    final normalizedPlaylistId = _normalizePlaylistSourceId(playlistId);
+    if (normalizedPlaylistId.isEmpty) {
+      return null;
+    }
+    final wrap = await _api.playListDetail(normalizedPlaylistId);
     final playlist = wrap.playlist;
     if (playlist == null) {
       return null;
@@ -86,11 +104,11 @@ class NeteaseMusicSource {
     return NeteasePlaylistMapper.fromPlaylist(playlist);
   }
 
-  String _normalizeTrackId(String trackId) {
-    return trackId.startsWith('netease:') ? trackId.substring('netease:'.length) : trackId;
-  }
-
-  String _normalizePlaylistId(String playlistId) {
-    return playlistId.startsWith('netease:') ? playlistId.substring('netease:'.length) : playlistId;
+  String _normalizePlaylistSourceId(String playlistId) {
+    final sourcePlaylistId = MusicResourceId.toNeteaseSourceId(playlistId).trim();
+    if (sourcePlaylistId.isEmpty || MusicResourceId.hasKnownPrefix(sourcePlaylistId)) {
+      return '';
+    }
+    return sourcePlaylistId;
   }
 }

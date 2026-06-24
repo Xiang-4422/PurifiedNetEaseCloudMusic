@@ -779,6 +779,34 @@ void main() {
       );
     });
 
+    test('netease music source normalizes resource ids before SDK requests', () {
+      final sourceFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/netease/netease_music_source.dart',
+      );
+      final source = sourceFile.readAsStringSync();
+      final trackNormalizationCount = RegExp(
+        r'final normalizedTrackId = normalizeNeteaseSongId\(trackId\);',
+      ).allMatches(source).length;
+      final violations = <String>[
+        if (!source.contains("import 'package:bujuan/core/entities/music_resource_id.dart';")) '${_relativePath(sourceFile)} does not use MusicResourceId for playlist source ids',
+        if (!source.contains("import 'package:bujuan/data/music_data/sources/netease/netease_song_detail_batch_planner.dart';")) '${_relativePath(sourceFile)} does not reuse netease song id normalization',
+        if (trackNormalizationCount < 3) '${_relativePath(sourceFile)} does not normalize track id before detail, playback url and lyric SDK requests',
+        if (!source.contains('_api.songDetail([normalizedTrackId])')) '${_relativePath(sourceFile)} can still fetch track detail with raw id',
+        if (!source.contains('[normalizedTrackId],\n      level: qualityLevel')) '${_relativePath(sourceFile)} can still fetch playback url with raw id',
+        if (!source.contains('_api.songLyric(normalizedTrackId)')) '${_relativePath(sourceFile)} can still fetch lyrics with raw id',
+        if (!source.contains('final normalizedPlaylistId = _normalizePlaylistSourceId(playlistId);')) '${_relativePath(sourceFile)} does not normalize playlist id before SDK request',
+        if (!source.contains('_api.playListDetail(normalizedPlaylistId)')) '${_relativePath(sourceFile)} can still fetch playlist detail with raw id',
+        if (source.contains("startsWith('netease:')")) '${_relativePath(sourceFile)} still strips netease prefixes by hand',
+        if (source.contains("substring('netease:'.length)")) '${_relativePath(sourceFile)} still strips netease prefixes by hand',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'NeteaseMusicSource 是仓库层访问网易云曲目、播放 URL、歌词和歌单的最后 SDK 边界，必须统一归一来源 id 并拒绝本地或空白 id。',
+      );
+    });
+
     test('main app imports netease api package through public facade', () {
       final violations = _dartFiles(libDirectory)
           .where(

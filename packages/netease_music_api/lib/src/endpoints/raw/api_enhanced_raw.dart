@@ -11,6 +11,7 @@ import 'package:pointycastle/digests/md5.dart';
 import 'package:qr/qr.dart';
 
 import '../../client/dio_ext.dart';
+import '../../client/ncbl.dart';
 import '../../client/netease_handler.dart';
 import '../../client/xeapi_crypto.dart';
 import '../../generated/api_enhanced_module.dart';
@@ -535,8 +536,8 @@ mixin ApiEnhancedRaw {
     };
   }
 
-  /// NCBL listening report depends on upstream direct multipart upload helpers.
-  dynamic scrobbleV1Raw(Map<String, dynamic> query) {
+  /// NCBL encrypted listening report, mirroring the upstream PLV/PLD upload flow.
+  Future<dynamic> scrobbleV1Raw(Map<String, dynamic> query) async {
     final songId = _scrobbleV1Number(query['id']);
     if (songId == null || songId == 0) {
       return {
@@ -557,15 +558,129 @@ mixin ApiEnhancedRaw {
         'body': {'code': 401, 'msg': '缺少 MUSIC_U 鉴权令牌'},
       };
     }
-    return {
-      'status': 500,
-      'body': {
-        'code': 500,
-        'msg': 'scrobble_v1 depends on upstream NCBL encrypted multipart upload and is not available in the Dart client',
-        'module': 'scrobble_v1',
-        'unsupportedFeature': 'ncbl-encrypted-upload',
-      },
-    };
+    final cookie = parseNcblCookie(query['cookie']);
+    cookie['os'] = 'pc';
+    final ctx = ncblContextFromCookie(cookie);
+    final totalTime = _scrobbleV1Number(query['total']);
+    final song = NcblSong(
+      id: songId,
+      name: _jsDefault(query['name'], '').toString(),
+      artist: _jsDefault(query['artist'], '').toString(),
+      bitrate: _scrobbleV1Number(query['bitrate']) ?? 320,
+      level: _jsDefault(query['level'], 'exhigh').toString(),
+      vip: query['vip'] == true || query['vip']?.toString() == 'true',
+      time: totalTime == null || totalTime == 0 ? playTime : totalTime,
+    );
+    final sourceId = _jsDefault(query['sourceid'], _jsDefault(query['sourceId'], '')).toString();
+    final source = NcblSource(
+      id: sourceId.isEmpty ? songId.toString() : sourceId,
+      type: 'track',
+      name: _jsDefault(query['source'], 'list').toString(),
+    );
+    final metaJson = buildNcblMetaJson(ctx);
+    final cookieString = buildNcblCookieString(ctx);
+    final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final played = min(playTime, song.time);
+    final plvBody = buildNcblRecords([
+      NcblRecord(
+        time: timestamp,
+        action: '_plv',
+        data: buildNcblPlv(ctx, song, source),
+      ),
+    ]);
+    final pldBody = buildNcblRecords([
+      NcblRecord(
+        time: timestamp,
+        action: '_pld',
+        data: buildNcblPld(ctx, song, source, played),
+      ),
+    ]);
+    try {
+      final plv = await _uploadNcblLog(ctx, metaJson, plvBody, cookieString);
+      if (!plv.success) {
+        final rate = _asMap(_asMap(plv.responseBody)['data'])['rate'];
+        return {
+          'status': 200,
+          'body': {
+            'code': _asMap(plv.responseBody)['code'] ?? -1,
+            'msg': 'PLV 上报失败${rate == null ? '' : ' (rate=$rate)'}',
+            'details': plv.responseBody,
+          },
+        };
+      }
+      final pld = await _uploadNcblLog(ctx, metaJson, pldBody, cookieString);
+      if (!pld.success) {
+        return {
+          'status': 200,
+          'body': {
+            'code': _asMap(pld.responseBody)['code'] ?? -1,
+            'msg': 'PLV 成功但 PLD 失败',
+            'details': {
+              'plv': plv.responseBody,
+              'pld': pld.responseBody,
+            },
+          },
+        };
+      }
+      return {
+        'status': 200,
+        'body': {
+          'code': 200,
+          'data': 'scrobble_v1 上报成功',
+          'details': {
+            'plv': {
+              'fileName': plv.fileName,
+              'payloadSize': plv.payloadSize,
+            },
+            'pld': {
+              'fileName': pld.fileName,
+              'payloadSize': pld.payloadSize,
+            },
+          },
+        },
+      };
+    } catch (error) {
+      return {
+        'status': 502,
+        'body': {
+          'code': 502,
+          'msg': '请求异常: $error',
+        },
+      };
+    }
+  }
+
+  Future<_NcblUploadResult> _uploadNcblLog(
+    NcblContext ctx,
+    String metaJson,
+    String body,
+    String cookieString,
+  ) async {
+    final payload = encryptNcbl(metaJson, body);
+    final multipart = buildNcblMultipart(payload);
+    final response = await Https.dioProxy.postUri(
+      DioMetaData(
+        Uri.parse(ncblUploadUrl),
+        data: multipart.multipartBody,
+        options: Options(
+          headers: {
+            HttpHeaders.contentTypeHeader: 'multipart/form-data; boundary=${multipart.boundary}',
+            HttpHeaders.refererHeader: 'https://music.163.com/di',
+            HttpHeaders.userAgentHeader: 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Safari/537.36 Chrome/91.0.4472.164 NeteaseMusicDesktop/${ctx.app.version}',
+            HttpHeaders.acceptEncodingHeader: 'gzip,deflate',
+            HttpHeaders.acceptLanguageHeader: 'zh-CN,zh;q=0.8',
+            HttpHeaders.cookieHeader: cookieString,
+          },
+        ),
+      ),
+    );
+    final bodyMap = _asMap(response.data);
+    return _NcblUploadResult(
+      success: bodyMap['code'] == 200 && _asList(_asMap(bodyMap['data'])['successfiles']).contains(multipart.fileName),
+      fileName: multipart.fileName,
+      payloadSize: multipart.payload.length,
+      responseBody: bodyMap,
+    );
   }
 
   /// Upstream song_url_ncmget intentionally returns an empty successful body.
@@ -1329,6 +1444,20 @@ mixin ApiEnhancedRaw {
       }),
     );
   }
+}
+
+class _NcblUploadResult {
+  const _NcblUploadResult({
+    required this.success,
+    required this.fileName,
+    required this.payloadSize,
+    required this.responseBody,
+  });
+
+  final bool success;
+  final String fileName;
+  final int payloadSize;
+  final Map<String, dynamic> responseBody;
 }
 
 Map<String, dynamic> _requestData(String module, Map<String, dynamic> query) {

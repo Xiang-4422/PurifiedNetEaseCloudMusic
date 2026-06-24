@@ -30,7 +30,6 @@
   "dartBehavior": [],
   "limited": {
     "cloud": "四步请求序列已覆盖；Dart 解析常见 ID3v2、ID3v1、FLAC/Vorbis 和 MP4/M4A ilst 标签，ID3v2 与 FLAC/Vorbis 支持专辑艺术家 fallback，但没有完整 music-metadata 等价能力，解析失败时使用 query 显式值或文件名 fallback。",
-    "scrobble_v1": "已复刻上游 id/time 参数校验和 MUSIC_U 鉴权前置行为；真正上报仍依赖上游 NCBL 加密、随机 multipart 构造和直接上传 helper，Dart SDK 当前固定返回包含 module 与 unsupportedFeature 的显式限制 envelope。",
     "song_url_match": "依赖上游 unblockmusic-utils，Dart SDK 固定返回包含 module 与 unsupportedFeature 的显式限制 envelope。",
     "song_url_v1": "基础 xeapi 和 302 fallback 已覆盖；unblock=true 会降级到普通 xeapi 播放 URL，并在 request options.extra.unsupportedFeature 标记 unblockmusic-utils；source order 仍依赖上游 unblockmusic-utils，传入 source 时只在 request options.extra.unsupportedRuntimeOptions 标记 runtime:source_order。"
   }

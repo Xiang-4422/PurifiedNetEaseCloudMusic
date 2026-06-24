@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:encrypt/encrypt.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:netease_music_api/src/client/dio_ext.dart';
+import 'package:netease_music_api/src/client/ncbl.dart';
 import 'package:netease_music_api/src/client/netease_api.dart';
 import 'package:netease_music_api/src/client/netease_handler.dart';
 import 'package:netease_music_api/src/client/xeapi_crypto.dart';
@@ -222,14 +223,12 @@ void main() {
       expect(report['specialDispatcherUnknown'], isEmpty);
       expect(_stringSet(report['specialLimited']), {
         'cloud',
-        'scrobble_v1',
         'song_url_match',
         'song_url_v1',
       });
       final limitedReasons = _jsonMap(report['specialLimitedReasons']);
       expect(limitedReasons.keys.toSet(), _stringSet(report['specialLimited']));
       expect(limitedReasons['song_url_match'], contains('unblockmusic-utils'));
-      expect(limitedReasons['scrobble_v1'], contains('NCBL'));
       expect(limitedReasons['song_url_v1'], contains('unsupportedFeature'));
       expect(limitedReasons['song_url_v1'], contains('unsupportedRuntimeOptions'));
       final runtimeSupportedReasons = _jsonMap(report['runtimeSupportedReasons']);
@@ -292,9 +291,8 @@ void main() {
       expect(songUrlMatchStatus['hasNodeOracleFixture'], isFalse);
       expect(songUrlMatchStatus['limitedReason'], contains('unblockmusic-utils'));
       final scrobbleV1Status = _jsonMap(specialStatusByModule['scrobble_v1']);
-      expect(_stringSet(scrobbleV1Status['coverage']), containsAll({'nodeOracle', 'limited'}));
+      expect(_stringSet(scrobbleV1Status['coverage']), {'nodeOracle'});
       expect(scrobbleV1Status['hasNodeOracleFixture'], isTrue);
-      expect(scrobbleV1Status['limitedReason'], contains('NCBL'));
       final sdkDifferences = _jsonMapList(report['sdkDifferences']);
       final differenceReasons = {
         ...limitedReasons,
@@ -3745,7 +3743,7 @@ void main() {
       });
     });
 
-    test('scrobble v1 special module exposes explicit limited Dart behavior', () async {
+    test('scrobble v1 special module validates upstream input guards', () async {
       expect(await api.requestModule('scrobble_v1', {'time': 30, 'cookie': 'MUSIC_U=token'}), {
         'status': 400,
         'body': {'code': 400, 'msg': '缺少有效的 id (歌曲ID)'},
@@ -3758,15 +3756,93 @@ void main() {
         'status': 401,
         'body': {'code': 401, 'msg': '缺少 MUSIC_U 鉴权令牌'},
       });
-      expect(await api.requestModule('scrobble_v1', {'id': '123', 'time': 30, 'cookie': 'MUSIC_U=token'}), {
-        'status': 500,
+    });
+
+    test('scrobble v1 special module uploads NCBL PLV and PLD logs', () async {
+      final proxy = _NcblUploadDioProxy([null, null]);
+      Https.setDioProxyForTesting(proxy);
+
+      final result = _jsonMap(
+        await api.requestModule('scrobble_v1', {
+          'id': '123',
+          'time': 30,
+          'total': 45,
+          'sourceid': '456',
+          'source': 'playlist',
+          'cookie': {
+            'MUSIC_U': 'token',
+            'appver': '3.1.35',
+            'versioncode': '205293',
+            'deviceId': 'device-1',
+          },
+        }),
+      );
+
+      expect(proxy.requests, hasLength(2));
+      expect(proxy.requests.map((request) => request.uri.toString()), everyElement(ncblUploadUrl));
+      for (final request in proxy.requests) {
+        final headers = request.options!.headers!;
+        expect(headers[HttpHeaders.contentTypeHeader], startsWith('multipart/form-data; boundary='));
+        expect(headers[HttpHeaders.refererHeader], 'https://music.163.com/di');
+        expect(headers[HttpHeaders.userAgentHeader], contains('NeteaseMusicDesktop/3.1.35'));
+        expect(headers[HttpHeaders.cookieHeader], contains('MUSIC_U=token'));
+        final body = request.data as Uint8List;
+        final magicOffset = _indexOfBytes(body, ncblMagic);
+        expect(magicOffset, greaterThan(0));
+        final ncblHeader = ByteData.sublistView(body, magicOffset);
+        expect(ncblHeader.getUint32(4, Endian.little), 3);
+        expect(ncblHeader.getUint16(8, Endian.little), greaterThan(70));
+        expect(_multipartFileName(body), isNotEmpty);
+      }
+      expect(result['status'], 200);
+      final body = _jsonMap(result['body']);
+      expect(body['code'], 200);
+      expect(body['data'], 'scrobble_v1 上报成功');
+      expect(_jsonMap(_jsonMap(_jsonMap(body['details'])['plv']))['payloadSize'], greaterThan(70));
+      expect(_jsonMap(_jsonMap(_jsonMap(body['details'])['pld']))['payloadSize'], greaterThan(70));
+    });
+
+    test('scrobble v1 special module reports PLV upload failure', () async {
+      final proxy = _NcblUploadDioProxy([
+        {
+          'code': 499,
+          'data': {'rate': 0.5},
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+
+      final result = await api.requestModule('scrobble_v1', {'id': '123', 'time': 30, 'cookie': 'MUSIC_U=token'});
+
+      expect(proxy.requests, hasLength(1));
+      expect(result, {
+        'status': 200,
         'body': {
-          'code': 500,
-          'msg': 'scrobble_v1 depends on upstream NCBL encrypted multipart upload and is not available in the Dart client',
-          'module': 'scrobble_v1',
-          'unsupportedFeature': 'ncbl-encrypted-upload',
+          'code': 499,
+          'msg': 'PLV 上报失败 (rate=0.5)',
+          'details': {
+            'code': 499,
+            'data': {'rate': 0.5},
+          },
         },
       });
+    });
+
+    test('scrobble v1 special module reports PLD upload failure after PLV success', () async {
+      final proxy = _NcblUploadDioProxy([
+        null,
+        {'code': 498},
+      ]);
+      Https.setDioProxyForTesting(proxy);
+
+      final result = _jsonMap(await api.requestModule('scrobble_v1', {'id': '123', 'time': 30, 'cookie': 'MUSIC_U=token'}));
+
+      expect(proxy.requests, hasLength(2));
+      expect(result['status'], 200);
+      final body = _jsonMap(result['body']);
+      expect(body['code'], 498);
+      expect(body['msg'], 'PLV 成功但 PLD 失败');
+      expect(_jsonMap(_jsonMap(body['details'])['plv'])['code'], 200);
+      expect(_jsonMap(_jsonMap(body['details'])['pld'])['code'], 498);
     });
 
     test('top list special module mirrors idx guard and id request', () async {
@@ -4961,6 +5037,37 @@ class _QueuedPostDioProxy extends DioProxy {
   }
 }
 
+class _NcblUploadDioProxy extends DioProxy {
+  _NcblUploadDioProxy(this._responses);
+
+  final List<Map<String, dynamic>?> _responses;
+  final List<DioMetaData> requests = [];
+
+  @override
+  Future<Response<T>> postUri<T>(
+    DioMetaData metaData, {
+    CancelToken? cancelToken,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    requests.add(metaData);
+    final index = requests.length - 1;
+    final response = _responses[index];
+    final fileName = _multipartFileName(metaData.data as Uint8List);
+    final body = response ??
+        {
+          'code': 200,
+          'data': {
+            'successfiles': [fileName],
+          },
+        };
+    return Response<T>(
+      requestOptions: RequestOptions(path: metaData.uri.toString()),
+      data: body as T,
+    );
+  }
+}
+
 class _UploadAdapter implements HttpClientAdapter {
   String? uploadUrl;
   String? uploadToken;
@@ -5380,6 +5487,30 @@ Map<String, dynamic> _jsonMap(dynamic value) {
     return Map<String, dynamic>.from(value);
   }
   return <String, dynamic>{};
+}
+
+String _multipartFileName(Uint8List body) {
+  final head = utf8.decode(
+    body.take(512).toList(growable: false),
+    allowMalformed: true,
+  );
+  return RegExp('filename="([^"]+)"').firstMatch(head)?.group(1) ?? '';
+}
+
+int _indexOfBytes(Uint8List body, List<int> pattern) {
+  for (var i = 0; i <= body.length - pattern.length; i++) {
+    var matched = true;
+    for (var j = 0; j < pattern.length; j++) {
+      if (body[i + j] != pattern[j]) {
+        matched = false;
+        break;
+      }
+    }
+    if (matched) {
+      return i;
+    }
+  }
+  return -1;
 }
 
 Map<String, dynamic> _normalizedRequestData(dynamic value) {

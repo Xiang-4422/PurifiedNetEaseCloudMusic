@@ -91,7 +91,7 @@ void main() {
       expect(item.localLyricsPath, '/cache/lyrics.lrc');
       expect(item.availability, TrackAvailability.playable);
       expect(item.isCached, isFalse);
-      expect(item.metadata, isEmpty);
+      expect(item.customMetadata.isEmpty, isTrue);
     });
 
     test('adapter migrates local image extra into local artwork path', () {
@@ -381,7 +381,7 @@ void main() {
       expect(decoded.single.localLyricsPath, '/cache/lyrics.lrc');
       expect(decoded.single.availability, TrackAvailability.playable);
       expect(decoded.single.duration, const Duration(seconds: 3));
-      expect(decoded.single.metadata, isEmpty);
+      expect(decoded.single.customMetadata.isEmpty, isTrue);
     });
 
     test('cache codec normalizes queue item ids and skips blank ids', () async {
@@ -635,7 +635,7 @@ void main() {
       expect(decoded.single.artistIds, ['10', '11']);
       expect(decoded.single.localLyricsPath, '/music/a.lrc');
       expect(decoded.single.availability, TrackAvailability.localOnly);
-      expect(decoded.single.metadata, {'custom': 'keep'});
+      expect(decoded.single.customMetadata.values, {'custom': 'keep'});
     });
 
     test('cache codec skips corrupt cached queue entries', () async {
@@ -689,6 +689,6 @@ PlaybackQueueItem _queueItem({
     availability: availability,
     isLiked: true,
     isCached: true,
-    metadata: metadata,
+    customMetadata: PlaybackQueueItemMetadata.custom(metadata),
   );
 }

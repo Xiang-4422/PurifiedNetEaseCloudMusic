@@ -78,7 +78,9 @@ class PlaybackQueueItemMapper {
           likedSongIds: likedSongIdSet,
         ),
         isCached: _isCachedAudioResource(resources.audio),
-        metadata: playbackQueueCustomMetadata(track.metadata),
+        customMetadata: PlaybackQueueItemMetadata.custom(
+          playbackQueueCustomMetadata(track.metadata),
+        ),
       );
     }).toList();
   }

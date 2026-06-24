@@ -317,7 +317,7 @@ void main() {
       ).single;
 
       expect(item.albumId, '20');
-      expect(item.metadata.containsKey('albumId'), isFalse);
+      expect(item.customMetadata.containsKey('albumId'), isFalse);
     });
 
     test('maps artist ids as explicit queue item field instead of metadata key', () {
@@ -336,7 +336,7 @@ void main() {
       ).single;
 
       expect(item.artistIds, ['10', '11']);
-      expect(item.metadata.containsKey('artistIds'), isFalse);
+      expect(item.customMetadata.containsKey('artistIds'), isFalse);
     });
 
     test('prefers explicit track album and artist ids over legacy metadata', () {
@@ -359,8 +359,8 @@ void main() {
 
       expect(item.albumId, 'explicit-album');
       expect(item.artistIds, ['explicit-artist']);
-      expect(item.metadata.containsKey('albumId'), isFalse);
-      expect(item.metadata.containsKey('artistIds'), isFalse);
+      expect(item.customMetadata.containsKey('albumId'), isFalse);
+      expect(item.customMetadata.containsKey('artistIds'), isFalse);
     });
 
     test('maps source type as explicit queue item field instead of metadata key', () {
@@ -380,7 +380,7 @@ void main() {
       ).single;
 
       expect(item.sourceType, SourceType.local);
-      expect(item.metadata.containsKey('sourceType'), isFalse);
+      expect(item.customMetadata.containsKey('sourceType'), isFalse);
     });
 
     test('maps lyrics path and availability as explicit queue item fields', () {
@@ -404,8 +404,8 @@ void main() {
 
       expect(item.localLyricsPath, '/cache/lyrics/song.lrc');
       expect(item.availability, TrackAvailability.playable);
-      expect(item.metadata.containsKey('localLyricsPath'), isFalse);
-      expect(item.metadata.containsKey('availability'), isFalse);
+      expect(item.customMetadata.containsKey('localLyricsPath'), isFalse);
+      expect(item.customMetadata.containsKey('availability'), isFalse);
     });
 
     test('drops known non-playback source metadata from queue item', () {
@@ -431,7 +431,7 @@ void main() {
         likedSongIds: const [],
       ).single;
 
-      expect(item.metadata, {'custom': 'keep'});
+      expect(item.customMetadata.values, {'custom': 'keep'});
     });
   });
 }

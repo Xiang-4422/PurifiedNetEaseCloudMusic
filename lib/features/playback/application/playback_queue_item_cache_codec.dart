@@ -75,7 +75,7 @@ PlaybackQueueItem _playbackQueueItemFromCacheJson(Map<String, dynamic> json) {
       mediaType: mediaType,
       playbackUrl: playbackUrl,
     ),
-    metadata: playbackQueueCustomMetadata(metadata),
+    customMetadata: PlaybackQueueItemMetadata.custom(playbackQueueCustomMetadata(metadata)),
   );
 }
 
@@ -104,7 +104,7 @@ Map<String, dynamic> _playbackQueueItemToCacheJson(PlaybackQueueItem item) {
       mediaType: item.mediaType,
       playbackUrl: item.playbackUrl,
     ),
-    'metadata': _customMetadata(item.metadata),
+    'metadata': _customMetadata(item.customMetadata.values),
   };
 }
 

@@ -68,7 +68,7 @@ class PlaybackQueueItemAdapter {
         mediaType: mediaType,
         playbackUrl: playbackUrl,
       ),
-      metadata: _customMetadata(extras),
+      customMetadata: PlaybackQueueItemMetadata.custom(_customMetadata(extras)),
     );
   }
 
@@ -128,7 +128,7 @@ class PlaybackQueueItemAdapter {
 
   static Map<String, dynamic> _toMediaItemExtras(PlaybackQueueItem item) {
     return {
-      ..._customMetadata(item.metadata),
+      ..._customMetadata(item.customMetadata.values),
       'sourceType': item.sourceType.name,
       'availability': item.availability.name,
       'type': item.mediaType.name,

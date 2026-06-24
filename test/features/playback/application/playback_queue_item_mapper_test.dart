@@ -194,6 +194,43 @@ void main() {
       expect(item.isCached, isFalse);
     });
 
+    test('does not write remote track playback url into queue item', () {
+      final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
+        [
+          TrackWithResources(
+            track: _track(remoteUrl: 'https://audio.test/song.mp3?auth=temp'),
+            resources: const TrackResourceBundle(),
+          ),
+        ],
+        likedSongIds: const [],
+      ).single;
+
+      expect(item.playbackUrl, isNull);
+      expect(item.isCached, isFalse);
+    });
+
+    test('keeps legacy local track playback url after normalization', () {
+      final localFileUri = Uri(
+        scheme: 'file',
+        host: 'localhost',
+        path: '/cache/audio/song with space.mp3',
+        queryParameters: {'token': 'legacy'},
+      ).toString();
+
+      final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
+        [
+          TrackWithResources(
+            track: _track(remoteUrl: localFileUri),
+            resources: const TrackResourceBundle(),
+          ),
+        ],
+        likedSongIds: const [],
+      ).single;
+
+      expect(item.playbackUrl, '/cache/audio/song with space.mp3');
+      expect(item.isCached, isFalse);
+    });
+
     test('does not mark cached when indexed audio path is not local', () {
       final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
         [
@@ -376,6 +413,7 @@ Track _track({
   SourceType sourceType = SourceType.netease,
   String sourceId = '1',
   String? artworkUrl,
+  String? remoteUrl,
   String? albumId,
   List<String> artistIds = const [],
   TrackAvailability availability = TrackAvailability.unknown,
@@ -387,6 +425,7 @@ Track _track({
     sourceId: sourceId,
     title: 'Track',
     artworkUrl: artworkUrl,
+    remoteUrl: remoteUrl,
     albumId: albumId,
     artistIds: artistIds,
     availability: availability,

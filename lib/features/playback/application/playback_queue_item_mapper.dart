@@ -84,7 +84,7 @@ class PlaybackQueueItemMapper {
     if (audioPath != null) {
       return audioPath;
     }
-    return track.remoteUrl ?? '';
+    return LocalFilePathNormalizer.normalize(track.remoteUrl);
   }
 
   static MediaType _mediaTypeForTrack(

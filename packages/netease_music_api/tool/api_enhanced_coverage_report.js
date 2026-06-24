@@ -5,6 +5,18 @@ const path = require('path')
 const vm = require('vm')
 const { execFileSync } = require('child_process')
 
+validateArgs(process.argv.slice(2), {
+  flags: new Set(['--json', '--markdown']),
+  pathPrefixes: [
+    '--generated-manifest=',
+    '--raw-methods=',
+    '--raw-dispatcher=',
+    '--public-api=',
+    '--public-facade=',
+    '--special-coverage=',
+  ],
+})
+
 const repoRoot = path.resolve(__dirname, '../../..')
 const upstreamRepoPath = path.join(repoRoot, 'third_party/api-enhanced')
 const upstreamPackagePath = path.join(upstreamRepoPath, 'package.json')
@@ -56,6 +68,24 @@ const expectedTypedFacadeMixins = [
 ]
 const expectedRawFacadeMixins = ['ApiEnhancedRaw']
 const expectedPublicFacadeMixins = sorted([...expectedTypedFacadeMixins, ...expectedRawFacadeMixins])
+
+function validateArgs(args, { flags, pathPrefixes }) {
+  for (const arg of args) {
+    if (flags.has(arg)) {
+      continue
+    }
+    const pathPrefix = pathPrefixes.find((prefix) => arg.startsWith(prefix))
+    if (pathPrefix) {
+      if (arg.slice(pathPrefix.length).trim().length === 0) {
+        console.error(`Option ${pathPrefix.slice(0, -1)} requires a non-empty path.`)
+        process.exit(1)
+      }
+      continue
+    }
+    console.error(`Unknown argument: ${arg}`)
+    process.exit(1)
+  }
+}
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'))

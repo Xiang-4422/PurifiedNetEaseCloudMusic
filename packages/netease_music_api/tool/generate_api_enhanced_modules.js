@@ -5,6 +5,11 @@ const path = require('path')
 const os = require('os')
 const { spawnSync } = require('child_process')
 
+validateArgs(process.argv.slice(2), {
+  flags: new Set(['--check']),
+  pathPrefixes: ['--generated-dir=', '--raw-dir=', '--special-coverage='],
+})
+
 const repoRoot = path.resolve(__dirname, '../../..')
 const upstreamRepoPath = path.join(repoRoot, 'third_party/api-enhanced')
 const upstreamDir = path.join(upstreamRepoPath, 'module')
@@ -27,6 +32,24 @@ const staleGeneratedFiles = []
 const manualSpecialModules = loadManualSpecialModules(specialCoveragePath)
 
 const supportedCrypto = new Set(['', 'weapi', 'eapi', 'linuxapi', 'api', 'query', 'xeapi'])
+
+function validateArgs(args, { flags, pathPrefixes }) {
+  for (const arg of args) {
+    if (flags.has(arg)) {
+      continue
+    }
+    const pathPrefix = pathPrefixes.find((prefix) => arg.startsWith(prefix))
+    if (pathPrefix) {
+      if (arg.slice(pathPrefix.length).trim().length === 0) {
+        console.error(`Option ${pathPrefix.slice(0, -1)} requires a non-empty path.`)
+        process.exit(1)
+      }
+      continue
+    }
+    console.error(`Unknown argument: ${arg}`)
+    process.exit(1)
+  }
+}
 
 function resolvePathArg(prefix, fallback) {
   const arg = process.argv.find((value) => value.startsWith(prefix))

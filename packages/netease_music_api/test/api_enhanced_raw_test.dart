@@ -72,6 +72,66 @@ void main() {
       expect(result.stdout, contains('Generated api-enhanced files are up to date'));
     });
 
+    test('api-enhanced tooling rejects unknown and empty path arguments', () async {
+      final repoRoot = _findRepoRoot();
+      final generatorPath = '${repoRoot.path}/packages/netease_music_api/tool/generate_api_enhanced_modules.js';
+      final reportPath = '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js';
+
+      final staleCheckTypo = await Process.run(
+        'node',
+        [
+          generatorPath,
+          '--chek',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+      expect(staleCheckTypo.exitCode, isNot(0));
+      expect(staleCheckTypo.stderr, contains('Unknown argument: --chek'));
+
+      final emptyGeneratedDir = await Process.run(
+        'node',
+        [
+          generatorPath,
+          '--generated-dir=',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+      expect(emptyGeneratedDir.exitCode, isNot(0));
+      expect(
+        emptyGeneratedDir.stderr,
+        contains('Option --generated-dir requires a non-empty path.'),
+      );
+
+      final staleManifestTypo = await Process.run(
+        'node',
+        [
+          reportPath,
+          '--generated-manifes=missing.dart',
+          '--json',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+      expect(staleManifestTypo.exitCode, isNot(0));
+      expect(
+        staleManifestTypo.stderr,
+        contains('Unknown argument: --generated-manifes=missing.dart'),
+      );
+
+      final emptySpecialCoverage = await Process.run(
+        'node',
+        [
+          reportPath,
+          '--special-coverage=',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+      expect(emptySpecialCoverage.exitCode, isNot(0));
+      expect(
+        emptySpecialCoverage.stderr,
+        contains('Option --special-coverage requires a non-empty path.'),
+      );
+    });
+
     test('generator check mode reports stale isolated outputs without rewriting', () async {
       final repoRoot = _findRepoRoot();
       final tempDir = await Directory.systemTemp.createTemp('api-enhanced-generator-');

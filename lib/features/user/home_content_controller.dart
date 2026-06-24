@@ -9,7 +9,6 @@ import 'package:bujuan/core/entities/user_session_data.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
 import 'package:bujuan/features/user/user_repository.dart';
 import 'package:get/get.dart';
-import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 /// 首页用户本地数据，包含日推歌曲。
 class UserHomeLocalData {
@@ -119,9 +118,6 @@ class HomeContentController extends GetxController {
   final HomeContentSessionAccess _sessionAccess;
   final HomeContentLibraryAccess _libraryAccess;
   final Future<void> Function()? _validateLoginStateInBackground;
-
-  /// 首页下拉刷新控制器。
-  final RefreshController refreshController = RefreshController();
 
   /// 首页内容数据是否已经完成首轮加载。
   final RxBool dateLoaded = false.obs;
@@ -237,8 +233,6 @@ class HomeContentController extends GetxController {
       _clearHomeState();
       _hasLocalData = false;
       dateLoaded.value = true;
-      refreshController.refreshCompleted();
-      refreshController.resetNoData();
       return;
     }
 
@@ -261,16 +255,12 @@ class HomeContentController extends GetxController {
       }
       dateLoaded.value = true;
       scheduleHomeImageColorPrewarm();
-      refreshController.refreshCompleted();
-      refreshController.resetNoData();
     } catch (_) {
       if (!_isCurrentHomeRefresh(userId, generation)) {
         return;
       }
       _hasLocalData = _hasLocalData || _hasVisibleHomeData;
       dateLoaded.value = true;
-      refreshController.refreshFailed();
-      refreshController.resetNoData();
     }
   }
 
@@ -470,7 +460,6 @@ class HomeContentController extends GetxController {
     _homeImageColorPrewarmTimer?.cancel();
     _cancelSessionWatch?.call();
     _cancelSessionWatch = null;
-    refreshController.dispose();
     super.onClose();
   }
 }

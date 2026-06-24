@@ -8,7 +8,6 @@ import 'package:bujuan/ui/pages/user/widgets/library_shortcut_section.dart';
 import 'package:bujuan/ui/pages/user/widgets/quick_start_section.dart';
 import 'package:bujuan/ui/pages/user/widgets/recent_playback_strip.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
-import 'package:bujuan/ui/widgets/common/refresh/app_smart_refresher.dart';
 import 'package:flutter/material.dart';
 
 /// 常规首页主滚动内容的预渲染范围。
@@ -52,11 +51,13 @@ class StandardPersonalHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppSmartRefresher(
-      controller: homeContentController.refreshController,
+    return RefreshIndicator(
+      onRefresh: homeContentController.updateData,
       child: CustomScrollView(
         cacheExtent: standardPersonalHomeScrollCacheExtent,
-        physics: const ClampingScrollPhysics(),
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: ClampingScrollPhysics(),
+        ),
         slivers: [
           SliverToBoxAdapter(
             child: SizedBox(

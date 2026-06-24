@@ -314,8 +314,11 @@ void main() {
     expect(standardSource, isNot(contains('RecommendedPlaylistPinnedHeaderSliver(')));
     expect(standardSource, isNot(contains('RecommendedPlaylistListSliver(controller: homeContentController)')));
     expect(standardSource, contains('const double standardPersonalHomeScrollCacheExtent = 360;'));
+    expect(standardSource, contains('RefreshIndicator('));
+    expect(standardSource, contains('onRefresh: homeContentController.updateData'));
     expect(standardSource, contains('cacheExtent: standardPersonalHomeScrollCacheExtent'));
     expect(standardSource, isNot(contains('cacheExtent: 120')));
+    expect(standardSource, isNot(contains('AppSmartRefresher(')));
     expect(standardSource, isNot(contains('enablePullUp: true')));
     expect(standardSource, isNot(contains('onLoading: () => homeContentController.updateRecoPlayLists(getMore: true)')));
     expect(standardSource, isNot(contains('PlayListItem(')));

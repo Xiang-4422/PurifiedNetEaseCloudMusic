@@ -80,6 +80,64 @@ void main() {
       expect(accessMap.length, lessThanOrEqualTo(300));
       expect(accessMap.containsKey('/cache/art_0.jpg'), isFalse);
     });
+
+    test('refreshes access index when a cached color is loaded', () async {
+      final keyValueStore = _MemoryKeyValueStore();
+      final cacheStore = ImageColorCacheStore(keyValueStore: keyValueStore);
+
+      await cacheStore.save(
+        imageUrl: '/cache/freshly-read.jpg',
+        getLightColor: false,
+        argb32: 0xff111111,
+      );
+      await cacheStore.save(
+        imageUrl: '/cache/stale.jpg',
+        getLightColor: false,
+        argb32: 0xff222222,
+      );
+      await keyValueStore.put('IMAGE_COLOR_CACHE_LAST_ACCESS', {
+        '/cache/freshly-read.jpg': 1,
+        '/cache/stale.jpg': 2,
+      });
+
+      expect(
+        cacheStore.load(
+          imageUrl: '/cache/freshly-read.jpg',
+          getLightColor: false,
+        ),
+        0xff111111,
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      for (var index = 0; index < 299; index += 1) {
+        await cacheStore.save(
+          imageUrl: '/cache/new_$index.jpg',
+          getLightColor: false,
+          argb32: 0xff000000 + index,
+        );
+      }
+
+      final accessMap = Map<String, Object?>.from(
+        keyValueStore.get('IMAGE_COLOR_CACHE_LAST_ACCESS')! as Map,
+      );
+
+      expect(accessMap.containsKey('/cache/freshly-read.jpg'), isTrue);
+      expect(accessMap.containsKey('/cache/stale.jpg'), isFalse);
+      expect(
+        cacheStore.load(
+          imageUrl: '/cache/freshly-read.jpg',
+          getLightColor: false,
+        ),
+        0xff111111,
+      );
+      expect(
+        cacheStore.load(
+          imageUrl: '/cache/stale.jpg',
+          getLightColor: false,
+        ),
+        isNull,
+      );
+    });
   });
 }
 

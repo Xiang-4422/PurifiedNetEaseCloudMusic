@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'app_key_value_store.dart';
 import 'hive_key_value_store.dart';
 
@@ -22,6 +24,7 @@ class ImageColorCacheStore {
     if (raw is! int) {
       return null;
     }
+    _touchAccessAfterLoad(imageUrl);
     return raw;
   }
 
@@ -71,6 +74,14 @@ class ImageColorCacheStore {
     }
     accessMap[imageUrl] = DateTime.now().millisecondsSinceEpoch;
     await _keyValueStore.put(_accessKey, accessMap);
+  }
+
+  void _touchAccessAfterLoad(String imageUrl) {
+    unawaited(
+      _touchAccess(imageUrl).catchError((_) {
+        // 读取命中后刷新 LRU 失败不能影响已命中的颜色值。
+      }),
+    );
   }
 
   Future<void> _deleteAccess(String imageUrl) async {

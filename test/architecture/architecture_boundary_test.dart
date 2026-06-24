@@ -2564,6 +2564,26 @@ void main() {
       );
     });
 
+    test('download file store normalizes paths before deleting files', () {
+      final fileStoreFile = File(
+        '${projectRoot.path}/lib/features/download/application/download_file_store.dart',
+      );
+      final fileStore = fileStoreFile.readAsStringSync();
+      final deleteMethod = fileStore.indexOf('Future<void> deleteFileIfExists');
+      final violations = <String>[
+        if (deleteMethod < 0) '${_relativePath(fileStoreFile)} is missing deleteFileIfExists',
+        if (!fileStore.contains("import 'package:bujuan/core/util/local_file_path_normalizer.dart';")) '${_relativePath(fileStoreFile)} does not import LocalFilePathNormalizer',
+        if (!fileStore.contains('final localPath = LocalFilePathNormalizer.normalize(path);')) '${_relativePath(fileStoreFile)} does not normalize delete paths',
+        if (!fileStore.contains('final file = File(localPath);')) '${_relativePath(fileStoreFile)} can still delete raw paths',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '下载失败、取消和重试清理临时文件前必须复用本地路径归一化，历史 file:// 路径可清理，远程或不安全 URI 不能被当作本地文件删除。',
+      );
+    });
+
     test('download queue planner skips available local audio resources', () {
       final plannerFile = File(
         '${projectRoot.path}/lib/features/download/application/download_queue_planner.dart',

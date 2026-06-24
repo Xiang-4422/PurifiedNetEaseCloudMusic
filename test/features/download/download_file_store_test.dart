@@ -79,6 +79,35 @@ void main() {
       expect(retainedCacheFile.existsSync(), isTrue);
     });
 
+    test('normalizes legacy file uri paths before deleting temporary files', () async {
+      final fileStore = DownloadFileStore();
+      final temporaryFile = await File('${tempDirectory.path}/track.mp3.download').writeAsBytes([1, 2, 3]);
+      final legacyFileUri = Uri(
+        scheme: 'file',
+        host: 'localhost',
+        path: temporaryFile.path,
+        queryParameters: {'token': 'legacy'},
+      ).toString();
+
+      await fileStore.deleteTemporaryDownloadIfExists(legacyFileUri);
+
+      expect(temporaryFile.existsSync(), isFalse);
+    });
+
+    test('ignores unsafe file uri paths while deleting files', () async {
+      final fileStore = DownloadFileStore();
+      final retainedFile = await File('${tempDirectory.path}/track.mp3.download').writeAsBytes([1, 2, 3]);
+      final unsafeFileUri = Uri(
+        scheme: 'file',
+        host: 'media-server',
+        path: retainedFile.path,
+      ).toString();
+
+      await fileStore.deleteTemporaryDownloadIfExists(unsafeFileUri);
+
+      expect(retainedFile.existsSync(), isTrue);
+    });
+
     test('clears playback cache files while keeping retained resource paths', () async {
       final fileStore = DownloadFileStore();
       final cacheAudioDirectory = Directory('${supportDirectory.path}/zmusic/cache/audio')..createSync(recursive: true);

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_lyrics.dart';
+import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 import 'package:bujuan/core/util/retained_file_cleaner.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
@@ -157,10 +158,11 @@ class DownloadFileStore {
 
   /// 删除指定文件。
   Future<void> deleteFileIfExists(String? path) async {
-    if (path == null || path.isEmpty) {
+    final localPath = LocalFilePathNormalizer.normalize(path);
+    if (localPath.isEmpty) {
       return;
     }
-    final file = File(path);
+    final file = File(localPath);
     if (file.existsSync()) {
       await file.delete();
     }

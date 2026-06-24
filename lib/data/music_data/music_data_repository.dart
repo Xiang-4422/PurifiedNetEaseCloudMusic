@@ -17,6 +17,7 @@ import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 
 import 'sources/local/resources/local_artwork_cache_repository.dart';
 import 'sources/local/resources/local_resource_index_repository.dart';
+import 'sources/local/resources/local_resource_retention_policy.dart';
 import 'sources/local/resources/playback_url_cache_coordinator.dart';
 
 /// 聚合本地曲库、网易云曲库和本地资源索引的音乐数据仓库。
@@ -428,13 +429,13 @@ class MusicDataRepository {
     }
     final track = trackWithResources.track;
     final resources = trackWithResources.resources;
-    final retainedPaths = _retainedResourcePathsAfterRemoving(
+    final retainedPaths = LocalResourceRetentionPolicy.retainedPathsAfterRemoving(
       await _resourceIndexRepository.listResources(),
       shouldRemove: (resource) => resource.trackId == normalizedTrackId,
     );
     await _deleteResourceFile(
       resources.audio,
-      deleteFile: _shouldDeleteResourceFile(
+      deleteFile: LocalResourceRetentionPolicy.shouldDeleteResourceFile(
         resources.audio,
         retainedPaths,
         deleteSourceFiles: deleteSourceFiles,
@@ -442,7 +443,7 @@ class MusicDataRepository {
     );
     await _deleteResourceFile(
       resources.artwork,
-      deleteFile: _shouldDeleteResourceFile(
+      deleteFile: LocalResourceRetentionPolicy.shouldDeleteResourceFile(
         resources.artwork,
         retainedPaths,
         deleteSourceFiles: deleteSourceFiles,
@@ -450,7 +451,7 @@ class MusicDataRepository {
     );
     await _deleteResourceFile(
       resources.lyrics,
-      deleteFile: _shouldDeleteResourceFile(
+      deleteFile: LocalResourceRetentionPolicy.shouldDeleteResourceFile(
         resources.lyrics,
         retainedPaths,
         deleteSourceFiles: deleteSourceFiles,
@@ -468,14 +469,14 @@ class MusicDataRepository {
     final resources = await _resourceIndexRepository.listResources(
       origins: const {TrackResourceOrigin.playbackCache},
     );
-    final retainedPaths = _retainedResourcePathsAfterRemoving(
+    final retainedPaths = LocalResourceRetentionPolicy.retainedPathsAfterRemoving(
       await _resourceIndexRepository.listResources(),
       shouldRemove: (resource) => resource.origin == TrackResourceOrigin.playbackCache,
     );
     for (final resource in resources) {
       await _deleteResourceFile(
         resource,
-        deleteFile: _shouldDeleteResourceFile(
+        deleteFile: LocalResourceRetentionPolicy.shouldDeleteResourceFile(
           resource,
           retainedPaths,
           deleteSourceFiles: true,
@@ -486,35 +487,6 @@ class MusicDataRepository {
         resource.kind,
       );
     }
-  }
-
-  Set<String> _retainedResourcePathsAfterRemoving(
-    List<LocalResourceEntry> indexedResources, {
-    required bool Function(LocalResourceEntry resource) shouldRemove,
-  }) {
-    final retainedPaths = <String>{};
-    for (final resource in indexedResources) {
-      if (shouldRemove(resource)) {
-        continue;
-      }
-      final path = _resourceFilePath(resource);
-      if (path.isNotEmpty) {
-        retainedPaths.add(path);
-      }
-    }
-    return retainedPaths;
-  }
-
-  bool _shouldDeleteResourceFile(
-    LocalResourceEntry? resource,
-    Set<String> retainedPaths, {
-    required bool deleteSourceFiles,
-  }) {
-    if (!deleteSourceFiles || resource == null) {
-      return false;
-    }
-    final path = _resourceFilePath(resource);
-    return path.isNotEmpty && !retainedPaths.contains(path);
   }
 
   Future<void> _deleteResourceFile(

@@ -81,6 +81,59 @@ void main() {
       expect(resolver.resolveCallCount, 1);
     });
 
+    test('normalizes local playback url before reading source cache', () async {
+      final directory = await Directory.systemTemp.createTemp('source-prefetch-file-');
+      addTearDown(() async {
+        if (directory.existsSync()) {
+          await directory.delete(recursive: true);
+        }
+      });
+      final audioFile = File('${directory.path}/song with space.mp3');
+      await audioFile.writeAsString('audio');
+      final resolver = _LocalFileThenRemoteSourceResolver(audioFile);
+      final prefetcher = PlaybackSourcePrefetcher(resolver: resolver);
+      final fileUri = audioFile.uri.replace(queryParameters: {'token': 'local'}).toString();
+
+      final first = await prefetcher.resolve(
+        _item('1', mediaType: MediaType.local, playbackUrl: fileUri),
+        preferHighQuality: false,
+      );
+      final cached = await prefetcher.resolve(
+        _item('1', mediaType: MediaType.local, playbackUrl: audioFile.path),
+        preferHighQuality: false,
+      );
+
+      expect(first.kind, PlaybackResolvedSourceKind.filePath);
+      expect(first.url, audioFile.path);
+      expect(cached.kind, PlaybackResolvedSourceKind.filePath);
+      expect(cached.url, audioFile.path);
+      expect(resolver.resolveCallCount, 1);
+    });
+
+    test('ignores transient remote playback url in source cache key', () async {
+      final resolver = _CountingSourceResolver();
+      final prefetcher = PlaybackSourcePrefetcher(resolver: resolver);
+
+      final first = await prefetcher.resolve(
+        _item(
+          '1',
+          playbackUrl: 'https://audio.test/old.mp3?expires=1',
+        ),
+        preferHighQuality: false,
+      );
+      final cached = await prefetcher.resolve(
+        _item(
+          '1',
+          playbackUrl: 'https://audio.test/new.mp3?expires=2',
+        ),
+        preferHighQuality: false,
+      );
+
+      expect(first.url, 'normal-url-1');
+      expect(cached.url, 'normal-url-1');
+      expect(resolver.resolveCallCount, 1);
+    });
+
     test('does not resolve blank item ids', () async {
       final resolver = _CountingSourceResolver();
       final prefetcher = PlaybackSourcePrefetcher(resolver: resolver);

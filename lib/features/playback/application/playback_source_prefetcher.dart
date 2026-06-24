@@ -227,7 +227,7 @@ class PlaybackSourcePrefetcher {
     required String normalizedItemId,
     required bool preferHighQuality,
   }) {
-    return '$normalizedItemId|${item.sourceType.name}|${item.mediaType.name}|${item.playbackUrl ?? ''}|$preferHighQuality';
+    return '$normalizedItemId|${item.sourceType.name}|${item.mediaType.name}|${_localPlaybackUrlKey(item)}|$preferHighQuality';
   }
 
   String _remoteCacheKey(
@@ -240,6 +240,10 @@ class PlaybackSourcePrefetcher {
 
   String _normalizedItemId(PlaybackQueueItem item) {
     return item.id.trim();
+  }
+
+  String _localPlaybackUrlKey(PlaybackQueueItem item) {
+    return LocalFilePathNormalizer.normalize(item.playbackUrl);
   }
 }
 

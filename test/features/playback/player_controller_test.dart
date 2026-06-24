@@ -106,6 +106,72 @@ void main() {
       expect(controller.runtimeState.value.currentSong.isLiked, isTrue);
     });
 
+    test('normalizes playback item id before updating runtime queue and services', () async {
+      final rawItem = _queueItem(' 1 ', sourceId: '1');
+      final currentItem = _queueItem('1', sourceId: '1');
+      final updatedItem = rawItem.copyWith(isLiked: true);
+      final queueService = _FakePlaybackQueueService();
+      final playbackService = _FakePlaybackService();
+      final controller = _playerController(
+        playbackService: playbackService,
+        queueService: queueService,
+      );
+      controller.runtimeState.value = PlaybackRuntimeState(
+        queue: [rawItem],
+        currentSong: currentItem,
+      );
+
+      await controller.updatePlaybackQueueItem(updatedItem);
+
+      expect(queueService.updatedItems.map((item) => item.id), ['1']);
+      expect(playbackService.updatedItems.map((item) => item.id), ['1']);
+      expect(controller.runtimeState.value.currentSong.id, '1');
+      expect(controller.runtimeState.value.currentSong.isLiked, isTrue);
+      expect(controller.runtimeState.value.queue.map((item) => item.id), ['1']);
+      expect(controller.runtimeState.value.queue.single.isLiked, isTrue);
+    });
+
+    test('coalesces like toggles with normalized playback item ids', () async {
+      final rawItem = _queueItem(' 1 ', sourceId: '1');
+      final normalizedItem = _queueItem('1', sourceId: '1');
+      final updatedItem = rawItem.copyWith(isLiked: true);
+      final toggleCompleter = Completer<PlaybackQueueItem?>();
+      final toggledItemIds = <String>[];
+      final queueService = _FakePlaybackQueueService();
+      final playbackService = _FakePlaybackService();
+      var toggleCount = 0;
+      final controller = _playerController(
+        playbackService: playbackService,
+        queueService: queueService,
+        userContentPort: _userContentPort(
+          toggleLikeStatus: (item) {
+            toggleCount++;
+            toggledItemIds.add(item.id);
+            return toggleCompleter.future;
+          },
+        ),
+      );
+      controller.runtimeState.value = PlaybackRuntimeState(
+        queue: [rawItem],
+        currentSong: normalizedItem,
+      );
+
+      final first = controller.toggleLikeFromPlayback(rawItem);
+      final second = controller.toggleLikeFromPlayback(normalizedItem);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(toggleCount, 1);
+      expect(toggledItemIds, ['1']);
+
+      toggleCompleter.complete(updatedItem);
+      await Future.wait([first, second]);
+
+      expect(queueService.updatedItems.map((item) => item.id), ['1']);
+      expect(playbackService.updatedItems.map((item) => item.id), ['1']);
+      expect(controller.runtimeState.value.currentSong.isLiked, isTrue);
+      expect(controller.runtimeState.value.queue.single.isLiked, isTrue);
+    });
+
     test('normalizes current item id before applying resolved artwork', () async {
       final rawItem = _queueItem(' 1 ', sourceId: '1');
       final currentItem = _queueItem('1', sourceId: '1');

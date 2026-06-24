@@ -245,13 +245,30 @@ class PlayerController extends GetxController {
 
   /// 更新播放队列中的指定队列项。
   Future<void> updatePlaybackQueueItem(PlaybackQueueItem item) async {
-    final queue = runtimeState.value.queue.map((queueItem) => queueItem.id == item.id ? item : queueItem).toList(growable: false);
-    await _queueService.updateQueueItem(item);
+    final normalizedItem = _normalizedPlaybackQueueItem(item);
+    final itemId = normalizedItem.id;
+    if (itemId.isEmpty) {
+      return;
+    }
+    final queue = runtimeState.value.queue.map((queueItem) => _normalizedPlaybackQueueItemId(queueItem.id) == itemId ? normalizedItem : queueItem).toList(growable: false);
+    await _queueService.updateQueueItem(normalizedItem);
     syncRuntimeState(
       queue: queue,
-      currentSong: runtimeState.value.currentSong.id == item.id ? item : null,
+      currentSong: _normalizedPlaybackQueueItemId(runtimeState.value.currentSong.id) == itemId ? normalizedItem : null,
     );
-    await _playbackService.updateQueueItem(item);
+    await _playbackService.updateQueueItem(normalizedItem);
+  }
+
+  PlaybackQueueItem _normalizedPlaybackQueueItem(PlaybackQueueItem item) {
+    final normalizedItemId = _normalizedPlaybackQueueItemId(item.id);
+    if (normalizedItemId == item.id) {
+      return item;
+    }
+    return item.copyWith(id: normalizedItemId);
+  }
+
+  String _normalizedPlaybackQueueItemId(String id) {
+    return id.trim();
   }
 
   /// 跳转到指定播放进度。

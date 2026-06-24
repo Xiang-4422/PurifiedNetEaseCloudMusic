@@ -195,7 +195,8 @@ extension PlayerStateSync on PlayerController {
     if (selection.sourceStatus != PlaybackSelectionSourceStatus.error || errorMessage == null || errorMessage.isEmpty) {
       return;
     }
-    final toastKey = '${selection.selectionVersion}:${selection.selectedItem.id}:$errorMessage';
+    final selectedItemId = _normalizedPlaybackQueueItemId(selection.selectedItem.id);
+    final toastKey = '${selection.selectionVersion}:$selectedItemId:$errorMessage';
     if (_lastSelectionErrorToastKey == toastKey) {
       return;
     }
@@ -230,7 +231,9 @@ extension PlayerStateSync on PlayerController {
 
   /// 从播放边界切换喜欢状态后同步队列项。
   Future<void> toggleLikeFromPlayback(PlaybackQueueItem item) {
-    final itemKey = item.id.isNotEmpty ? item.id : item.sourceId;
+    final normalizedItem = _normalizedPlaybackQueueItem(item);
+    final sourceItemId = _normalizedPlaybackQueueItemId(normalizedItem.sourceId);
+    final itemKey = normalizedItem.id.isNotEmpty ? normalizedItem.id : sourceItemId;
     if (itemKey.isEmpty) {
       return Future<void>.value();
     }
@@ -239,7 +242,7 @@ extension PlayerStateSync on PlayerController {
       return pending;
     }
     late final Future<void> command;
-    command = _toggleLikeFromPlayback(item).whenComplete(() {
+    command = _toggleLikeFromPlayback(normalizedItem).whenComplete(() {
       if (identical(_likeToggleInFlightByItem[itemKey], command)) {
         _likeToggleInFlightByItem.remove(itemKey);
       }

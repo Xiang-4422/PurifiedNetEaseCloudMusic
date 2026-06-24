@@ -1664,6 +1664,35 @@ void main() {
       );
     });
 
+    test('player controller normalizes queue item ids before UI queue writeback', () {
+      final controllerFile = File(
+        '${projectRoot.path}/lib/features/playback/player_controller.dart',
+      );
+      final stateSyncFile = File(
+        '${projectRoot.path}/lib/features/playback/player_state_sync.dart',
+      );
+      final controller = controllerFile.readAsStringSync();
+      final stateSync = stateSyncFile.readAsStringSync();
+      final violations = <String>[
+        if (!controller.contains('PlaybackQueueItem _normalizedPlaybackQueueItem(PlaybackQueueItem item)')) '${_relativePath(controllerFile)} does not define playback queue item normalization',
+        if (!controller.contains('String _normalizedPlaybackQueueItemId(String id)')) '${_relativePath(controllerFile)} does not define playback queue item id normalization',
+        if (!controller.contains('final normalizedItem = _normalizedPlaybackQueueItem(item);')) '${_relativePath(controllerFile)} can still update playback queue from a raw item id',
+        if (!controller.contains('_normalizedPlaybackQueueItemId(queueItem.id) == itemId ? normalizedItem : queueItem')) '${_relativePath(controllerFile)} can still replace runtime queue items by raw id',
+        if (!controller.contains('await _queueService.updateQueueItem(normalizedItem);')) '${_relativePath(controllerFile)} can still send raw queue item ids to queue service',
+        if (!controller.contains('_normalizedPlaybackQueueItemId(runtimeState.value.currentSong.id) == itemId ? normalizedItem : null')) '${_relativePath(controllerFile)} can still update current runtime song through raw id comparison',
+        if (!controller.contains('await _playbackService.updateQueueItem(normalizedItem);')) '${_relativePath(controllerFile)} can still send raw queue item ids to playback service',
+        if (!stateSync.contains('final selectedItemId = _normalizedPlaybackQueueItemId(selection.selectedItem.id);')) '${_relativePath(stateSyncFile)} can still deduplicate selection error toasts by raw id',
+        if (!stateSync.contains('final normalizedItem = _normalizedPlaybackQueueItem(item);')) '${_relativePath(stateSyncFile)} can still toggle liked state from a raw item id',
+        if (!stateSync.contains('command = _toggleLikeFromPlayback(normalizedItem).whenComplete')) '${_relativePath(stateSyncFile)} can still pass raw item ids to the like toggle boundary',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '喜欢、下载和封面等队列项回写最终都会经过 PlayerController，UI runtime、队列服务和播放服务必须使用规范化歌曲 id。',
+      );
+    });
+
     test('playback like control stays behind player controller boundary', () {
       final controlsFile = File(
         '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_playback_controls.dart',

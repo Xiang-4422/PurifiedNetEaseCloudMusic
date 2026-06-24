@@ -1485,6 +1485,29 @@ void main() {
       );
     });
 
+    test('playback service normalizes ids before audio handler source replacement', () {
+      final serviceFile = File(
+        '${projectRoot.path}/lib/features/playback/playback_service.dart',
+      );
+      final service = serviceFile.readAsStringSync();
+      final violations = <String>[
+        if (!service.contains('String _normalizedQueueItemId(String id)')) '${_relativePath(serviceFile)} does not define queue item id normalization',
+        if (!service.contains('final itemId = _normalizedQueueItemId(item.id);')) '${_relativePath(serviceFile)} can still branch on raw replacement item id',
+        if (!service.contains('if (_normalizedQueueItemId(queue[activeIndex].id) != itemId)')) '${_relativePath(serviceFile)} can still compare raw active queue item id',
+        if (!service.contains('final normalizedItem = itemId == item.id ? item : item.copyWith(id: itemId);')) '${_relativePath(serviceFile)} can still pass raw replacement item id to MediaItem adapter',
+        if (!service.contains('mediaItemToPlay: PlaybackQueueItemAdapter.toMediaItem(normalizedItem)')) '${_relativePath(serviceFile)} does not pass normalized item to handler source replacement',
+        if (!service.contains("final confirmedItemId = _normalizedQueueItemId(handler.mediaItem.value?.id ?? '');")) '${_relativePath(serviceFile)} can still read raw confirmed MediaItem id',
+        if (!service.contains('queue.indexWhere((queueItem) => _normalizedQueueItemId(queueItem.id) == confirmedItemId)')) '${_relativePath(serviceFile)} can still compare raw queue ids when preserving handler current index',
+        if (!service.contains('_normalizedQueueItemId(left[index].id) != _normalizedQueueItemId(right[index].id)')) '${_relativePath(serviceFile)} can still compare raw handler queue ids',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'PlaybackService 是进入 AudioServiceHandler 的边界，替换 source、同步 handler 队列和保留 currentIndex 前都必须按规范化队列项 id 判断。',
+      );
+    });
+
     test('playback queue ownership does not flow back from audio adapter', () {
       final selectionFile = File(
         '${projectRoot.path}/lib/features/playback/application/playback_selection_service.dart',

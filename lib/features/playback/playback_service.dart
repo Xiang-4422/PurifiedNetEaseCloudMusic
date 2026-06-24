@@ -172,13 +172,18 @@ class PlaybackService extends GetxService {
     if (activeIndex < 0 || activeIndex >= queue.length) {
       return false;
     }
-    if (queue[activeIndex].id != item.id) {
+    final itemId = _normalizedQueueItemId(item.id);
+    if (itemId.isEmpty) {
       return false;
     }
+    if (_normalizedQueueItemId(queue[activeIndex].id) != itemId) {
+      return false;
+    }
+    final normalizedItem = itemId == item.id ? item : item.copyWith(id: itemId);
     await _ensureHandlerQueueForSource(queue, activeIndex);
     return handler.replaceSource(
       audioSourceIndex: activeIndex,
-      mediaItemToPlay: PlaybackQueueItemAdapter.toMediaItem(item),
+      mediaItemToPlay: PlaybackQueueItemAdapter.toMediaItem(normalizedItem),
       source: source,
       playNow: playNow,
     );
@@ -192,8 +197,8 @@ class PlaybackService extends GetxService {
     if (_hasSameQueueIds(handlerQueue, queue)) {
       return;
     }
-    final confirmedItemId = handler.mediaItem.value?.id ?? '';
-    final confirmedIndex = confirmedItemId.isEmpty ? -1 : queue.indexWhere((queueItem) => queueItem.id == confirmedItemId);
+    final confirmedItemId = _normalizedQueueItemId(handler.mediaItem.value?.id ?? '');
+    final confirmedIndex = confirmedItemId.isEmpty ? -1 : queue.indexWhere((queueItem) => _normalizedQueueItemId(queueItem.id) == confirmedItemId);
     await handler.setSourceQueue(
       PlaybackQueueItemAdapter.toMediaItems(queue),
       currentIndex: confirmedIndex >= 0 ? confirmedIndex : fallbackIndex,
@@ -208,11 +213,15 @@ class PlaybackService extends GetxService {
       return false;
     }
     for (var index = 0; index < left.length; index++) {
-      if (left[index].id != right[index].id) {
+      if (_normalizedQueueItemId(left[index].id) != _normalizedQueueItemId(right[index].id)) {
         return false;
       }
     }
     return true;
+  }
+
+  String _normalizedQueueItemId(String id) {
+    return id.trim();
   }
 
   /// 跳转到指定播放进度。

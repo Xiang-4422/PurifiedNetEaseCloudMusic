@@ -120,16 +120,16 @@ class _SwipeableState extends State<Swipeable> with TickerProviderStateMixin {
     var delta = details.primaryVelocity;
     _dragExtent += delta!;
 
-    if (_dragExtent > 0 && !_pastLeftThreshold && (_moveController?.value ?? 0) > 0.2) {
-      _pastLeftThreshold = true;
-      if (widget.onSwipeLeft != null) {
-        widget.onSwipeLeft?.call();
-      }
-    }
-    if (_dragExtent < 0 && !_pastRightThreshold && (_moveController?.value ?? 0) > 0.2) {
+    if (_dragExtent > 0 && !_pastRightThreshold && (_moveController?.value ?? 0) > 0.2) {
       _pastRightThreshold = true;
       if (widget.onSwipeRight != null) {
         widget.onSwipeRight?.call();
+      }
+    }
+    if (_dragExtent < 0 && !_pastLeftThreshold && (_moveController?.value ?? 0) > 0.2) {
+      _pastLeftThreshold = true;
+      if (widget.onSwipeLeft != null) {
+        widget.onSwipeLeft?.call();
       }
     }
     _moveController?.animateTo(0.0, duration: const Duration(milliseconds: 200));

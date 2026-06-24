@@ -35,6 +35,32 @@ void main() {
       expect(repository.requestedRadioOffsets, isEmpty);
     });
 
+    test('normalizes account scoped user id before repository access', () async {
+      final repository = _FakeRadioRepository(
+        fetchSubscribedRadiosWithArgs: ({required userId, required offset, required limit}) {
+          return Future.value(
+            DjRadioPage(
+              items: [_radio('remote-radio-$offset')],
+              hasMore: true,
+              nextOffset: offset + 1,
+            ),
+          );
+        },
+      );
+      final controller = RadioListController(
+        userId: ' user-1 ',
+        repository: repository,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.loadInitial();
+      await controller.refresh();
+      await controller.loadMore();
+
+      expect(repository.requestedCachedRadioUserIds, ['user-1']);
+      expect(repository.requestedRadioUserIds, ['user-1', 'user-1', 'user-1']);
+    });
+
     test('keeps cached radios when background refresh fails', () async {
       final refresh = Completer<DjRadioPage>();
       final error = Exception('offline');
@@ -290,6 +316,34 @@ void main() {
       expect(controller.state.value.hasMore, isFalse);
       expect(repository.requestedCachedProgramUserIds, isEmpty);
       expect(repository.requestedProgramOffsets, isEmpty);
+    });
+
+    test('normalizes account scoped user id before repository access', () async {
+      final repository = _FakeRadioRepository(
+        fetchProgramsWithArgs: ({required userId, required radioId, required offset, required limit, required asc}) {
+          return Future.value(
+            DjProgramPage(
+              items: [_program('remote-program-$offset')],
+              hasMore: true,
+              nextOffset: offset + 1,
+            ),
+          );
+        },
+      );
+      final controller = RadioDetailController(
+        radioId: 'radio-1',
+        userId: ' user-1 ',
+        repository: repository,
+        likedSongIds: () => const [],
+      );
+      addTearDown(controller.dispose);
+
+      await controller.loadInitial();
+      await controller.refresh();
+      await controller.loadMore();
+
+      expect(repository.requestedCachedProgramUserIds, ['user-1']);
+      expect(repository.requestedProgramUserIds, ['user-1', 'user-1', 'user-1']);
     });
 
     test('keeps cached programs when background refresh fails', () async {
@@ -671,6 +725,8 @@ class _FakeRadioRepository implements RadioRepository {
   final List<int> requestedProgramOffsets = <int>[];
   final List<String> requestedCachedRadioUserIds = <String>[];
   final List<String> requestedCachedProgramUserIds = <String>[];
+  final List<String> requestedRadioUserIds = <String>[];
+  final List<String> requestedProgramUserIds = <String>[];
 
   @override
   Future<List<RadioSummaryData>> loadCachedSubscribedRadios(String userId) async {
@@ -703,6 +759,7 @@ class _FakeRadioRepository implements RadioRepository {
     required int offset,
     required int limit,
   }) {
+    requestedRadioUserIds.add(userId);
     requestedRadioOffsets.add(offset);
     final fetchWithArgs = _fetchSubscribedRadiosWithArgs;
     if (fetchWithArgs != null) {
@@ -730,6 +787,7 @@ class _FakeRadioRepository implements RadioRepository {
     required int limit,
     required bool asc,
   }) {
+    requestedProgramUserIds.add(userId);
     requestedProgramOffsets.add(offset);
     final fetchWithArgs = _fetchProgramsWithArgs;
     if (fetchWithArgs != null) {

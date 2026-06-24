@@ -40,6 +40,33 @@ void main() {
       expect(repository.requestedOffsets, isEmpty);
     });
 
+    test('normalizes account scoped user id before repository access', () async {
+      final repository = _FakeCloudRepository(
+        fetchCloudSongsWithArgs: ({required userId, required offset, required limit, required likedSongIds}) {
+          return Future.value(
+            CloudSongPage(
+              items: [_song('remote-$offset')],
+              hasMore: true,
+              nextOffset: offset + 1,
+            ),
+          );
+        },
+      );
+      final controller = CloudPageController(
+        repository: repository,
+        userId: ' user-1 ',
+        likedSongIds: () => const [],
+      );
+      addTearDown(controller.dispose);
+
+      await controller.loadInitial();
+      await controller.refresh();
+      await controller.loadMore();
+
+      expect(repository.cachedUserIds, ['user-1']);
+      expect(repository.fetchUserIds, ['user-1', 'user-1', 'user-1']);
+    });
+
     test('keeps cached songs when background refresh fails', () async {
       final refresh = Completer<CloudSongPage>();
       final error = Exception('offline');
@@ -325,12 +352,15 @@ class _FakeCloudRepository extends CloudRepository {
   final List<int> requestedOffsets = <int>[];
   final List<List<int>> cachedLikedSongRequests = <List<int>>[];
   final List<List<int>> fetchLikedSongRequests = <List<int>>[];
+  final List<String> cachedUserIds = <String>[];
+  final List<String> fetchUserIds = <String>[];
 
   @override
   Future<List<PlaybackQueueItem>> loadCachedSongs({
     required String userId,
     required List<int> likedSongIds,
   }) async {
+    cachedUserIds.add(userId);
     cachedLikedSongRequests.add(List<int>.from(likedSongIds));
     final future = cachedSongsFuture;
     if (future != null) {
@@ -346,6 +376,7 @@ class _FakeCloudRepository extends CloudRepository {
     required int limit,
     required List<int> likedSongIds,
   }) {
+    fetchUserIds.add(userId);
     requestedOffsets.add(offset);
     fetchLikedSongRequests.add(List<int>.from(likedSongIds));
     final fetchWithArgs = _fetchCloudSongsWithArgs;

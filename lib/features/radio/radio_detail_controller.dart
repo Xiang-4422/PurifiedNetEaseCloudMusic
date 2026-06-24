@@ -17,7 +17,7 @@ class RadioDetailController {
     required List<int> Function() likedSongIds,
     this.pageSize = 30,
     this.asc = true,
-  })  : _userId = userId,
+  })  : _userId = _normalizedUserId(userId),
         _repository = repository,
         _likedSongIds = likedSongIds;
 
@@ -214,5 +214,9 @@ class RadioDetailController {
     return !_disposed && generation == _requestGeneration;
   }
 
-  bool get _hasUserId => _userId.trim().isNotEmpty;
+  bool get _hasUserId => _userId.isNotEmpty;
+
+  static String _normalizedUserId(String userId) {
+    return userId.trim();
+  }
 }

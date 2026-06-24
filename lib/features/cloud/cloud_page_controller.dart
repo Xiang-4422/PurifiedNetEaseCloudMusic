@@ -14,7 +14,7 @@ class CloudPageController {
     required List<int> Function() likedSongIds,
     this.pageSize = 30,
   })  : _repository = repository,
-        _userId = userId,
+        _userId = _normalizedUserId(userId),
         _likedSongIds = likedSongIds;
 
   final CloudRepository _repository;
@@ -209,7 +209,11 @@ class CloudPageController {
     return !_disposed && generation == _requestGeneration;
   }
 
-  bool get _hasUserId => _userId.trim().isNotEmpty;
+  bool get _hasUserId => _userId.isNotEmpty;
+
+  static String _normalizedUserId(String userId) {
+    return userId.trim();
+  }
 
   void _setStateIfCurrent(
     int generation,

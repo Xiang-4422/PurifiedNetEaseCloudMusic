@@ -12,7 +12,7 @@ class RadioListController {
     required String userId,
     required RadioRepository repository,
     this.pageSize = 30,
-  })  : _userId = userId,
+  })  : _userId = _normalizedUserId(userId),
         _repository = repository;
 
   final String _userId;
@@ -186,5 +186,9 @@ class RadioListController {
     return !_disposed && generation == _requestGeneration;
   }
 
-  bool get _hasUserId => _userId.trim().isNotEmpty;
+  bool get _hasUserId => _userId.isNotEmpty;
+
+  static String _normalizedUserId(String userId) {
+    return userId.trim();
+  }
 }

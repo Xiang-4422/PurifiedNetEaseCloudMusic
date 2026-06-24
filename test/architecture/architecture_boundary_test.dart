@@ -816,6 +816,30 @@ void main() {
       );
     });
 
+    test('netease user remote normalizes account scoped user ids', () {
+      final sourceFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/netease/remote/netease_user_remote_data_source.dart',
+      );
+      final source = sourceFile.readAsStringSync();
+      final userNormalizationCount = RegExp(
+        r'final normalizedUserId = _normalizedUserId\(userId\);',
+      ).allMatches(source).length;
+      final violations = <String>[
+        if (userNormalizationCount < 3) '${_relativePath(sourceFile)} does not normalize user id before detail, liked song and playlist SDK requests',
+        if (!source.contains('_api.userDetail(normalizedUserId)')) '${_relativePath(sourceFile)} can still fetch user detail with raw user id',
+        if (!source.contains('_api.likeSongList(normalizedUserId)')) '${_relativePath(sourceFile)} can still fetch liked songs with raw user id',
+        if (!source.contains('_api.userPlayLists(normalizedUserId)')) '${_relativePath(sourceFile)} can still fetch user playlists with raw user id',
+        if (!source.contains('String _normalizedUserId(String userId)')) '${_relativePath(sourceFile)} does not define user id normalization',
+        if (!source.contains('static const UserProfileData _emptyUserProfile')) '${_relativePath(sourceFile)} does not define an empty profile fallback for blank user ids',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '网易云用户远端 data source 是账号作用域数据进入 SDK 的边界，用户资料、喜欢歌曲和用户歌单请求必须先归一 userId 并拒绝空白账号。',
+      );
+    });
+
     test('main app imports netease api package through public facade', () {
       final violations = _dartFiles(libDirectory)
           .where(

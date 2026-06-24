@@ -18,7 +18,11 @@ class NeteaseUserRemoteDataSource implements UserRemoteDataSource {
   /// 获取用户资料。
   @override
   Future<UserProfileData> fetchUserDetail(String userId) async {
-    final detail = await _api.userDetail(userId);
+    final normalizedUserId = _normalizedUserId(userId);
+    if (normalizedUserId.isEmpty) {
+      return _emptyUserProfile;
+    }
+    final detail = await _api.userDetail(normalizedUserId);
     final profile = detail.profile;
     return UserProfileData(
       userId: profile.userId,
@@ -34,7 +38,11 @@ class NeteaseUserRemoteDataSource implements UserRemoteDataSource {
   /// 获取用户喜欢歌曲 id 列表。
   @override
   Future<List<int>> fetchLikedSongIds(String userId) async {
-    final likedList = await _api.likeSongList(userId);
+    final normalizedUserId = _normalizedUserId(userId);
+    if (normalizedUserId.isEmpty) {
+      return const [];
+    }
+    final likedList = await _api.likeSongList(normalizedUserId);
     return likedList.ids;
   }
 
@@ -51,7 +59,11 @@ class NeteaseUserRemoteDataSource implements UserRemoteDataSource {
   /// 获取用户歌单。
   @override
   Future<List<PlaylistEntity>> fetchUserPlaylists(String userId) async {
-    final wrap = await _api.userPlayLists(userId);
+    final normalizedUserId = _normalizedUserId(userId);
+    if (normalizedUserId.isEmpty) {
+      return const [];
+    }
+    final wrap = await _api.userPlayLists(normalizedUserId);
     return NeteasePlaylistMapper.fromPlaylistList(wrap.playlists ?? const []);
   }
 
@@ -167,4 +179,18 @@ class NeteaseUserRemoteDataSource implements UserRemoteDataSource {
       message: result.message,
     );
   }
+
+  String _normalizedUserId(String userId) {
+    return userId.trim();
+  }
+
+  static const UserProfileData _emptyUserProfile = UserProfileData(
+    userId: '',
+    nickname: '',
+    signature: '',
+    follows: 0,
+    followeds: 0,
+    playlistCount: 0,
+    avatarUrl: '',
+  );
 }

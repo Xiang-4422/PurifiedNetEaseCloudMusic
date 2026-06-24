@@ -4,6 +4,23 @@ import 'package:netease_music_api/netease_music_api.dart';
 
 void main() {
   group('NeteaseUserRemoteDataSource', () {
+    test('normalizes user id before account scoped SDK requests', () async {
+      final api = _FakeNeteaseMusicApi();
+      final dataSource = NeteaseUserRemoteDataSource(api: api);
+
+      final profile = await dataSource.fetchUserDetail(' 42 ');
+      final likedSongIds = await dataSource.fetchLikedSongIds(' 42 ');
+      final playlists = await dataSource.fetchUserPlaylists(' 42 ');
+
+      expect(profile.userId, '42');
+      expect(profile.nickname, 'user-42');
+      expect(likedSongIds, [101, 202]);
+      expect(playlists, isEmpty);
+      expect(api.userDetailIds, ['42']);
+      expect(api.likedSongListUserIds, ['42']);
+      expect(api.userPlaylistIds, ['42']);
+    });
+
     test('normalizes heartbeat song ids before SDK request', () async {
       final api = _FakeNeteaseMusicApi();
       final dataSource = NeteaseUserRemoteDataSource(api: api);
@@ -60,6 +77,23 @@ void main() {
       ]);
     });
 
+    test('rejects blank user ids before account scoped SDK requests', () async {
+      final api = _FakeNeteaseMusicApi();
+      final dataSource = NeteaseUserRemoteDataSource(api: api);
+
+      final profile = await dataSource.fetchUserDetail(' ');
+      final likedSongIds = await dataSource.fetchLikedSongIds(' ');
+      final playlists = await dataSource.fetchUserPlaylists(' ');
+
+      expect(profile.userId, isEmpty);
+      expect(profile.nickname, isEmpty);
+      expect(likedSongIds, isEmpty);
+      expect(playlists, isEmpty);
+      expect(api.userDetailIds, isEmpty);
+      expect(api.likedSongListUserIds, isEmpty);
+      expect(api.userPlaylistIds, isEmpty);
+    });
+
     test('rejects invalid song ids before SDK requests', () async {
       final api = _FakeNeteaseMusicApi();
       final dataSource = NeteaseUserRemoteDataSource(api: api);
@@ -89,6 +123,9 @@ void main() {
 }
 
 class _FakeNeteaseMusicApi implements NeteaseMusicApi {
+  final userDetailIds = <String>[];
+  final likedSongListUserIds = <String>[];
+  final userPlaylistIds = <String>[];
   final heartbeatRequests = <({
     String songId,
     String playlistId,
@@ -97,6 +134,41 @@ class _FakeNeteaseMusicApi implements NeteaseMusicApi {
   })>[];
   final songDetailBatches = <List<String>>[];
   final likeSongRequests = <({String songId, bool like})>[];
+
+  @override
+  Future<NeteaseUserDetail> userDetail(String userId) async {
+    userDetailIds.add(userId);
+    return NeteaseUserDetail()
+      ..code = 200
+      ..profile = (NeteaseAccountProfile()
+        ..userId = userId
+        ..nickname = 'user-$userId'
+        ..signature = 'signature-$userId'
+        ..follows = 1
+        ..followeds = 2
+        ..playlistCount = 3
+        ..avatarUrl = 'https://image.test/$userId.jpg');
+  }
+
+  @override
+  Future<LikeSongListWrap> likeSongList(String userId) async {
+    likedSongListUserIds.add(userId);
+    return LikeSongListWrap()
+      ..code = 200
+      ..ids = const [101, 202];
+  }
+
+  @override
+  Future<MultiPlayListWrap2> userPlayLists(
+    String userId, {
+    int offset = 0,
+    int limit = 30,
+  }) async {
+    userPlaylistIds.add(userId);
+    return MultiPlayListWrap2()
+      ..code = 200
+      ..playlists = const [];
+  }
 
   @override
   Future<PlaymodeIntelligenceListWrap> playmodeIntelligenceList(

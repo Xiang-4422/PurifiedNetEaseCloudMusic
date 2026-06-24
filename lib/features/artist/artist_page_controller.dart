@@ -41,7 +41,7 @@ class ArtistPageController {
     try {
       return await _repository.loadLocalArtistDetail(
         artistId: artistId,
-        likedSongIds: _likedSongIds(),
+        likedSongIds: _likedSongIdsSnapshot(),
       );
     } catch (_) {
       return null;
@@ -52,7 +52,11 @@ class ArtistPageController {
   Future<ArtistDetailData> fetchDetail(String artistId) {
     return _repository.fetchArtistDetail(
       artistId: artistId,
-      likedSongIds: _likedSongIds(),
+      likedSongIds: _likedSongIdsSnapshot(),
     );
+  }
+
+  List<int> _likedSongIdsSnapshot() {
+    return _likedSongIds().toSet().toList()..sort();
   }
 }

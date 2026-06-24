@@ -45,11 +45,11 @@ void main() {
       expect(initialData.shouldRefreshInBackground, isFalse);
     });
 
-    test('passes liked song ids to album repository calls', () async {
+    test('passes normalized liked song ids to album repository calls', () async {
       final repository = _FakeAlbumRepository();
       final controller = AlbumPageController(
         repository: repository,
-        likedSongIds: () => const [1, 2],
+        likedSongIds: () => const [2, 1, 2],
       );
 
       await controller.loadLocalDetail('album-1');

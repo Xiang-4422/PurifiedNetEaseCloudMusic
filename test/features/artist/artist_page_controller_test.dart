@@ -45,11 +45,11 @@ void main() {
       expect(initialData.shouldRefreshInBackground, isFalse);
     });
 
-    test('passes liked song ids to artist repository calls', () async {
+    test('passes normalized liked song ids to artist repository calls', () async {
       final repository = _FakeArtistRepository();
       final controller = ArtistPageController(
         repository: repository,
-        likedSongIds: () => const [1, 2],
+        likedSongIds: () => const [2, 1, 2],
       );
 
       await controller.loadLocalDetail('artist-1');

@@ -885,6 +885,28 @@ void main() {
       );
     });
 
+    test('playback mode coordinator normalizes liked queue ids before selecting current song', () {
+      final coordinatorFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_mode_coordinator.dart',
+      );
+      final coordinator = coordinatorFile.readAsStringSync();
+      final violations = <String>[
+        if (!coordinator.contains('PlaybackQueueItem _normalizedQueueItem(PlaybackQueueItem item)')) '${_relativePath(coordinatorFile)} does not normalize liked mode queue items',
+        if (!coordinator.contains('String _normalizedQueueItemId(String id)')) '${_relativePath(coordinatorFile)} does not define liked mode queue item id normalization',
+        if (!coordinator.contains('final likedSongs = _userContentPort.likedSongs().map(_normalizedQueueItem)')) '${_relativePath(coordinatorFile)} can still build liked mode queue from raw ids',
+        if (!coordinator.contains('final normalizedCurrentSong = _normalizedQueueItem(currentSong);')) '${_relativePath(coordinatorFile)} can still start liked mode from a raw current song',
+        if (!coordinator.contains('final currentSongSourceId = int.tryParse(normalizedCurrentSong.sourceId);')) '${_relativePath(coordinatorFile)} can still check liked source ids through raw sourceId',
+        if (!coordinator.contains('(song) => _normalizedQueueItemId(song.id) == normalizedCurrentSong.id')) '${_relativePath(coordinatorFile)} can still locate liked mode current index through raw ids',
+        if (coordinator.contains('song.id == currentSong.id')) '${_relativePath(coordinatorFile)} still compares liked mode queue ids raw',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '喜欢歌曲队列切换会决定当前播放索引；liked queue、currentSong.id 和 sourceId 必须先规范化，避免 id 空格差异从错误歌曲开始播放。',
+      );
+    });
+
     test('playback repository rejects negative restore positions', () {
       final repositoryFile = File(
         '${projectRoot.path}/lib/features/playback/playback_repository.dart',

@@ -25,15 +25,22 @@ class PlaybackModeCoordinator {
     required PlaybackQueueItem currentSong,
   }) async {
     await _userContentPort.ensureLikedSongsLoaded();
-    final likedSongs = _userContentPort.likedSongs();
+    final likedSongs = _userContentPort.likedSongs().map(_normalizedQueueItem).where((song) => song.id.isNotEmpty).toList(growable: false);
     final likedSongIds = _userContentPort.likedSongIds();
-    int playIndex;
     final playList = [...likedSongs];
-    if (likedSongIds.contains(int.tryParse(currentSong.sourceId))) {
-      playIndex = likedSongs.indexWhere((song) => song.id == currentSong.id);
-    } else {
+    final normalizedCurrentSong = _normalizedQueueItem(currentSong);
+    final currentSongSourceId = int.tryParse(normalizedCurrentSong.sourceId);
+    var playIndex = -1;
+    if (likedSongIds.contains(currentSongSourceId)) {
+      playIndex = likedSongs.indexWhere(
+        (song) => _normalizedQueueItemId(song.id) == normalizedCurrentSong.id,
+      );
+    }
+    if (playIndex < 0) {
       playIndex = 0;
-      playList.insert(0, currentSong);
+      if (normalizedCurrentSong.id.isNotEmpty) {
+        playList.insert(0, normalizedCurrentSong);
+      }
     }
 
     await _selectionService.selectQueue(
@@ -103,5 +110,21 @@ class PlaybackModeCoordinator {
       );
     }
     return true;
+  }
+
+  PlaybackQueueItem _normalizedQueueItem(PlaybackQueueItem item) {
+    final normalizedItemId = _normalizedQueueItemId(item.id);
+    final normalizedSourceId = _normalizedQueueItemId(item.sourceId);
+    if (normalizedItemId == item.id && normalizedSourceId == item.sourceId) {
+      return item;
+    }
+    return item.copyWith(
+      id: normalizedItemId,
+      sourceId: normalizedSourceId,
+    );
+  }
+
+  String _normalizedQueueItemId(String id) {
+    return id.trim();
   }
 }

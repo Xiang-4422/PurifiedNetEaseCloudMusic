@@ -2256,6 +2256,31 @@ void main() {
       );
     });
 
+    test('player UI commands stay outside main controller body', () {
+      final controllerFile = File(
+        '${projectRoot.path}/lib/features/playback/player_controller.dart',
+      );
+      final uiCommandsFile = File(
+        '${projectRoot.path}/lib/features/playback/player_ui_commands.dart',
+      );
+      final controller = controllerFile.readAsStringSync();
+      final uiCommands = uiCommandsFile.readAsStringSync();
+      final violations = <String>[
+        if (!controller.contains("part 'player_ui_commands.dart';")) 'player controller does not compose UI command part',
+        if (controller.contains('IconData getRepeatIcon()')) '${_relativePath(controllerFile)} owns repeat icon UI mapping',
+        if (controller.contains('void updateFullScreenLyricTimerCounter({bool cancelTimer = false})')) '${_relativePath(controllerFile)} owns full screen lyric UI timer command',
+        if (!uiCommands.contains('extension PlayerUiCommands on PlayerController')) '${_relativePath(uiCommandsFile)} does not expose player UI command extension',
+        if (!uiCommands.contains('IconData getRepeatIcon()')) '${_relativePath(uiCommandsFile)} does not own repeat icon UI mapping',
+        if (!uiCommands.contains('void updateFullScreenLyricTimerCounter({bool cancelTimer = false})')) '${_relativePath(uiCommandsFile)} does not own lyric timer UI command',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'PlayerController 主文件只保留播放状态和命令编排，repeat 图标和歌词计时这类 UI glue 必须放在独立 part，避免主控制器继续膨胀。',
+      );
+    });
+
     test('cloud and radio pages keep liked ids behind page controllers', () {
       final cloudViewFile = File(
         '${projectRoot.path}/lib/ui/pages/cloud/cloud_drive_view.dart',

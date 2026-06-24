@@ -39,6 +39,8 @@ import 'package:get/get.dart';
 part 'player_download_commands.dart';
 part 'player_state_sync.dart';
 part 'player_artwork_sync.dart';
+part 'player_ui_commands.dart';
+part 'player_controller_helpers.dart';
 
 /// 面向页面暴露播放状态和播放模式切换入口。
 ///
@@ -397,41 +399,6 @@ class PlayerController extends GetxController {
     );
   }
 
-  /// 返回当前重复或播放模式对应的图标。
-  IconData getRepeatIcon() {
-    IconData icon;
-    if (playbackMode.value == PlaybackMode.roaming) {
-      icon = TablerIcons.radio;
-    } else if (playbackMode.value == PlaybackMode.heartbeat) {
-      icon = TablerIcons.heartbeat;
-    } else if (curOrderMode.value == PlaybackOrderMode.shuffle) {
-      icon = TablerIcons.arrows_shuffle;
-    } else {
-      switch (curRepeatMode.value) {
-        case PlaybackRepeatMode.one:
-          icon = TablerIcons.repeat_once;
-          break;
-        case PlaybackRepeatMode.none:
-          icon = TablerIcons.repeat_off;
-          break;
-        case PlaybackRepeatMode.all:
-        case PlaybackRepeatMode.group:
-          icon = TablerIcons.repeat;
-          break;
-      }
-    }
-    return icon;
-  }
-
-  /// 更新全屏歌词自动打开计时。
-  void updateFullScreenLyricTimerCounter({bool cancelTimer = false}) {
-    _lyricUiStateController.updateFullScreenLyricTimerCounter(
-      isPlaying: isPlaying.value,
-      setFullScreenLyricOpen: (value) => isFullScreenLyricOpen.value = value,
-      cancelTimer: cancelTimer,
-    );
-  }
-
   @override
   void onClose() {
     _selectionUiEffectCoordinator.cancel();
@@ -440,32 +407,4 @@ class PlayerController extends GetxController {
     _lyricUiStateController.dispose();
     super.onClose();
   }
-}
-
-/// 生成 mini player 控制反馈指标的补充信息。
-@visibleForTesting
-String miniPlayerFeedbackMetricDetails({
-  required String action,
-  required bool succeeded,
-  Object? error,
-}) {
-  final result = succeeded ? 'success' : 'error';
-  if (succeeded || error == null) {
-    return 'action=$action result=$result';
-  }
-  return 'action=$action result=$result error=${error.runtimeType}';
-}
-
-void _reportPlaybackControllerBackgroundError(
-  String taskName,
-  String? trackId,
-  Object error,
-  StackTrace stackTrace,
-) {
-  developer.log(
-    'playback.controller.backgroundTask.failed task=$taskName trackId=${trackId ?? ''}',
-    name: 'Playback',
-    error: error,
-    stackTrace: stackTrace,
-  );
 }

@@ -2390,11 +2390,15 @@ void main() {
       final controllerFile = File(
         '${projectRoot.path}/lib/features/explore/explore_page_controller.dart',
       );
+      final filterStripFile = File(
+        '${projectRoot.path}/lib/ui/pages/explore/widgets/explore_filter_strip.dart',
+      );
       final bootstrapFile = File(
         '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
       );
       final page = pageFile.readAsStringSync();
       final controller = controllerFile.readAsStringSync();
+      final filterStrip = filterStripFile.readAsStringSync();
       final bootstrap = bootstrapFile.readAsStringSync();
       final helperStart = page.indexOf('Future<void> _playPlaylistSummary');
       final pageClassStart = page.indexOf('class ExplorePageView');
@@ -2411,6 +2415,7 @@ void main() {
         if (!helperSection.contains('PlayerController playerController')) '${_relativePath(pageFile)} playlist playback helper does not receive player controller',
         if (!page.contains('final playerController = Get.find<PlayerController>()')) '${_relativePath(pageFile)} does not resolve player controller at page boundary',
         if (!page.contains('onPlay: playerController.playPlaylist')) '${_relativePath(pageFile)} does not pass player controller boundary to ranking list',
+        if (!filterStrip.contains('cacheExtent: exploreFilterStripCacheExtent')) '${_relativePath(filterStripFile)} does not bound horizontal filter cache extent',
         if (controller.contains("package:bujuan/features/shell/home_shell_controller.dart")) 'explore controller imports shell controller',
         if (controller.contains('HomeShellController.to')) 'explore controller reads global shell controller',
         if (!controller.contains('required ExplorePageVisibility pageVisibility')) 'explore controller does not accept visibility boundary',

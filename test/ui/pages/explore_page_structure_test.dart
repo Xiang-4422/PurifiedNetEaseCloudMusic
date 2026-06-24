@@ -25,7 +25,9 @@ void main() {
     ).readAsStringSync();
 
     expect(source, contains('class ExploreFilterStrip<T>'));
+    expect(source, contains('const double exploreFilterStripCacheExtent = 360;'));
     expect(source, contains('ListView.builder('));
+    expect(source, contains('cacheExtent: exploreFilterStripCacheExtent'));
     expect(source, contains('isSelected(item)'));
     expect(source, contains('onSelected(item)'));
     expect(source, contains('BorderRadius.circular(9999)'));

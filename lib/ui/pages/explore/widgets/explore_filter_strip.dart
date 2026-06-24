@@ -1,6 +1,10 @@
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:flutter/material.dart';
 
+/// 探索页横向筛选条的预渲染范围。
+@visibleForTesting
+const double exploreFilterStripCacheExtent = 360;
+
 /// 探索页横向筛选条。
 class ExploreFilterStrip<T> extends StatelessWidget {
   /// 创建横向筛选条。
@@ -39,6 +43,7 @@ class ExploreFilterStrip<T> extends StatelessWidget {
       clipBehavior: Clip.hardEdge,
       margin: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
       child: ListView.builder(
+        cacheExtent: exploreFilterStripCacheExtent,
         scrollDirection: Axis.horizontal,
         itemCount: items.length,
         itemBuilder: (context, index) {

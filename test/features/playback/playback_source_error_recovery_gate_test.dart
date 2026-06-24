@@ -100,6 +100,47 @@ void main() {
         isTrue,
       );
     });
+
+    test('allows newer selections while an older recovery is still running', () {
+      final gate = PlaybackSourceErrorRecoveryGate();
+
+      final oldRecoveryKey = gate.startRecovery(
+        currentItemId: '1',
+        selection: _selection('1', version: 1),
+      );
+      final newRecoveryKey = gate.startRecovery(
+        currentItemId: '2',
+        selection: _selection('2', version: 2),
+      );
+
+      expect(oldRecoveryKey, '1:1');
+      expect(newRecoveryKey, '2:2');
+      expect(
+        gate.shouldStartRecovery(
+          currentItemId: '2',
+          selection: _selection('2', version: 2),
+        ),
+        isFalse,
+      );
+
+      gate.completeRecovery(oldRecoveryKey);
+      expect(
+        gate.shouldStartRecovery(
+          currentItemId: '2',
+          selection: _selection('2', version: 2),
+        ),
+        isFalse,
+      );
+
+      gate.completeRecovery(newRecoveryKey);
+      expect(
+        gate.shouldStartRecovery(
+          currentItemId: '3',
+          selection: _selection('3', version: 3),
+        ),
+        isTrue,
+      );
+    });
   });
 }
 

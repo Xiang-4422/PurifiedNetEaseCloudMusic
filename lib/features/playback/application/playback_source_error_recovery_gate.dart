@@ -2,11 +2,12 @@ import 'package:bujuan/features/playback/playback_selection_state.dart';
 
 /// 控制底层 source error 恢复调度，避免同一首歌同一 selection 重复强刷 URL。
 class PlaybackSourceErrorRecoveryGate {
-  bool _recoveryInFlight = false;
+  String? _recoveryInFlightKey;
   String? _lastRecoveryKey;
 
   /// 当前播放源已经恢复到可用状态，允许后续 error 再次触发恢复。
   void markSourceReady() {
+    _recoveryInFlightKey = null;
     _lastRecoveryKey = null;
   }
 
@@ -15,26 +16,40 @@ class PlaybackSourceErrorRecoveryGate {
     required String currentItemId,
     required PlaybackSelectionState selection,
   }) {
-    if (_recoveryInFlight || currentItemId.isEmpty) {
-      return false;
+    final recoveryKey = startRecovery(
+      currentItemId: currentItemId,
+      selection: selection,
+    );
+    return recoveryKey != null;
+  }
+
+  /// 尝试开始一次 source error 恢复，成功时返回本次恢复 key。
+  String? startRecovery({
+    required String currentItemId,
+    required PlaybackSelectionState selection,
+  }) {
+    if (currentItemId.isEmpty) {
+      return null;
     }
     if (!selection.hasSelection || selection.selectedItem.id != currentItemId) {
-      return false;
+      return null;
     }
     if (selection.sourceStatus == PlaybackSelectionSourceStatus.loading) {
-      return false;
+      return null;
     }
     final recoveryKey = '${selection.selectionVersion}:$currentItemId';
-    if (_lastRecoveryKey == recoveryKey) {
-      return false;
+    if (_lastRecoveryKey == recoveryKey || _recoveryInFlightKey == recoveryKey) {
+      return null;
     }
     _lastRecoveryKey = recoveryKey;
-    _recoveryInFlight = true;
-    return true;
+    _recoveryInFlightKey = recoveryKey;
+    return recoveryKey;
   }
 
   /// 当前恢复任务结束。
-  void completeRecovery() {
-    _recoveryInFlight = false;
+  void completeRecovery([String? recoveryKey]) {
+    if (recoveryKey == null || _recoveryInFlightKey == recoveryKey) {
+      _recoveryInFlightKey = null;
+    }
   }
 }

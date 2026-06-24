@@ -417,27 +417,42 @@ class PlaybackStateSynchronizer {
   ) {
     final item = runtimeState().currentSong;
     final selection = _selectionService.state;
-    if (!_sourceErrorRecoveryGate.shouldStartRecovery(
+    final recoveryKey = _sourceErrorRecoveryGate.startRecovery(
       currentItemId: item.id,
       selection: selection,
-    )) {
+    );
+    if (recoveryKey == null) {
       return;
     }
+    final recoveryItemId = item.id;
+    final recoverySelectionVersion = selection.selectionVersion;
     _backgroundTasks.run(
       taskName: 'playback.sourceError.recover',
       trackId: item.id,
-      task: _submitCurrentAfterPlaybackSourceError,
+      task: () => _submitCurrentAfterPlaybackSourceError(
+        itemId: recoveryItemId,
+        selectionVersion: recoverySelectionVersion,
+        recoveryKey: recoveryKey,
+      ),
     );
   }
 
-  Future<void> _submitCurrentAfterPlaybackSourceError() async {
+  Future<void> _submitCurrentAfterPlaybackSourceError({
+    required String itemId,
+    required int selectionVersion,
+    required String recoveryKey,
+  }) async {
     try {
+      final selection = _selectionService.state;
+      if (selection.selectionVersion != selectionVersion || selection.selectedItem.id != itemId) {
+        return;
+      }
       await _selectionService.submitCurrent(
         trigger: PlaybackSwitchTrigger.sourceError,
         playNow: true,
       );
     } finally {
-      _sourceErrorRecoveryGate.completeRecovery();
+      _sourceErrorRecoveryGate.completeRecovery(recoveryKey);
     }
   }
 

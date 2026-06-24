@@ -37,6 +37,9 @@ void main() {
     ).readAsStringSync();
 
     expect(source, contains('PlaylistContentScrollView('));
+    expect(source, contains('ErrorView('));
+    expect(source, contains('onRetry: () => unawaited('));
+    expect(source, isNot(contains('? GestureDetector(')));
     expect(source, isNot(contains('CustomScrollView(')));
     expect(contentSource, contains('RefreshIndicator('));
     expect(contentSource, contains('CustomScrollView('));

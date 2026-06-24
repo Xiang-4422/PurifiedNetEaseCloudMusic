@@ -103,9 +103,10 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       child: presentation.showInitialLoading
           ? const LoadingView()
           : presentation.showEmptyError
-              ? GestureDetector(
-                  onTap: () => _loadFirstPageAndRemaining(showLoadingState: true),
-                  child: const ErrorView(),
+              ? ErrorView(
+                  onRetry: () => unawaited(
+                    _loadFirstPageAndRemaining(showLoadingState: true),
+                  ),
                 )
               : PlaylistContentScrollView(
                   playlistName: playlistName,

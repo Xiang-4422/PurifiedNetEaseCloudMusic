@@ -159,6 +159,29 @@ void main() {
       expect(source.markAsCached, isTrue);
     });
 
+    test('does not mark indexed local import audio as cached', () async {
+      final indexedAudioFile = await _createTempAudioFile('imported.mp3');
+      final resolver = PlaybackSourceResolver(
+        repository: _FakePlaybackRepository(
+          indexedAudioPath: indexedAudioFile.path,
+          indexedAudioOrigin: TrackResourceOrigin.localImport,
+        ),
+      );
+
+      final source = await resolver.resolve(
+        _mediaItem(
+          sourceType: SourceType.netease,
+          type: MediaType.playlist,
+          url: 'https://example.com/stale.mp3',
+        ),
+        preferHighQuality: false,
+      );
+
+      expect(source.kind, PlaybackResolvedSourceKind.filePath);
+      expect(source.url, indexedAudioFile.path);
+      expect(source.markAsCached, isFalse);
+    });
+
     test('does not trust unindexed queue local playback url', () async {
       final audioFile = await _createTempAudioFile('unindexed.mp3');
       final repository = _FakePlaybackRepository(

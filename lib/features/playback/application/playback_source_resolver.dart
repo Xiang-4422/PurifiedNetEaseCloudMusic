@@ -1,6 +1,7 @@
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/source_type.dart';
+import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/util/playback_source_reference.dart';
 import 'package:bujuan/features/playback/application/playback_resolved_source.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
@@ -25,7 +26,6 @@ class PlaybackSourceResolver {
     }
     final indexedSource = await _resolveIndexedAudioSource(
       itemId,
-      sourceType: item.sourceType,
     );
     if (!indexedSource.isEmpty) {
       return indexedSource;
@@ -123,10 +123,7 @@ class PlaybackSourceResolver {
     );
   }
 
-  Future<PlaybackResolvedSource> _resolveIndexedAudioSource(
-    String itemId, {
-    required SourceType sourceType,
-  }) async {
+  Future<PlaybackResolvedSource> _resolveIndexedAudioSource(String itemId) async {
     try {
       final trackWithResources = await _repository.getTrackWithResources(itemId);
       final audio = trackWithResources?.resources.audio;
@@ -135,13 +132,14 @@ class PlaybackSourceResolver {
           kind: PlaybackResolvedSourceKind.empty,
         );
       }
+      final markAsCached = _shouldMarkIndexedAudioAsCached(audio.origin);
       final cacheSource = _resolveNeteaseCacheSource(audio.path);
       if (!cacheSource.isEmpty) {
         return PlaybackResolvedSource(
           kind: cacheSource.kind,
           url: cacheSource.url,
           fileType: cacheSource.fileType,
-          markAsCached: sourceType != SourceType.local,
+          markAsCached: markAsCached,
         );
       }
       final localPath = PlaybackSourceReference.existingLocalPath(audio.path);
@@ -153,12 +151,24 @@ class PlaybackSourceResolver {
       return PlaybackResolvedSource(
         kind: PlaybackResolvedSourceKind.filePath,
         url: localPath,
-        markAsCached: sourceType != SourceType.local,
+        markAsCached: markAsCached,
       );
     } catch (_) {
       return const PlaybackResolvedSource(
         kind: PlaybackResolvedSourceKind.empty,
       );
+    }
+  }
+
+  bool _shouldMarkIndexedAudioAsCached(TrackResourceOrigin origin) {
+    switch (origin) {
+      case TrackResourceOrigin.managedDownload:
+      case TrackResourceOrigin.playbackCache:
+        return true;
+      case TrackResourceOrigin.localImport:
+      case TrackResourceOrigin.artworkCache:
+      case TrackResourceOrigin.none:
+        return false;
     }
   }
 

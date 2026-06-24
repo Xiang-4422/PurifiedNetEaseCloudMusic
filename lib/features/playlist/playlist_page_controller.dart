@@ -56,7 +56,7 @@ class PlaylistPageController {
     try {
       return await _repository.loadLocalPlaylistDetail(
         playlistId: playlistId,
-        likedSongIds: _likedSongIds(),
+        likedSongIds: _likedSongIdsSnapshot(),
         currentUserId: _currentUserIdSnapshot(),
       );
     } catch (_) {
@@ -69,7 +69,7 @@ class PlaylistPageController {
     try {
       final initialData = await _repository.loadLocalInitialDetail(
         playlistId: playlistId,
-        likedSongIds: _likedSongIds(),
+        likedSongIds: _likedSongIdsSnapshot(),
         currentUserId: _currentUserIdSnapshot(),
       );
       return PlaylistInitialDetailData(
@@ -94,7 +94,7 @@ class PlaylistPageController {
   }) {
     return _repository.fetchPlaylistDetail(
       playlistId: playlistId,
-      likedSongIds: _likedSongIds(),
+      likedSongIds: _likedSongIdsSnapshot(),
       currentUserId: _currentUserIdSnapshot(),
       offset: offset,
       limit: limit,
@@ -162,6 +162,10 @@ class PlaylistPageController {
 
   String _currentUserIdSnapshot() {
     return _normalizedCurrentUserId(_currentUserId());
+  }
+
+  List<int> _likedSongIdsSnapshot() {
+    return _likedSongIds().toSet().toList()..sort();
   }
 
   static String _normalizedCurrentUserId(String userId) {

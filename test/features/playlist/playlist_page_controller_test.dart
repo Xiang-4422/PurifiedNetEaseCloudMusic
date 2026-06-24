@@ -146,6 +146,29 @@ void main() {
       expect(repository.toggleSubscriptionUserIds, ['user-1']);
     });
 
+    test('normalizes liked song ids before repository access', () async {
+      final repository = _FakePlaylistRepository();
+      final controller = PlaylistPageController(
+        repository: repository,
+        likedSongIds: () => const [2, 1, 2],
+        currentUserId: () => '',
+      );
+
+      await controller.loadLocalDetail('1');
+      await controller.loadInitialDetail('1');
+      await controller.fetchFirstPage('1');
+
+      expect(repository.loadLocalDetailLikedSongIds, [
+        [1, 2],
+      ]);
+      expect(repository.loadInitialDetailLikedSongIds, [
+        [1, 2],
+      ]);
+      expect(repository.fetchDetailLikedSongIds, [
+        [1, 2],
+      ]);
+    });
+
     test('loads initial detail as partial when local database contains first page only', () async {
       final repository = _playlistRepository(totalTracks: 100);
       await repository.fetchPlaylistSongs(
@@ -801,6 +824,9 @@ class _FakePlaylistRepository implements PlaylistRepository {
   final List<String?> loadLocalDetailUserIds = <String?>[];
   final List<String?> fetchDetailUserIds = <String?>[];
   final List<String?> toggleSubscriptionUserIds = <String?>[];
+  final List<List<int>> loadInitialDetailLikedSongIds = <List<int>>[];
+  final List<List<int>> loadLocalDetailLikedSongIds = <List<int>>[];
+  final List<List<int>> fetchDetailLikedSongIds = <List<int>>[];
 
   @override
   Future<PlaylistLocalInitialData> loadLocalInitialDetail({
@@ -809,6 +835,7 @@ class _FakePlaylistRepository implements PlaylistRepository {
     required String? currentUserId,
   }) async {
     loadInitialDetailUserIds.add(currentUserId);
+    loadInitialDetailLikedSongIds.add(List<int>.from(likedSongIds));
     final error = loadLocalInitialDetailError;
     if (error != null) {
       throw error;
@@ -826,6 +853,7 @@ class _FakePlaylistRepository implements PlaylistRepository {
     required String? currentUserId,
   }) async {
     loadLocalDetailUserIds.add(currentUserId);
+    loadLocalDetailLikedSongIds.add(List<int>.from(likedSongIds));
     final error = loadLocalPlaylistDetailError;
     if (error != null) {
       throw error;
@@ -842,6 +870,7 @@ class _FakePlaylistRepository implements PlaylistRepository {
     int limit = -1,
   }) async {
     fetchDetailUserIds.add(currentUserId);
+    fetchDetailLikedSongIds.add(List<int>.from(likedSongIds));
     return _detail(songCount: 1, source: PlaylistDetailSource.remote);
   }
 

@@ -1,9 +1,7 @@
-import 'dart:io';
-
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/source_type.dart';
-import 'package:bujuan/core/util/local_file_path_normalizer.dart';
+import 'package:bujuan/core/util/playback_source_reference.dart';
 import 'package:bujuan/features/playback/application/playback_resolved_source.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 
@@ -71,9 +69,9 @@ class PlaybackSourceResolver {
       );
     }
 
-    final localPath = LocalFilePathNormalizer.normalize(url);
+    final localPath = PlaybackSourceReference.localPath(url);
     if (localPath.isNotEmpty) {
-      if (!File(localPath).existsSync()) {
+      if (!PlaybackSourceReference.isExistingLocalPath(localPath)) {
         await _pruneMissingIndexedAudioResource(item);
         return const PlaybackResolvedSource(
           kind: PlaybackResolvedSourceKind.empty,
@@ -85,19 +83,15 @@ class PlaybackSourceResolver {
         markAsCached: true,
       );
     }
-    if (_isFileUri(url)) {
-      return const PlaybackResolvedSource(
-        kind: PlaybackResolvedSourceKind.empty,
-      );
-    }
-    if (!_isRemoteHttpUrl(url)) {
+    final remoteUrl = PlaybackSourceReference.remoteHttpUrl(url);
+    if (remoteUrl.isEmpty) {
       return const PlaybackResolvedSource(
         kind: PlaybackResolvedSourceKind.empty,
       );
     }
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
-      url: url,
+      url: remoteUrl,
     );
   }
 
@@ -105,19 +99,9 @@ class PlaybackSourceResolver {
     return url.endsWith('.uc!');
   }
 
-  bool _isFileUri(String url) {
-    return Uri.tryParse(url)?.scheme.toLowerCase() == 'file';
-  }
-
-  bool _isRemoteHttpUrl(String url) {
-    final uri = Uri.tryParse(url);
-    final scheme = uri?.scheme.toLowerCase();
-    return (scheme == 'http' || scheme == 'https') && uri?.host.isNotEmpty == true;
-  }
-
   PlaybackResolvedSource _resolveLocalFileSource(PlaybackQueueItem item) {
-    final localPath = LocalFilePathNormalizer.normalize(item.playbackUrl);
-    if (localPath.isEmpty || !File(localPath).existsSync()) {
+    final localPath = PlaybackSourceReference.existingLocalPath(item.playbackUrl);
+    if (localPath.isEmpty) {
       return const PlaybackResolvedSource(
         kind: PlaybackResolvedSourceKind.empty,
       );
@@ -130,8 +114,8 @@ class PlaybackSourceResolver {
   }
 
   PlaybackResolvedSource _resolveNeteaseCacheSource(String url) {
-    final localPath = LocalFilePathNormalizer.normalize(url);
-    if (localPath.isEmpty || !File(localPath).existsSync()) {
+    final localPath = PlaybackSourceReference.existingLocalPath(url);
+    if (localPath.isEmpty) {
       return const PlaybackResolvedSource(
         kind: PlaybackResolvedSourceKind.empty,
       );

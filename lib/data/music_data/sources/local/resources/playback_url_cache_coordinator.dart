@@ -1,5 +1,4 @@
-import 'package:bujuan/core/util/playback_url_expiry.dart';
-import 'package:bujuan/core/util/local_file_path_normalizer.dart';
+import 'package:bujuan/core/util/playback_source_reference.dart';
 
 /// Resolves playback URLs through a short-lived in-memory remote URL cache.
 typedef LocalPlaybackResourceResolver = Future<String?> Function(String trackId);
@@ -50,7 +49,7 @@ class PlaybackUrlCacheCoordinator {
     final cachedUrl = _cache[cacheKey];
     final now = _now();
     if (!forceRefresh && cachedUrl != null) {
-      if (now.difference(cachedUrl.createdAt) < _ttl && !PlaybackUrlExpiry.isExpired(cachedUrl.url, now: now)) {
+      if (now.difference(cachedUrl.createdAt) < _ttl && PlaybackSourceReference.isFreshRemoteHttpUrl(cachedUrl.url, now: now)) {
         _touch(cacheKey, cachedUrl);
         return cachedUrl.url;
       }
@@ -90,7 +89,7 @@ class PlaybackUrlCacheCoordinator {
   Future<String?> _resolveLocalResourceUrlOrNull(String trackId) async {
     try {
       final url = await _resolveLocalResourceUrl(trackId);
-      final normalizedUrl = LocalFilePathNormalizer.normalize(url);
+      final normalizedUrl = PlaybackSourceReference.localPath(url);
       return normalizedUrl.isEmpty ? null : normalizedUrl;
     } catch (_) {
       return null;
@@ -99,10 +98,11 @@ class PlaybackUrlCacheCoordinator {
 
   void _cacheRemoteUrl(String cacheKey, String? url) {
     final now = _now();
-    if (url != null && _isRemoteUrl(url) && !PlaybackUrlExpiry.isExpired(url, now: now)) {
+    final remoteUrl = PlaybackSourceReference.freshRemoteHttpUrl(url, now: now);
+    if (remoteUrl.isNotEmpty) {
       _cache.remove(cacheKey);
       _cache[cacheKey] = _CachedPlaybackUrl(
-        url: url,
+        url: remoteUrl,
         createdAt: now,
       );
       _trim();
@@ -133,28 +133,8 @@ class PlaybackUrlCacheCoordinator {
   }
 
   static String? _normalizePlaybackUrl(String? url) {
-    if (url == null) {
-      return null;
-    }
-    final trimmedUrl = url.trim();
-    if (trimmedUrl.isEmpty) {
-      return null;
-    }
-    if (_isRemoteUrl(trimmedUrl)) {
-      return trimmedUrl;
-    }
-    final localPath = LocalFilePathNormalizer.normalize(trimmedUrl);
-    return localPath.isEmpty ? null : localPath;
-  }
-
-  static bool _isRemoteUrl(String url) {
-    final uri = Uri.tryParse(url.trim());
-    return _isHttpUri(uri) && uri?.host.isNotEmpty == true;
-  }
-
-  static bool _isHttpUri(Uri? uri) {
-    final scheme = uri?.scheme.toLowerCase();
-    return scheme == 'http' || scheme == 'https';
+    final normalizedUrl = PlaybackSourceReference.playbackReference(url);
+    return normalizedUrl.isEmpty ? null : normalizedUrl;
   }
 
   static String _normalizedTrackId(String trackId) {

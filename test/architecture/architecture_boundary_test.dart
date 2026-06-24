@@ -1382,8 +1382,10 @@ void main() {
         if (!coordinatorContent.contains('_dropRemoteState(cacheKey);')) 'coordinator keeps stale remote state after local resource hit',
         if (!coordinatorContent.contains('_loads.remove(cacheKey);')) 'coordinator does not clear in-flight remote loads after local resource hit',
         if (!coordinatorContent.contains('_normalizePlaybackUrl(url)')) 'coordinator does not normalize loaded playback urls before returning them',
-        if (!coordinatorContent.contains('_isRemoteUrl(trimmedUrl)')) 'coordinator can return malformed remote playback urls',
-        if (!coordinatorContent.contains('LocalFilePathNormalizer.normalize(trimmedUrl)')) 'coordinator does not preserve normalized local paths returned by playback load',
+        if (!coordinatorContent.contains("import 'package:bujuan/core/util/playback_source_reference.dart';")) 'coordinator does not use the shared playback source reference boundary',
+        if (!coordinatorContent.contains('PlaybackSourceReference.localPath(url)')) 'coordinator does not normalize local resource urls through the shared playback source reference boundary',
+        if (!coordinatorContent.contains('PlaybackSourceReference.playbackReference(url)')) 'coordinator does not normalize loaded playback urls through the shared playback source reference boundary',
+        if (!coordinatorContent.contains('PlaybackSourceReference.freshRemoteHttpUrl')) 'coordinator can cache malformed or expired remote playback urls',
       ];
 
       expect(
@@ -3715,11 +3717,11 @@ void main() {
       );
       final resolver = resolverFile.readAsStringSync();
       final violations = <String>[
-        if (!resolver.contains('bool _isRemoteHttpUrl(String url)')) '${_relativePath(resolverFile)} does not define final remote URL validation',
-        if (!resolver.contains("scheme == 'http' || scheme == 'https'")) '${_relativePath(resolverFile)} does not restrict remote playback URLs to HTTP(S)',
-        if (!resolver.contains('uri?.host.isNotEmpty == true')) '${_relativePath(resolverFile)} can accept remote playback URLs without authority',
-        if (!resolver.contains('if (!_isRemoteHttpUrl(url))')) '${_relativePath(resolverFile)} can return malformed remote playback URLs to the player',
-        if (!resolver.contains('LocalFilePathNormalizer.normalize(url)')) '${_relativePath(resolverFile)} does not normalize local playback URLs before final source resolution',
+        if (!resolver.contains("import 'package:bujuan/core/util/playback_source_reference.dart';")) '${_relativePath(resolverFile)} does not use the shared playback source reference boundary',
+        if (!resolver.contains('PlaybackSourceReference.localPath(url)')) '${_relativePath(resolverFile)} does not normalize local playback URLs before final source resolution',
+        if (!resolver.contains('PlaybackSourceReference.isExistingLocalPath(localPath)')) '${_relativePath(resolverFile)} does not verify repository local paths still exist',
+        if (!resolver.contains('PlaybackSourceReference.remoteHttpUrl(url)')) '${_relativePath(resolverFile)} can return malformed remote playback URLs to the player',
+        if (!resolver.contains('PlaybackSourceReference.existingLocalPath(item.playbackUrl)')) '${_relativePath(resolverFile)} does not verify queue local sources through the shared boundary',
         if (!resolver.contains('String _normalizedQueueItemId(String id)')) '${_relativePath(resolverFile)} does not define queue item id normalization',
         if (!resolver.contains('return id.trim();')) '${_relativePath(resolverFile)} does not trim queue item ids before repository calls',
         if (!resolver.contains('final itemId = _normalizedQueueItemId(item.id);')) '${_relativePath(resolverFile)} can still call repository with raw queue item ids',
@@ -3742,10 +3744,10 @@ void main() {
       final violations = <String>[
         if (!prefetcher.contains('final usableSource = _usableResolvedSource(source)')) '${_relativePath(prefetcherFile)} caches raw resolved sources before usability normalization',
         if (!prefetcher.contains('!usableSource.isEmpty')) '${_relativePath(prefetcherFile)} can cache empty or unusable sources',
-        if (!prefetcher.contains('bool _isRemoteHttpUrl(String url)')) '${_relativePath(prefetcherFile)} does not validate cached remote source URLs',
-        if (!prefetcher.contains("scheme == 'http' || scheme == 'https'")) '${_relativePath(prefetcherFile)} does not restrict cached remote sources to HTTP(S)',
-        if (!prefetcher.contains('uri?.host.isNotEmpty == true')) '${_relativePath(prefetcherFile)} can cache remote sources without authority',
-        if (!prefetcher.contains('PlaybackUrlExpiry.isExpired(source.url')) '${_relativePath(prefetcherFile)} can cache expired remote playback URLs',
+        if (!prefetcher.contains("import 'package:bujuan/core/util/playback_source_reference.dart';")) '${_relativePath(prefetcherFile)} does not use the shared playback source reference boundary',
+        if (!prefetcher.contains('PlaybackSourceReference.existingLocalPath(source.url)')) '${_relativePath(prefetcherFile)} does not validate cached local source files',
+        if (!prefetcher.contains('PlaybackSourceReference.freshRemoteHttpUrl(source.url')) '${_relativePath(prefetcherFile)} does not validate cached remote source URLs and expiry',
+        if (!prefetcher.contains('PlaybackSourceReference.localPath(item.playbackUrl)')) '${_relativePath(prefetcherFile)} does not normalize local playback cache keys through the shared boundary',
       ];
 
       expect(

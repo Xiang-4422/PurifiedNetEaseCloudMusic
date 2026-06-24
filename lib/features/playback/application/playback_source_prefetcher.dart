@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'dart:collection';
-import 'dart:io';
 
 import 'package:bujuan/features/playback/playback_performance_logger.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
-import 'package:bujuan/core/util/local_file_path_normalizer.dart';
-import 'package:bujuan/core/util/playback_url_expiry.dart';
+import 'package:bujuan/core/util/playback_source_reference.dart';
 import 'package:bujuan/features/playback/application/playback_resolved_source.dart';
 import 'package:bujuan/features/playback/application/playback_source_resolver.dart';
 
@@ -136,35 +134,23 @@ class PlaybackSourcePrefetcher {
       _cache.remove(key);
       return null;
     }
-    if (!_isCachedSourceStillUsable(cached.source) || (allowLocalRecovery && _itemLocalSourceRecovered(item, cached.source))) {
+    final usableCachedSource = _usableResolvedSource(cached.source);
+    if (usableCachedSource.isEmpty || (allowLocalRecovery && _itemLocalSourceRecovered(item, usableCachedSource))) {
       _cache.remove(key);
       return null;
     }
     PlaybackPerformanceLogger.log(
-      'sourcePrefetch.cacheHit id=${item.id} highQuality=$preferHighQuality kind=${cached.source.kind.name}',
+      'sourcePrefetch.cacheHit id=${item.id} highQuality=$preferHighQuality kind=${usableCachedSource.kind.name}',
     );
-    _touchCache(key, cached);
-    return cached.source;
-  }
-
-  bool _isCachedSourceStillUsable(PlaybackResolvedSource source) {
-    switch (source.kind) {
-      case PlaybackResolvedSourceKind.filePath:
-      case PlaybackResolvedSourceKind.neteaseCacheStream:
-        return source.url.isNotEmpty && File(source.url).existsSync();
-      case PlaybackResolvedSourceKind.url:
-        return _isRemoteHttpUrl(source.url) && !PlaybackUrlExpiry.isExpired(source.url, now: _now());
-      case PlaybackResolvedSourceKind.empty:
-        return false;
-    }
+    _touchCache(key, _CachedPlaybackSource(usableCachedSource, cached.createdAt));
+    return usableCachedSource;
   }
 
   bool _itemHasUsableLocalSource(PlaybackQueueItem item) {
     if (item.mediaType != MediaType.local && item.mediaType != MediaType.neteaseCache) {
       return false;
     }
-    final localPath = LocalFilePathNormalizer.normalize(item.playbackUrl);
-    return localPath.isNotEmpty && File(localPath).existsSync();
+    return PlaybackSourceReference.isExistingLocalPath(item.playbackUrl);
   }
 
   bool _itemLocalSourceRecovered(
@@ -212,10 +198,32 @@ class PlaybackSourcePrefetcher {
   }
 
   PlaybackResolvedSource _usableResolvedSource(PlaybackResolvedSource source) {
-    if (_isCachedSourceStillUsable(source)) {
-      return source;
+    switch (source.kind) {
+      case PlaybackResolvedSourceKind.filePath:
+      case PlaybackResolvedSourceKind.neteaseCacheStream:
+        final localPath = PlaybackSourceReference.existingLocalPath(source.url);
+        if (localPath.isEmpty) {
+          return const PlaybackResolvedSource(kind: PlaybackResolvedSourceKind.empty);
+        }
+        return _sourceWithUrl(source, localPath);
+      case PlaybackResolvedSourceKind.url:
+        final remoteUrl = PlaybackSourceReference.freshRemoteHttpUrl(source.url, now: _now());
+        if (remoteUrl.isEmpty) {
+          return const PlaybackResolvedSource(kind: PlaybackResolvedSourceKind.empty);
+        }
+        return _sourceWithUrl(source, remoteUrl);
+      case PlaybackResolvedSourceKind.empty:
+        return const PlaybackResolvedSource(kind: PlaybackResolvedSourceKind.empty);
     }
-    return const PlaybackResolvedSource(kind: PlaybackResolvedSourceKind.empty);
+  }
+
+  PlaybackResolvedSource _sourceWithUrl(PlaybackResolvedSource source, String url) {
+    return PlaybackResolvedSource(
+      kind: source.kind,
+      url: url,
+      fileType: source.fileType,
+      markAsCached: source.markAsCached,
+    );
   }
 
   void _touchCache(String key, _CachedPlaybackSource cached) {
@@ -251,13 +259,7 @@ class PlaybackSourcePrefetcher {
   }
 
   String _localPlaybackUrlKey(PlaybackQueueItem item) {
-    return LocalFilePathNormalizer.normalize(item.playbackUrl);
-  }
-
-  bool _isRemoteHttpUrl(String url) {
-    final uri = Uri.tryParse(url.trim());
-    final scheme = uri?.scheme.toLowerCase();
-    return (scheme == 'http' || scheme == 'https') && uri?.host.isNotEmpty == true;
+    return PlaybackSourceReference.localPath(item.playbackUrl);
   }
 }
 

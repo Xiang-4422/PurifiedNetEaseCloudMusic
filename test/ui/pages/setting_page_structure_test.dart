@@ -52,8 +52,8 @@ void main() {
     expect(downloadIndex, lessThan(appearanceIndex));
     expect(appearanceIndex, lessThan(debugIndex));
     expect(source, contains('SettingsSectionsList('));
-    expect(source, contains('settingsController: _settingsController'));
-    expect(source, contains('playerController: _playerController'));
+    expect(source, contains('settingsController: settingsController'));
+    expect(source, contains('playerController: playerController'));
     expect(source, contains('settings_sections.dart'));
     expect(source, isNot(contains("title: '账号',")));
     expect(source, isNot(contains("Header('UI设置')")));
@@ -70,8 +70,8 @@ void main() {
     expect(source, contains('Get.find<SettingsPageControllerBundle>()'));
     expect(source, isNot(contains('Get.find<SettingsController>()')));
     expect(source, isNot(contains('Get.find<PlayerController>()')));
-    expect(source, contains('settingsController: _settingsController'));
-    expect(source, contains('playerController: _playerController'));
+    expect(source, contains('settingsController: settingsController'));
+    expect(source, contains('playerController: playerController'));
     expect(sectionsSource, contains('required this.settingsController'));
     expect(sectionsSource, contains('required this.playerController'));
     expect(sectionsSource, contains('settingsController.isHighSoundQualityOpen.value'));
@@ -105,7 +105,7 @@ void main() {
 
     expect(source, contains('Get.find<SettingsPageControllerBundle>()'));
     expect(source, isNot(contains('Get.find<PlayerController>()')));
-    expect(source, contains('playerController: _playerController'));
+    expect(source, contains('playerController: playerController'));
     expect(sectionsSource, contains('required this.playerController'));
     expect(sectionsSource, contains('CoverFlowDemoPageView('));
     expect(sectionsSource, contains('playerController: playerController'));
@@ -171,8 +171,10 @@ void main() {
     expect(source, contains('Get.find<SettingsPageControllerBundle>()'));
     expect(source, isNot(contains('Get.find<LocalMediaScanController>()')));
     expect(source, contains('SettingsSectionsList('));
-    expect(source, contains('onScanLocalMedia: _scanLocalMedia'));
+    expect(source, contains('onScanLocalMedia: () => _scanLocalMedia('));
+    expect(source, contains('localMediaScanController'));
     expect(source, contains('prepareDefaultDirectoryImport()'));
+    expect(source, contains('context.mounted'));
     expect(source, isNot(contains('LocalMediaScanRepository(')));
     expect(source, isNot(contains("import 'dart:io'")));
     expect(source, isNot(contains('getDownloadsDirectory()')));
@@ -187,6 +189,18 @@ void main() {
     expect(bootstrapSource, contains('Get.put<LocalMediaScanController>'));
     expect(bootstrapSource, contains('Get.put<SettingsPageControllerBundle>'));
     expect(bootstrapSource, contains('localMediaScanController: Get.find<LocalMediaScanController>()'));
+  });
+
+  test('setting page avoids unused platform version lookups', () {
+    final source = File('lib/ui/pages/settings/setting_page.dart').readAsStringSync();
+
+    expect(source, contains('class SettingPageView extends StatelessWidget'));
+    expect(source, isNot(contains('StatefulWidget')));
+    expect(source, isNot(contains('PackageInfo')));
+    expect(source, isNot(contains('fromPlatform()')));
+    expect(source, isNot(contains('setState(')));
+    expect(source, isNot(contains('String version')));
+    expect(source, isNot(contains('addPostFrameCallback')));
   });
 
   test('lottie preview page can retry asset manifest loading', () {

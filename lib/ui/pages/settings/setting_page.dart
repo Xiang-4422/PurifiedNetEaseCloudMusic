@@ -6,41 +6,18 @@ import 'package:bujuan/features/settings/settings_page_controller_bundle.dart';
 import 'package:bujuan/ui/pages/settings/widgets/settings_sections.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 /// 设置页，承接主题、缓存、本地扫描和调试入口。
-class SettingPageView extends StatefulWidget {
+class SettingPageView extends StatelessWidget {
   /// 创建设置页。
-  const SettingPageView({Key? key}) : super(key: key);
+  const SettingPageView({super.key});
 
-  @override
-  State<SettingPageView> createState() => _SettingPageViewState();
-}
-
-class _SettingPageViewState extends State<SettingPageView> {
-  late final SettingsPageControllerBundle _controllers = Get.find<SettingsPageControllerBundle>();
-  late final _localMediaScanController = _controllers.localMediaScanController;
-  late final _playerController = _controllers.playerController;
-  late final _settingsController = _controllers.settingsController;
-
-  String version = '1.0.0';
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) => _getVersion());
-  }
-
-  Future<void> _getVersion() async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    setState(() {
-      version = packageInfo.version;
-    });
-  }
-
-  Future<void> _scanLocalMedia() async {
-    final preparation = await _localMediaScanController.prepareDefaultDirectoryImport();
-    if (!mounted) {
+  static Future<void> _scanLocalMedia(
+    BuildContext context,
+    LocalMediaScanController localMediaScanController,
+  ) async {
+    final preparation = await localMediaScanController.prepareDefaultDirectoryImport();
+    if (!context.mounted) {
       return;
     }
 
@@ -59,10 +36,10 @@ class _SettingPageViewState extends State<SettingPageView> {
     }
     DialogService.showLoading(context);
     try {
-      final importedCount = await _localMediaScanController.importDirectories(
+      final importedCount = await localMediaScanController.importDirectories(
         preparation.directoryPaths,
       );
-      if (!mounted) {
+      if (!context.mounted) {
         return;
       }
       Navigator.of(context).pop();
@@ -72,7 +49,7 @@ class _SettingPageViewState extends State<SettingPageView> {
       }
       ToastService.show('已导入 $importedCount 首本地音乐');
     } catch (_) {
-      if (!mounted) {
+      if (!context.mounted) {
         return;
       }
       Navigator.of(context).pop();
@@ -82,6 +59,10 @@ class _SettingPageViewState extends State<SettingPageView> {
 
   @override
   Widget build(BuildContext context) {
+    final controllers = Get.find<SettingsPageControllerBundle>();
+    final localMediaScanController = controllers.localMediaScanController;
+    final playerController = controllers.playerController;
+    final settingsController = controllers.settingsController;
     return ListView(
       padding: EdgeInsets.only(
         top: context.mediaQueryPadding.top,
@@ -91,9 +72,12 @@ class _SettingPageViewState extends State<SettingPageView> {
       ),
       children: [
         SettingsSectionsList(
-          settingsController: _settingsController,
-          playerController: _playerController,
-          onScanLocalMedia: _scanLocalMedia,
+          settingsController: settingsController,
+          playerController: playerController,
+          onScanLocalMedia: () => _scanLocalMedia(
+            context,
+            localMediaScanController,
+          ),
         ),
       ],
     );

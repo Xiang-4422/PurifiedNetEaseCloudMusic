@@ -18,6 +18,21 @@ class LocalMediaRepository {
   final MusicDataRepository _musicDataRepository;
   final LocalResourceIndexRepository _resourceIndexRepository;
 
+  static const Set<String> _supportedAudioExtensions = {
+    '.mp3',
+    '.flac',
+    '.wav',
+    '.m4a',
+    '.aac',
+    '.ogg',
+  };
+
+  /// 当前文件路径是否是本地导入支持的音频格式。
+  static bool isSupportedAudioFilePath(String filePath) {
+    final normalizedPath = filePath.trim().toLowerCase();
+    return _supportedAudioExtensions.any(normalizedPath.endsWith);
+  }
+
   /// 导入单个本地音频文件，并可同时登记封面和歌词资源。
   Future<Track> importLocalTrack({
     required String filePath,
@@ -30,7 +45,7 @@ class LocalMediaRepository {
     String? localLyricsPath,
     Map<String, Object?> metadata = const {},
   }) async {
-    final localFilePath = _normalizeRequiredLocalFilePath(
+    final localFilePath = _normalizeRequiredLocalAudioFilePath(
       filePath,
       argumentName: 'filePath',
     );
@@ -75,7 +90,7 @@ class LocalMediaRepository {
   Future<List<Track>> importLocalTracks(List<LocalTrackImport> tracks) async {
     final normalizedTracks = <LocalTrackImport>[];
     for (final track in tracks) {
-      final localFilePath = _normalizeExistingLocalFilePath(track.filePath);
+      final localFilePath = _normalizeExistingLocalAudioFilePath(track.filePath);
       if (localFilePath == null) {
         continue;
       }
@@ -155,17 +170,25 @@ class LocalMediaRepository {
     return 'local:$filePath';
   }
 
-  String _normalizeRequiredLocalFilePath(
+  String _normalizeRequiredLocalAudioFilePath(
     String path, {
     required String argumentName,
   }) {
-    final normalized = _normalizeExistingLocalFilePath(path);
+    final normalized = _normalizeExistingLocalAudioFilePath(path);
     if (normalized == null) {
       throw ArgumentError.value(
         path,
         argumentName,
         'Expected an existing local file path.',
       );
+    }
+    return normalized;
+  }
+
+  String? _normalizeExistingLocalAudioFilePath(String path) {
+    final normalized = _normalizeExistingLocalFilePath(path);
+    if (normalized == null || !isSupportedAudioFilePath(normalized)) {
+      return null;
     }
     return normalized;
   }

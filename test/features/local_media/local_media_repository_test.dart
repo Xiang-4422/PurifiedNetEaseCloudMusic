@@ -62,8 +62,24 @@ void main() {
       expect(resourceIndexRepository.audioPaths, isEmpty);
     });
 
+    test('importLocalTrack rejects existing non-audio files before saving', () async {
+      final textFile = await _writeFile(directory, 'notes.txt');
+
+      await expectLater(
+        repository.importLocalTrack(
+          filePath: textFile.path,
+          title: 'Notes',
+        ),
+        throwsArgumentError,
+      );
+
+      expect(musicDataRepository.savedTracks, isEmpty);
+      expect(resourceIndexRepository.audioPaths, isEmpty);
+    });
+
     test('importLocalTracks skips invalid audio and ignores invalid sidecars', () async {
       final audioFile = await _writeFile(directory, 'Valid.mp3');
+      final nonAudioFile = await _writeFile(directory, 'Cover.jpg');
       final missingFile = File('${directory.path}/Missing.mp3');
 
       final imported = await repository.importLocalTracks([
@@ -74,6 +90,10 @@ void main() {
         LocalTrackImport(
           filePath: missingFile.path,
           title: 'Missing',
+        ),
+        LocalTrackImport(
+          filePath: nonAudioFile.path,
+          title: 'Cover',
         ),
         LocalTrackImport(
           filePath: audioFile.path,

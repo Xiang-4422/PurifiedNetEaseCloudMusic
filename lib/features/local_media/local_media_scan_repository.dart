@@ -11,15 +11,6 @@ class LocalMediaScanRepository {
 
   final LocalMediaRepository _localMediaRepository;
 
-  static const Set<String> _supportedExtensions = {
-    '.mp3',
-    '.flac',
-    '.wav',
-    '.m4a',
-    '.aac',
-    '.ogg',
-  };
-
   static const Set<String> _supportedArtworkExtensions = {
     '.jpg',
     '.jpeg',
@@ -127,8 +118,7 @@ class LocalMediaScanRepository {
   }
 
   bool _isSupportedAudioFile(String path) {
-    final normalizedPath = path.toLowerCase();
-    return _supportedExtensions.any(normalizedPath.endsWith);
+    return LocalMediaRepository.isSupportedAudioFilePath(path);
   }
 
   String _localFilePath(String rawPath) {

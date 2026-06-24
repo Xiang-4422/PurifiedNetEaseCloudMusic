@@ -1,7 +1,6 @@
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/user/recommendation_controller.dart';
-import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/ui/pages/user/widgets/quick_start_card_rail.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/ui/widgets/common/layout/section_header.dart';
@@ -9,14 +8,13 @@ import 'package:bujuan/ui/widgets/user/personal_home_layout_metrics.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// 个人页“马上开始”区域。
+/// 个人页“开始听”区域。
 class QuickStartSection extends StatelessWidget {
-  /// 创建“马上开始”区域。
+  /// 创建“开始听”区域。
   const QuickStartSection({
     super.key,
     required this.itemCountInScreen,
     required this.recommendationController,
-    required this.libraryController,
     required this.playbackAction,
     required this.shellController,
   });
@@ -26,9 +24,6 @@ class QuickStartSection extends StatelessWidget {
 
   /// 首页推荐控制器。
   final RecommendationController recommendationController;
-
-  /// 用户资料库控制器。
-  final UserLibraryController libraryController;
 
   /// 播放控制器。
   final PlayerController playbackAction;
@@ -42,7 +37,7 @@ class QuickStartSection extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         const Header(
-          '马上开始',
+          '开始听',
           padding: AppDimensions.paddingSmall,
         ).marginOnly(top: AppDimensions.paddingSmall),
         LayoutBuilder(
@@ -56,7 +51,6 @@ class QuickStartSection extends StatelessWidget {
                 width: userItemWidth,
                 height: cardHeight,
                 recommendationController: recommendationController,
-                libraryController: libraryController,
                 playbackAction: playbackAction,
                 shellController: shellController,
               ),
@@ -68,14 +62,13 @@ class QuickStartSection extends StatelessWidget {
   }
 }
 
-/// 方屏个人页中的“马上开始”首页。
+/// 方屏个人页中的“开始听”首页。
 class SquareQuickStartPage extends StatelessWidget {
-  /// 创建方屏“马上开始”首页。
+  /// 创建方屏“开始听”首页。
   const SquareQuickStartPage({
     super.key,
     required this.metrics,
     required this.recommendationController,
-    required this.libraryController,
     required this.playbackAction,
     required this.shellController,
   });
@@ -85,9 +78,6 @@ class SquareQuickStartPage extends StatelessWidget {
 
   /// 首页推荐控制器。
   final RecommendationController recommendationController;
-
-  /// 用户资料库控制器。
-  final UserLibraryController libraryController;
 
   /// 播放控制器。
   final PlayerController playbackAction;
@@ -110,7 +100,7 @@ class SquareQuickStartPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Header(
-                '马上开始',
+                '开始听',
                 padding: AppDimensions.paddingSmall,
                 height: metrics.squareHeaderHeight,
               ),
@@ -122,7 +112,6 @@ class SquareQuickStartPage extends StatelessWidget {
                       width: cardSize.width,
                       height: cardSize.height,
                       recommendationController: recommendationController,
-                      libraryController: libraryController,
                       playbackAction: playbackAction,
                       shellController: shellController,
                     ),

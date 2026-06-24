@@ -70,7 +70,6 @@ class StandardPersonalHomePage extends StatelessWidget {
             child: QuickStartSection(
               itemCountInScreen: userItemCountInScreen,
               recommendationController: recommendationController,
-              libraryController: libraryController,
               playbackAction: playbackAction,
               shellController: shellController,
             ),

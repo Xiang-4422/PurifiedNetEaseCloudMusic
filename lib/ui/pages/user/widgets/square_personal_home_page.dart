@@ -66,7 +66,6 @@ class _SquarePersonalHomePageState extends State<SquarePersonalHomePage> {
               SquareQuickStartPage(
                 metrics: widget.metrics,
                 recommendationController: widget.recommendationController,
-                libraryController: widget.libraryController,
                 playbackAction: widget.playbackAction,
                 shellController: widget.shellController,
               ),

@@ -6,24 +6,21 @@ import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/user/recommendation_controller.dart';
-import 'package:bujuan/features/user/user_library_controller.dart';
-import 'package:bujuan/ui/assets/app_assets.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:bujuan/ui/widgets/common/image/async_image_color.dart';
 import 'package:bujuan/ui/widgets/common/image/simple_extended_image.dart';
-import 'package:bujuan/ui/widgets/common/interaction/long_press_overlay_transition.dart';
 import 'package:bujuan/ui/widgets/common/layout/scroll_helpers.dart';
-import 'package:bujuan/ui/widgets/common/music/music_list_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
-import 'package:lottie/lottie.dart';
 
 /// 快速入口横向列表的预缓存边界。
 const double quickStartCardRailCacheExtent = 360;
 
-const int _quickStartCardCount = 4;
+/// 首页第一屏保留的核心快速播放动作数量。
+@visibleForTesting
+const int quickStartPrimaryActionCount = 2;
 
 /// 个人首页顶部的快速播放入口列表。
 class QuickStartCardRail extends StatelessWidget {
@@ -33,7 +30,6 @@ class QuickStartCardRail extends StatelessWidget {
     required this.width,
     required this.height,
     required this.recommendationController,
-    required this.libraryController,
     required this.playbackAction,
     required this.shellController,
   });
@@ -46,9 +42,6 @@ class QuickStartCardRail extends StatelessWidget {
 
   /// 首页推荐控制器。
   final RecommendationController recommendationController;
-
-  /// 用户资料库控制器。
-  final UserLibraryController libraryController;
 
   /// 播放控制器。
   final PlayerController playbackAction;
@@ -64,7 +57,7 @@ class QuickStartCardRail extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         cacheExtent: quickStartCardRailCacheExtent,
         itemExtent: width + AppDimensions.paddingSmall,
-        itemCount: _quickStartCardCount,
+        itemCount: quickStartPrimaryActionCount,
         physics: SnappingScrollPhysics(
           itemExtent: width + AppDimensions.paddingSmall,
         ),
@@ -89,22 +82,6 @@ class QuickStartCardRail extends StatelessWidget {
           height: height,
           recommendationController: recommendationController,
           playbackAction: playbackAction,
-        );
-      case 2:
-        card = _FmQuickStartCard(
-          width: width,
-          height: height,
-          recommendationController: recommendationController,
-          playbackAction: playbackAction,
-          shellController: shellController,
-        );
-      case 3:
-        card = _HeartBeatQuickStartCard(
-          width: width,
-          height: height,
-          libraryController: libraryController,
-          playbackAction: playbackAction,
-          shellController: shellController,
         );
       default:
         return const SizedBox.shrink();
@@ -131,162 +108,37 @@ class _DailyRecommendQuickStartCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.bottomRight,
-      children: [
-        LongPressOverlayTransition(
-          child: QuickStartCard(
-            width: width,
-            height: height,
-            albumUrl: _firstPlaybackArtworkPath(
-              recommendationController.todayRecommendSongs,
-            ),
-            icon: TablerIcons.calendar,
-            title: '每日推荐',
-            onTap: () => context.router.push(const gr.TodayRouteView()),
-          ),
-          builder: (_) {
-            return ListView.builder(
-              padding: EdgeInsets.zero,
-              itemCount: recommendationController.todayRecommendSongs.length,
-              itemBuilder: (BuildContext context, int index) {
-                return SongItem(
-                  playlist: recommendationController.todayRecommendSongs,
-                  index: index,
-                  playListName: '',
-                  onPlay: playbackAction.playPlaylist,
-                );
-              },
+    return Obx(() {
+      final songs = recommendationController.todayRecommendSongs;
+      final isPlayingDaily = playbackAction.isPlaying.value && playbackAction.sessionState.value.playlistName == '每日推荐';
+      return QuickStartCard(
+        width: width,
+        height: height,
+        albumUrl: _firstPlaybackArtworkPath(
+          songs,
+        ),
+        icon: TablerIcons.calendar,
+        title: '每日推荐',
+        subtitle: '${songs.length} 首待播放',
+        onTap: () => context.router.push(const gr.TodayRouteView()),
+        trailing: _QuickStartPlayButton(
+          isPlaying: isPlayingDaily,
+          isEnabled: songs.isNotEmpty,
+          tooltip: isPlayingDaily ? '暂停每日推荐' : '播放每日推荐',
+          onPressed: () {
+            if (isPlayingDaily) {
+              playbackAction.playOrPause();
+              return;
+            }
+            playbackAction.playPlaylist(
+              songs,
+              0,
+              playListName: '每日推荐',
             );
           },
         ),
-        Visibility(
-          visible: playbackAction.isPlaying.value && playbackAction.sessionState.value.playlistName == '每日推荐',
-          replacement: IconButton(
-            onPressed: () {
-              if (playbackAction.sessionState.value.playlistName != '每日推荐') {
-                playbackAction.playPlaylist(
-                  recommendationController.todayRecommendSongs,
-                  0,
-                  playListName: '每日推荐',
-                );
-              } else {
-                playbackAction.playOrPause();
-              }
-            },
-            icon: const Icon(
-              TablerIcons.player_play_filled,
-              color: Colors.white,
-            ),
-          ),
-          child: Lottie.asset(
-            AppAssets.lottieMusicPlaying,
-            width: 50,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _FmQuickStartCard extends StatelessWidget {
-  const _FmQuickStartCard({
-    required this.width,
-    required this.height,
-    required this.recommendationController,
-    required this.playbackAction,
-    required this.shellController,
-  });
-
-  final double width;
-  final double height;
-  final RecommendationController recommendationController;
-  final PlayerController playbackAction;
-  final ShellController shellController;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.bottomRight,
-      children: [
-        Obx(() {
-          final currentSong = playbackAction.currentSongState.value;
-          return QuickStartCard(
-            width: width,
-            height: height,
-            albumUrl: playbackAction.isFmModeValue
-                ? _playbackArtworkPath(currentSong)
-                : _firstPlaybackArtworkPath(
-                    recommendationController.fmSongs,
-                  ),
-            icon: TablerIcons.infinity,
-            title: '漫游模式',
-            onTap: () {
-              shellController.jumpBottomPanelToPage(1);
-              shellController.openBottomPanel();
-              playbackAction.openFmMode();
-            },
-          );
-        }),
-        Offstage(
-          offstage: !playbackAction.isFmModeValue || !playbackAction.isPlaying.value,
-          child: Lottie.asset(
-            AppAssets.lottieMusicPlaying,
-            width: 50,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _HeartBeatQuickStartCard extends StatelessWidget {
-  const _HeartBeatQuickStartCard({
-    required this.width,
-    required this.height,
-    required this.libraryController,
-    required this.playbackAction,
-    required this.shellController,
-  });
-
-  final double width;
-  final double height;
-  final UserLibraryController libraryController;
-  final PlayerController playbackAction;
-  final ShellController shellController;
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.bottomRight,
-      children: [
-        Obx(() {
-          final currentSong = playbackAction.currentSongState.value;
-          return QuickStartCard(
-            width: width,
-            height: height,
-            albumUrl: playbackAction.isHeartBeatModeValue ? _playbackArtworkPath(currentSong) : libraryController.randomLikedSongAlbumUrl.value,
-            icon: TablerIcons.heartbeat,
-            title: '心动模式',
-            onTap: () {
-              shellController.jumpBottomPanelToPage(1);
-              shellController.openBottomPanel();
-              playbackAction.openHeartBeatMode(
-                libraryController.randomLikedSongId.value,
-                fromPlayAll: true,
-              );
-            },
-          );
-        }),
-        Offstage(
-          offstage: !playbackAction.isHeartBeatModeValue || !playbackAction.isPlaying.value,
-          child: Lottie.asset(
-            AppAssets.lottieMusicPlaying,
-            width: 50,
-          ),
-        ),
-      ],
-    );
+      );
+    });
   }
 }
 
@@ -308,33 +160,34 @@ class _ContinuePlaybackQuickStartCard extends StatelessWidget {
     return Obx(() {
       final currentSong = playbackAction.currentSongState.value;
       final hasCurrentSong = currentSong.id.isNotEmpty;
-      return Stack(
-        alignment: Alignment.bottomRight,
-        children: [
-          QuickStartCard(
-            width: width,
-            height: height,
-            albumUrl: _playbackArtworkPath(currentSong),
-            icon: TablerIcons.player_play,
-            title: '继续播放',
-            onTap: hasCurrentSong
-                ? () async {
-                    shellController.jumpBottomPanelToPage(1);
-                    shellController.openBottomPanel();
-                    if (!playbackAction.isPlaying.value) {
-                      await playbackAction.playOrPause();
-                    }
-                  }
-                : null,
-          ),
-          Offstage(
-            offstage: !hasCurrentSong || !playbackAction.isPlaying.value,
-            child: Lottie.asset(
-              AppAssets.lottieMusicPlaying,
-              width: 50,
-            ),
-          ),
-        ],
+      final subtitle = hasCurrentSong ? _quickStartSongSubtitle(currentSong) : '等待播放队列';
+      return QuickStartCard(
+        width: width,
+        height: height,
+        albumUrl: _playbackArtworkPath(currentSong),
+        icon: TablerIcons.player_play,
+        title: '继续播放',
+        subtitle: subtitle,
+        onTap: hasCurrentSong
+            ? () async {
+                shellController.jumpBottomPanelToPage(1);
+                shellController.openBottomPanel();
+                if (!playbackAction.isPlaying.value) {
+                  await playbackAction.playOrPause();
+                }
+              }
+            : null,
+        trailing: _QuickStartPlayButton(
+          isPlaying: playbackAction.isPlaying.value,
+          isEnabled: hasCurrentSong,
+          tooltip: playbackAction.isPlaying.value ? '暂停当前歌曲' : '继续播放当前歌曲',
+          onPressed: () async {
+            if (!hasCurrentSong) {
+              return;
+            }
+            await playbackAction.playOrPause();
+          },
+        ),
       );
     });
   }
@@ -351,6 +204,8 @@ class QuickStartCard extends StatelessWidget {
     required this.albumUrl,
     this.icon,
     required this.title,
+    this.subtitle,
+    this.trailing,
   });
 
   /// 卡片宽度。
@@ -371,14 +226,23 @@ class QuickStartCard extends StatelessWidget {
   /// 卡片标题。
   final String title;
 
+  /// 卡片辅助信息。
+  final String? subtitle;
+
+  /// 右下角动作按钮。
+  final Widget? trailing;
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final isEnabled = onTap != null;
     final semanticsLabel = quickStartCardSemanticsLabel(
       title: title,
       isEnabled: isEnabled,
     );
     final localAlbumPath = ArtworkPathResolver.resolveDisplayPath(albumUrl);
+    final resolvedSubtitle = subtitle?.trim();
 
     return Semantics(
       button: true,
@@ -387,76 +251,84 @@ class QuickStartCard extends StatelessWidget {
       child: Tooltip(
         message: semanticsLabel,
         excludeFromSemantics: true,
-        child: GestureDetector(
-          onTap: isEnabled ? onTap : null,
-          child: ExcludeSemantics(
-            child: Opacity(
-              opacity: isEnabled ? 1.0 : 0.5,
-              child: Container(
-                width: width,
-                height: height,
-                clipBehavior: Clip.hardEdge,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(AppDimensions.paddingSmall),
-                ),
-                child: AsyncImageColor(
-                  imageUrl: localAlbumPath,
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final imageSize = math.min(
-                        width,
-                        constraints.maxHeight * 0.78,
-                      );
-                      return Column(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              width: double.infinity,
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [Colors.black, Colors.transparent],
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
+        child: Material(
+          color: colorScheme.surfaceContainerHighest,
+          borderRadius: AppDimensions.borderRadiusMedium,
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: isEnabled ? onTap : null,
+            child: ExcludeSemantics(
+              child: Opacity(
+                opacity: isEnabled ? 1.0 : 0.52,
+                child: SizedBox(
+                  width: width,
+                  height: height,
+                  child: AsyncImageColor(
+                    imageUrl: localAlbumPath,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        _QuickStartArtwork(
+                          albumPath: localAlbumPath,
+                          icon: icon,
+                          size: math.min(width, height) * 0.72,
+                        ),
+                        const DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Color(0x99000000),
+                                Color(0x1A000000),
+                                Color(0xB3000000),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(AppDimensions.paddingSmall),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
                                 children: [
-                                  icon == null
-                                      ? const SizedBox.shrink()
-                                      : Icon(
-                                          icon,
-                                          color: Colors.white,
-                                        ),
-                                  Flexible(
-                                    child: Text(
-                                      title,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                  if (icon != null)
+                                    Icon(
+                                      icon,
+                                      size: AppDimensions.iconSizeSmall,
+                                      color: Colors.white.withValues(alpha: 0.86),
                                     ),
-                                  ),
+                                  const Spacer(),
+                                  if (trailing != null) trailing!,
                                 ],
                               ),
-                            ),
+                              const Spacer(),
+                              Text(
+                                title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              if (resolvedSubtitle != null && resolvedSubtitle.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  resolvedSubtitle,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.72),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
-                          SizedBox(
-                            width: imageSize,
-                            height: imageSize,
-                            child: SimpleExtendedImage(
-                              localAlbumPath,
-                              height: imageSize,
-                              width: imageSize,
-                            ),
-                          ),
-                        ],
-                      );
-                    },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -466,6 +338,98 @@ class QuickStartCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _QuickStartArtwork extends StatelessWidget {
+  const _QuickStartArtwork({
+    required this.albumPath,
+    required this.icon,
+    required this.size,
+  });
+
+  final String albumPath;
+  final IconData? icon;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    if (albumPath.isEmpty) {
+      return Center(
+        child: Icon(
+          icon ?? TablerIcons.music,
+          size: math.max(32, size * 0.34),
+          color: Colors.white.withValues(alpha: 0.56),
+        ),
+      );
+    }
+    return Align(
+      alignment: Alignment.center,
+      child: SizedBox.square(
+        dimension: size,
+        child: SimpleExtendedImage(
+          albumPath,
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          cacheWidth: 360,
+          borderRadius: AppDimensions.borderRadiusMedium,
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickStartPlayButton extends StatelessWidget {
+  const _QuickStartPlayButton({
+    required this.isPlaying,
+    required this.isEnabled,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  final bool isPlaying;
+  final bool isEnabled;
+  final String tooltip;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: isEnabled ? tooltip : '暂无可播放歌曲',
+      excludeFromSemantics: true,
+      child: Material(
+        color: Colors.white.withValues(alpha: isEnabled ? 0.18 : 0.08),
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: isEnabled ? onPressed : null,
+          child: SizedBox.square(
+            dimension: 34,
+            child: Icon(
+              isPlaying ? TablerIcons.player_pause_filled : TablerIcons.player_play_filled,
+              size: AppDimensions.iconSizeSmall,
+              color: Colors.white.withValues(alpha: isEnabled ? 0.95 : 0.38),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+String _quickStartSongSubtitle(PlaybackQueueItem item) {
+  final title = item.title.trim();
+  final artist = item.artist?.trim();
+  if (title.isEmpty && (artist == null || artist.isEmpty)) {
+    return '当前歌曲';
+  }
+  if (artist == null || artist.isEmpty) {
+    return title;
+  }
+  if (title.isEmpty) {
+    return artist;
+  }
+  return '$title - $artist';
 }
 
 /// 生成快速入口卡片的辅助语义标签。

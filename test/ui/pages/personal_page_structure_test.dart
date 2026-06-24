@@ -197,21 +197,32 @@ void main() {
     expect(quickStartSectionSource, contains('class SquareQuickStartPage'));
     expect(quickStartSectionSource, contains('QuickStartCardRail('));
     expect(quickStartSectionSource, contains('squareQuickCardSize('));
+    expect(quickStartSectionSource, contains("'开始听'"));
+    expect(quickStartSectionSource, isNot(contains('UserLibraryController')));
+    expect(quickStartSectionSource, isNot(contains('libraryController')));
     expect(quickStartSource, contains("title: '继续播放'"));
     expect(quickStartSource, contains("title: '每日推荐'"));
-    expect(quickStartSource, contains("title: '漫游模式'"));
-    expect(quickStartSource, contains("title: '心动模式'"));
+    expect(quickStartSource, isNot(contains("title: '漫游模式'")));
+    expect(quickStartSource, isNot(contains("title: '心动模式'")));
     expect(quickStartSource, contains('ListView.builder('));
-    expect(quickStartSource, contains('itemCount: _quickStartCardCount'));
+    expect(quickStartSource, contains('const int quickStartPrimaryActionCount = 2;'));
+    expect(quickStartSource, contains('itemCount: quickStartPrimaryActionCount'));
     expect(quickStartSource, contains('itemExtent: width + AppDimensions.paddingSmall'));
     expect(quickStartSource, contains('cacheExtent: quickStartCardRailCacheExtent'));
     expect(quickStartSource, contains('itemBuilder: (context, index) => _buildQuickStartCard(index)'));
     expect(quickStartSource, contains('quickStartCardSemanticsLabel('));
+    expect(quickStartSource, contains('subtitle:'));
+    expect(quickStartSource, contains('trailing: _QuickStartPlayButton('));
+    expect(quickStartSource, contains('class _QuickStartArtwork'));
+    expect(quickStartSource, contains('class _QuickStartPlayButton'));
     expect(quickStartSource, contains('Semantics('));
     expect(quickStartSource, contains('button: true'));
     expect(quickStartSource, contains('Tooltip('));
     expect(quickStartSource, contains('excludeFromSemantics: true'));
     expect(quickStartSource, contains('ExcludeSemantics('));
+    expect(quickStartSource, isNot(contains('UserLibraryController')));
+    expect(quickStartSource, isNot(contains('openHeartBeatMode')));
+    expect(quickStartSource, isNot(contains('openFmMode')));
   });
 
   test('personal page exposes focused library shortcuts before recommendations', () {
@@ -533,9 +544,13 @@ void main() {
     expect(quickStartSectionSource, contains('QuickStartCardRail('));
     expect(quickStartSource, contains('class QuickStartCardRail'));
     expect(quickStartSource, contains('class QuickStartCard'));
-    expect(quickStartSource, contains('LongPressOverlayTransition('));
-    expect(quickStartSource, contains('Lottie.asset('));
-    expect(quickStartSource, contains('AppAssets.lottieMusicPlaying'));
+    expect(quickStartSource, contains('class _QuickStartArtwork'));
+    expect(quickStartSource, contains('class _QuickStartPlayButton'));
+    expect(quickStartSource, contains('AsyncImageColor('));
+    expect(quickStartSource, contains('SimpleExtendedImage('));
+    expect(quickStartSource, isNot(contains('LongPressOverlayTransition(')));
+    expect(quickStartSource, isNot(contains('Lottie.asset(')));
+    expect(quickStartSource, isNot(contains('AppAssets.lottieMusicPlaying')));
   });
 
   test('download task page can open a focused local library tab', () {

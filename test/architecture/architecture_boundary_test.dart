@@ -3374,17 +3374,21 @@ void main() {
       final quickStart = quickStartFile.readAsStringSync();
       final violations = <String>[
         if (!quickStart.contains('ListView.builder(')) '${_relativePath(quickStartFile)} does not build quick start cards lazily',
-        if (!quickStart.contains('itemCount: _quickStartCardCount')) '${_relativePath(quickStartFile)} does not keep quick start item count explicit',
+        if (!quickStart.contains('const int quickStartPrimaryActionCount = 2;')) '${_relativePath(quickStartFile)} does not keep the focused quick start action count explicit',
+        if (!quickStart.contains('itemCount: quickStartPrimaryActionCount')) '${_relativePath(quickStartFile)} does not use the focused quick start action count',
         if (!quickStart.contains('itemExtent: width + AppDimensions.paddingSmall')) '${_relativePath(quickStartFile)} does not fix quick start item extent',
         if (!quickStart.contains('cacheExtent: quickStartCardRailCacheExtent')) '${_relativePath(quickStartFile)} does not bound quick start cache extent',
         if (!quickStart.contains('itemBuilder: (context, index) => _buildQuickStartCard(index)')) '${_relativePath(quickStartFile)} does not route quick start item construction through builder boundary',
         if (quickStart.contains('() => ListView(')) '${_relativePath(quickStartFile)} still builds quick start cards with eager ListView children',
+        if (quickStart.contains("title: '漫游模式'")) '${_relativePath(quickStartFile)} brings FM mode back to the first viewport quick start rail',
+        if (quickStart.contains("title: '心动模式'")) '${_relativePath(quickStartFile)} brings heartbeat mode back to the first viewport quick start rail',
+        if (quickStart.contains('UserLibraryController')) '${_relativePath(quickStartFile)} depends on library state for first viewport quick start actions',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: '马上开始横向入口必须保持惰性构建、固定 itemExtent 和有界预缓存，避免首页入口扩展后一次性构建所有卡片。',
+        reason: '首页“开始听”横向入口只保留继续播放和每日推荐，且必须保持惰性构建、固定 itemExtent 和有界预缓存。',
       );
     });
 

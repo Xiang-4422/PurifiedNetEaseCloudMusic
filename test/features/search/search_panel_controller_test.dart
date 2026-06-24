@@ -231,6 +231,44 @@ void main() {
       await search;
     });
 
+    test('logs first completed category even when search result fails', () async {
+      final debugLogs = <String>[];
+      final previousDebugPrint = debugPrint;
+      debugPrint = (message, {wrapWidth}) {
+        if (message != null) {
+          debugLogs.add(message);
+        }
+      };
+      addTearDown(() {
+        debugPrint = previousDebugPrint;
+      });
+
+      final repository = _FakeSearchRepository();
+      final controller = _buildController(repository: repository);
+      addTearDown(controller.dispose);
+
+      final search = controller.search('keyword');
+      repository.failSongs('keyword', StateError('offline'));
+      await _flushAsync();
+
+      expect(controller.songState.value.status, LoadStatus.error);
+      final metricLogs = debugLogs.where((log) => log.contains('search.firstResults.total')).toList();
+      expect(metricLogs, hasLength(1));
+      expect(
+        metricLogs.single,
+        allOf(
+          contains('category=songs'),
+          contains('result=error'),
+          contains('count=0'),
+        ),
+      );
+
+      repository.completePlaylists('keyword', const []);
+      repository.completeAlbums('keyword', const []);
+      repository.completeArtists('keyword', const []);
+      await search;
+    });
+
     test('ignores search results after dispose', () async {
       final repository = _FakeSearchRepository();
       final controller = _buildController(repository: repository);
@@ -532,6 +570,10 @@ class _FakeSearchRepository implements SearchRepository {
 
   void fail(String keyword, Object error) {
     _pendingResultToComplete(keyword).fail(error);
+  }
+
+  void failSongs(String keyword, Object error) {
+    _pendingResultToComplete(keyword).failSongs(error);
   }
 
   @override

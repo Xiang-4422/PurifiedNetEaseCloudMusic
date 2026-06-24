@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:bujuan/core/entities/album_entity.dart';
+import 'package:bujuan/core/entities/artist_entity.dart';
 import 'package:bujuan/core/entities/local_resource_entry.dart';
+import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/local_library_data_source.dart';
 import 'package:bujuan/data/music_data/sources/local/local_music_source.dart';
 import 'package:bujuan/data/music_data/sources/netease/netease_music_source.dart';
@@ -172,6 +175,70 @@ void main() {
 
       expect(resourceIndexRepository.removedTrackResourceIds, ['1']);
       expect(localDataSource.removedLyrics, ['1']);
+    });
+
+    test('normalizes playlist album and artist ids before local data access', () async {
+      final localDataSource = _FakeLocalLibraryDataSource(
+        playlists: {
+          'netease:playlist-1': _playlist('netease:playlist-1'),
+        },
+        albums: {
+          'album-1': _album('album-1'),
+        },
+        artists: {
+          'artist-1': _artist('artist-1'),
+        },
+        tracksByAlbumSourceId: {
+          'album-1': [_track('album-track')],
+        },
+        tracksByArtistSourceId: {
+          'artist-1': [_track('artist-track')],
+        },
+      );
+      final repository = _buildRepository(localDataSource: localDataSource);
+
+      final playlist = await repository.getPlaylist(' netease:playlist-1 ');
+      final album = await repository.getAlbum(' album-1 ');
+      final artist = await repository.getArtist(' artist-1 ');
+      final albumTracks = await repository.getTracksByAlbumId(' album-1 ');
+      final artistTracks = await repository.getTracksByArtistId(' artist-1 ');
+      final blankPlaylist = await repository.getPlaylist('   ');
+      final blankAlbum = await repository.getAlbum('   ');
+      final blankArtist = await repository.getArtist('   ');
+      final blankAlbumTracks = await repository.getTracksByAlbumId('   ');
+      final blankArtistTracks = await repository.getTracksByArtistId('   ');
+
+      expect(playlist?.id, 'netease:playlist-1');
+      expect(album?.id, 'album-1');
+      expect(artist?.id, 'artist-1');
+      expect(albumTracks.map((track) => track.id), ['album-track']);
+      expect(artistTracks.map((track) => track.id), ['artist-track']);
+      expect(blankPlaylist, isNull);
+      expect(blankAlbum, isNull);
+      expect(blankArtist, isNull);
+      expect(blankAlbumTracks, isEmpty);
+      expect(blankArtistTracks, isEmpty);
+      expect(localDataSource.requestedPlaylistIds, ['netease:playlist-1']);
+      expect(localDataSource.requestedAlbumIds, ['album-1']);
+      expect(localDataSource.requestedArtistIds, ['artist-1']);
+      expect(localDataSource.requestedAlbumTrackSourceIds, ['album-1']);
+      expect(localDataSource.requestedArtistTrackSourceIds, ['artist-1']);
+    });
+
+    test('normalizes playlist id before remote fallback and local save', () async {
+      final localDataSource = _FakeLocalLibraryDataSource();
+      final neteaseSource = _FakeNeteaseMusicSource();
+      final repository = _buildRepository(
+        localDataSource: localDataSource,
+        neteaseSource: neteaseSource,
+      );
+
+      final playlist = await repository.getPlaylist(' netease:playlist-1 ');
+
+      expect(playlist?.id, 'netease:playlist-1');
+      expect(localDataSource.requestedPlaylistIds, ['netease:playlist-1']);
+      expect(neteaseSource.playlistIds, ['netease:playlist-1']);
+      expect(localDataSource.savedPlaylistIds, ['netease:playlist-1']);
     });
 
     test('coalesces concurrent playback url loads and reuses fresh remote url', () async {
@@ -947,6 +1014,33 @@ Track _track(
   );
 }
 
+PlaylistEntity _playlist(String id) {
+  return PlaylistEntity(
+    id: id,
+    sourceType: SourceType.netease,
+    sourceId: id,
+    title: 'Playlist $id',
+  );
+}
+
+AlbumEntity _album(String id) {
+  return AlbumEntity(
+    id: id,
+    sourceType: SourceType.netease,
+    sourceId: id,
+    title: 'Album $id',
+  );
+}
+
+ArtistEntity _artist(String id) {
+  return ArtistEntity(
+    id: id,
+    sourceType: SourceType.netease,
+    sourceId: id,
+    name: 'Artist $id',
+  );
+}
+
 Future<File> _writeFile(
   Directory directory,
   String name, {
@@ -976,15 +1070,38 @@ LocalResourceEntry _resource({
 }
 
 class _FakeLocalLibraryDataSource implements LocalLibraryDataSource {
-  _FakeLocalLibraryDataSource({Map<String, Track>? tracks}) : _tracks = tracks ?? {};
+  _FakeLocalLibraryDataSource({
+    Map<String, Track>? tracks,
+    Map<String, PlaylistEntity>? playlists,
+    Map<String, AlbumEntity>? albums,
+    Map<String, ArtistEntity>? artists,
+    Map<String, List<Track>>? tracksByAlbumSourceId,
+    Map<String, List<Track>>? tracksByArtistSourceId,
+  })  : _tracks = tracks ?? {},
+        _playlists = playlists ?? {},
+        _albums = albums ?? {},
+        _artists = artists ?? {},
+        _tracksByAlbumSourceId = tracksByAlbumSourceId ?? {},
+        _tracksByArtistSourceId = tracksByArtistSourceId ?? {};
 
   final Map<String, TrackLyrics> savedLyrics = {};
+  final List<String> savedPlaylistIds = [];
   final List<String> removedLyrics = [];
   final List<String> removedTracks = [];
   final List<String> requestedTrackIds = [];
   final List<String> requestedBatchTrackIds = [];
   final List<String> requestedLyricsTrackIds = [];
+  final List<String> requestedPlaylistIds = [];
+  final List<String> requestedAlbumIds = [];
+  final List<String> requestedArtistIds = [];
+  final List<String> requestedAlbumTrackSourceIds = [];
+  final List<String> requestedArtistTrackSourceIds = [];
   final Map<String, Track> _tracks;
+  final Map<String, PlaylistEntity> _playlists;
+  final Map<String, AlbumEntity> _albums;
+  final Map<String, ArtistEntity> _artists;
+  final Map<String, List<Track>> _tracksByAlbumSourceId;
+  final Map<String, List<Track>> _tracksByArtistSourceId;
 
   @override
   Future<Track?> getTrack(String trackId) async {
@@ -1014,6 +1131,44 @@ class _FakeLocalLibraryDataSource implements LocalLibraryDataSource {
   Future<List<Track>> getTracksByIds(Iterable<String> trackIds) async {
     requestedBatchTrackIds.addAll(trackIds);
     return trackIds.map((trackId) => _tracks[trackId]).whereType<Track>().toList().reversed.toList();
+  }
+
+  @override
+  Future<PlaylistEntity?> getPlaylist(String playlistId) async {
+    requestedPlaylistIds.add(playlistId);
+    return _playlists[playlistId];
+  }
+
+  @override
+  Future<AlbumEntity?> getAlbum(String albumId) async {
+    requestedAlbumIds.add(albumId);
+    return _albums[albumId];
+  }
+
+  @override
+  Future<ArtistEntity?> getArtist(String artistId) async {
+    requestedArtistIds.add(artistId);
+    return _artists[artistId];
+  }
+
+  @override
+  Future<List<Track>> getTracksByAlbumId(String albumSourceId) async {
+    requestedAlbumTrackSourceIds.add(albumSourceId);
+    return _tracksByAlbumSourceId[albumSourceId] ?? const [];
+  }
+
+  @override
+  Future<List<Track>> getTracksByArtistId(String artistSourceId) async {
+    requestedArtistTrackSourceIds.add(artistSourceId);
+    return _tracksByArtistSourceId[artistSourceId] ?? const [];
+  }
+
+  @override
+  Future<void> savePlaylists(List<PlaylistEntity> playlists) async {
+    savedPlaylistIds.addAll(playlists.map((playlist) => playlist.id));
+    for (final playlist in playlists) {
+      _playlists[playlist.id] = playlist;
+    }
   }
 
   @override
@@ -1057,6 +1212,7 @@ class _FakeNeteaseMusicSource implements NeteaseMusicSource {
   int playbackUrlCallCount = 0;
   int lyricsCallCount = 0;
   final List<String> playbackUrlTrackIds = [];
+  final List<String> playlistIds = [];
 
   @override
   Future<Track?> getTrack(String trackId) async {
@@ -1093,6 +1249,12 @@ class _FakeNeteaseMusicSource implements NeteaseMusicSource {
       await Future<void>.delayed(lyricsDelay);
     }
     return TrackLyrics(main: 'lyric-$trackId');
+  }
+
+  @override
+  Future<PlaylistEntity?> getPlaylist(String playlistId) async {
+    playlistIds.add(playlistId);
+    return _playlist(playlistId);
   }
 
   @override

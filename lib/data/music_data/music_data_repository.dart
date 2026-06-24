@@ -372,11 +372,15 @@ class MusicDataRepository {
 
   /// 读取歌单；本地没有时回源远程或本地扫描来源。
   Future<PlaylistEntity?> getPlaylist(String playlistId) async {
-    final localPlaylist = await _localDataSource.getPlaylist(playlistId);
+    final normalizedPlaylistId = _normalizedPlaylistId(playlistId);
+    if (_isBlankPlaylistId(normalizedPlaylistId)) {
+      return null;
+    }
+    final localPlaylist = await _localDataSource.getPlaylist(normalizedPlaylistId);
     if (localPlaylist != null) {
       return localPlaylist;
     }
-    final playlist = _isLocalPlaylistId(playlistId) ? await _localMusicSource.getPlaylist(playlistId) : await _neteaseSource.getPlaylist(playlistId);
+    final playlist = _isLocalPlaylistId(normalizedPlaylistId) ? await _localMusicSource.getPlaylist(normalizedPlaylistId) : await _neteaseSource.getPlaylist(normalizedPlaylistId);
     if (playlist != null) {
       await _localDataSource.savePlaylists([playlist]);
     }
@@ -385,22 +389,38 @@ class MusicDataRepository {
 
   /// 从本地曲库读取专辑。
   Future<AlbumEntity?> getAlbum(String albumId) async {
-    return _localDataSource.getAlbum(albumId);
+    final normalizedAlbumId = _normalizedAlbumId(albumId);
+    if (_isBlankAlbumId(normalizedAlbumId)) {
+      return null;
+    }
+    return _localDataSource.getAlbum(normalizedAlbumId);
   }
 
   /// 从本地曲库读取歌手。
   Future<ArtistEntity?> getArtist(String artistId) async {
-    return _localDataSource.getArtist(artistId);
+    final normalizedArtistId = _normalizedArtistId(artistId);
+    if (_isBlankArtistId(normalizedArtistId)) {
+      return null;
+    }
+    return _localDataSource.getArtist(normalizedArtistId);
   }
 
   /// 读取指定专辑下已缓存的曲目。
   Future<List<Track>> getTracksByAlbumId(String albumSourceId) async {
-    return _localDataSource.getTracksByAlbumId(albumSourceId);
+    final normalizedAlbumSourceId = _normalizedAlbumId(albumSourceId);
+    if (_isBlankAlbumId(normalizedAlbumSourceId)) {
+      return const [];
+    }
+    return _localDataSource.getTracksByAlbumId(normalizedAlbumSourceId);
   }
 
   /// 读取指定歌手下已缓存的曲目。
   Future<List<Track>> getTracksByArtistId(String artistSourceId) async {
-    return _localDataSource.getTracksByArtistId(artistSourceId);
+    final normalizedArtistSourceId = _normalizedArtistId(artistSourceId);
+    if (_isBlankArtistId(normalizedArtistSourceId)) {
+      return const [];
+    }
+    return _localDataSource.getTracksByArtistId(normalizedArtistSourceId);
   }
 
   /// 读取曲目的本地资源索引。
@@ -533,8 +553,32 @@ class MusicDataRepository {
     return _normalizedTrackId(trackId).isEmpty;
   }
 
+  bool _isBlankPlaylistId(String playlistId) {
+    return _normalizedPlaylistId(playlistId).isEmpty;
+  }
+
+  bool _isBlankAlbumId(String albumId) {
+    return _normalizedAlbumId(albumId).isEmpty;
+  }
+
+  bool _isBlankArtistId(String artistId) {
+    return _normalizedArtistId(artistId).isEmpty;
+  }
+
   String _normalizedTrackId(String trackId) {
     return trackId.trim();
+  }
+
+  String _normalizedPlaylistId(String playlistId) {
+    return playlistId.trim();
+  }
+
+  String _normalizedAlbumId(String albumId) {
+    return albumId.trim();
+  }
+
+  String _normalizedArtistId(String artistId) {
+    return artistId.trim();
   }
 
   List<String> _candidateTrackIds(Iterable<String> trackIds) {
@@ -551,6 +595,6 @@ class MusicDataRepository {
   }
 
   bool _isLocalPlaylistId(String playlistId) {
-    return playlistId.startsWith('${_localMusicSource.sourceKey}:');
+    return _normalizedPlaylistId(playlistId).startsWith('${_localMusicSource.sourceKey}:');
   }
 }

@@ -224,6 +224,40 @@ void main() {
       expect(image.width, image.height);
       expect(tester.getSize(find.byType(CustomScrollView)).height, 320);
     });
+
+    testWidgets('PlayListWidget uses a bounded fixed-extent rail', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          SizedBox(
+            width: 360,
+            child: PlayListWidget(
+              playLists: List.generate(
+                8,
+                (index) => PlaylistSummaryData(
+                  id: '$index',
+                  title: 'Playlist $index',
+                ),
+              ),
+              albumCountInWidget: 2,
+              albumMargin: 10,
+            ),
+          ),
+          width: 360,
+        ),
+      );
+
+      final scrollView = tester.widget<CustomScrollView>(
+        find.byType(CustomScrollView),
+      );
+      final sliver = tester.widget<SliverFixedExtentList>(
+        find.byType(SliverFixedExtentList),
+      );
+      final delegate = sliver.delegate as SliverChildBuilderDelegate;
+
+      expect(scrollView.cacheExtent, playlistRailCacheExtent);
+      expect(sliver.itemExtent, closeTo(180, 0.01));
+      expect(delegate.addAutomaticKeepAlives, isFalse);
+    });
   });
 }
 

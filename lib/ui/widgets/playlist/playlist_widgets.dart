@@ -5,7 +5,6 @@ import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/ui/assets/app_assets.dart';
 import 'package:bujuan/app/routing/router.gr.dart' as gr;
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
-import 'package:bujuan/ui/widgets/common/layout/keep_alive_wrapper.dart';
 import 'package:bujuan/ui/widgets/common/music/music_list_tile.dart';
 import 'package:bujuan/ui/widgets/common/layout/scroll_helpers.dart';
 import 'package:bujuan/ui/widgets/common/image/simple_extended_image.dart';
@@ -13,6 +12,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
+
+/// 首页和资料库横向歌单轨道的预缓存边界。
+const double playlistRailCacheExtent = 360;
 
 class _PlaylistWidgetMetrics {
   const _PlaylistWidgetMetrics();
@@ -156,26 +158,28 @@ class PlayListWidget extends StatelessWidget {
         );
         final customHeight = heightForWidth?.call(albumWidth);
         final widgetHeight = customHeight == null ? naturalHeight : math.max(customHeight, naturalHeight);
+        final itemExtent = albumWidth + albumMargin;
+        final snapCount = snappAllAlbum ? math.max(1, albumCountInWidget.floor()) : 1;
+        final snapExtent = itemExtent * snapCount;
         return SizedBox(
           height: widgetHeight,
           child: CustomScrollView(
             scrollDirection: Axis.horizontal,
+            cacheExtent: playlistRailCacheExtent,
             physics: SnappingScrollPhysics(
-              itemExtent: (albumWidth + albumMargin) * (snappAllAlbum ? albumCountInWidget.floor() : 1),
+              itemExtent: snapExtent,
             ),
             slivers: [
               SliverPadding(
                 padding: EdgeInsets.only(left: albumMargin),
-                sliver: SliverList.builder(
-                  addAutomaticKeepAlives: true,
-                  itemCount: playLists.length,
-                  itemBuilder: (context, index) {
-                    final playlist = playLists[index];
-                    final playButtonSize = metrics.playButtonSize(albumWidth);
-                    return KeepAliveWrapper(
-                      child: Container(
-                        width: albumWidth,
-                        margin: EdgeInsets.only(right: albumMargin),
+                sliver: SliverFixedExtentList(
+                  itemExtent: itemExtent,
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final playlist = playLists[index];
+                      final playButtonSize = metrics.playButtonSize(albumWidth);
+                      return Padding(
+                        padding: EdgeInsets.only(right: albumMargin),
                         child: GestureDetector(
                           onTap: () {
                             context.router.push(
@@ -259,9 +263,11 @@ class PlayListWidget extends StatelessWidget {
                             ],
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                    addAutomaticKeepAlives: false,
+                    childCount: playLists.length,
+                  ),
                 ),
               ),
             ],

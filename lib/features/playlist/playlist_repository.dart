@@ -1,5 +1,5 @@
 import 'package:bujuan/core/state/operation_result.dart';
-import 'package:bujuan/features/playback/application/playback_queue_item_mapper.dart';
+import 'package:bujuan/features/playback/application/track_playback_queue_builder.dart';
 import 'package:bujuan/features/playlist/playlist_detail_data.dart';
 import 'package:bujuan/features/playlist/playlist_performance_logger.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/app_cache_data_source.dart';
@@ -11,8 +11,6 @@ import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/core/entities/playlist_track_ref.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
-import 'package:bujuan/core/entities/track_resource_bundle.dart';
-import 'package:bujuan/core/entities/track_with_resources.dart';
 import 'package:bujuan/core/entities/music_resource_id.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 
@@ -86,16 +84,16 @@ class PlaylistRepository {
     required PlaylistRemoteDataSource remoteDataSource,
     required PlaylistSubscriptionDataSource playlistSubscriptionDataSource,
   })  : _appCacheDataSource = appCacheDataSource,
-        _musicDataRepository = musicDataRepository,
         _localLibraryDataSource = localLibraryDataSource,
         _remoteDataSource = remoteDataSource,
-        _playlistSubscriptionDataSource = playlistSubscriptionDataSource;
+        _playlistSubscriptionDataSource = playlistSubscriptionDataSource,
+        _queueBuilder = TrackPlaybackQueueBuilder(musicDataRepository);
 
   final AppCacheDataSource _appCacheDataSource;
-  final MusicDataRepository _musicDataRepository;
   final LocalLibraryDataSource _localLibraryDataSource;
   final PlaylistRemoteDataSource _remoteDataSource;
   final PlaylistSubscriptionDataSource _playlistSubscriptionDataSource;
+  final TrackPlaybackQueueBuilder _queueBuilder;
 
   /// 拉取歌单索引，并同步歌单基础信息、曲目顺序和订阅状态到本地数据库。
   Future<PlaylistIndexData> fetchPlaylistIndex(
@@ -586,32 +584,14 @@ class PlaylistRepository {
     if (tracks.isEmpty) {
       return const [];
     }
-    final loadStopwatch = PlaylistPerformanceLogger.start();
-    final tracksWithResources = await _musicDataRepository.getTracksWithResources(
-      tracks.map((track) => track.id),
-    );
-    PlaylistPerformanceLogger.elapsed(
-      'repo.remoteTracks.getTracksWithResources',
-      loadStopwatch,
-      details: 'tracks=${tracks.length} resources=${tracksWithResources.length}',
-    );
-    final resourcesByTrackId = {
-      for (final item in tracksWithResources) item.track.id: item.resources,
-    };
-    final mapStopwatch = PlaylistPerformanceLogger.start();
-    final items = PlaybackQueueItemMapper.fromTrackWithResourcesList(
-      [
-        for (final track in tracks)
-          TrackWithResources(
-            track: track,
-            resources: resourcesByTrackId[track.id] ?? const TrackResourceBundle(),
-          ),
-      ],
+    final buildStopwatch = PlaylistPerformanceLogger.start();
+    final items = await _queueBuilder.build(
+      tracks,
       likedSongIds: likedSongIds,
     );
     PlaylistPerformanceLogger.elapsed(
-      'repo.remoteTracks.map',
-      mapStopwatch,
+      'repo.remoteTracks.buildQueue',
+      buildStopwatch,
       details: 'tracks=${tracks.length} items=${items.length}',
     );
     return items;
@@ -816,30 +796,15 @@ class PlaylistRepository {
       );
       return const [];
     }
-    final loadStopwatch = PlaylistPerformanceLogger.start();
-    final tracks = await _musicDataRepository.getTracksWithResources(trackIds);
-    PlaylistPerformanceLogger.elapsed(
-      'repo.loadLocalSongs.getTracksWithResources',
-      loadStopwatch,
-      details: 'trackIds=${trackIds.length} tracks=${tracks.length}',
-    );
-    if (tracks.isEmpty) {
-      PlaylistPerformanceLogger.elapsed(
-        'repo.loadLocalSongs.total',
-        stopwatch,
-        details: 'trackIds=${trackIds.length} songs=0',
-      );
-      return const [];
-    }
-    final mapStopwatch = PlaylistPerformanceLogger.start();
-    final items = PlaybackQueueItemMapper.fromTrackWithResourcesList(
-      tracks,
+    final buildStopwatch = PlaylistPerformanceLogger.start();
+    final items = await _queueBuilder.buildFromTrackIds(
+      trackIds,
       likedSongIds: likedSongIds,
     );
     PlaylistPerformanceLogger.elapsed(
-      'repo.loadLocalSongs.map',
-      mapStopwatch,
-      details: 'tracks=${tracks.length} items=${items.length}',
+      'repo.loadLocalSongs.buildQueue',
+      buildStopwatch,
+      details: 'trackIds=${trackIds.length} items=${items.length}',
     );
     PlaylistPerformanceLogger.elapsed(
       'repo.loadLocalSongs.total',

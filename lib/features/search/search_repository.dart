@@ -6,9 +6,9 @@ import 'package:bujuan/core/entities/music_resource_id.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/core/entities/source_type.dart';
-import 'package:bujuan/features/playback/application/playback_queue_item_mapper.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
+import 'package:bujuan/features/playback/application/track_playback_queue_builder.dart';
 import 'package:bujuan/features/search/search_cache_store.dart';
 
 /// 搜索仓库，聚合本地曲库、网易云搜索和用户歌单缓存。
@@ -22,12 +22,14 @@ class SearchRepository {
   })  : _musicDataRepository = musicDataRepository,
         _remoteDataSource = remoteDataSource,
         _cacheStore = cacheStore,
-        _userPlaylistListDataSource = userPlaylistListDataSource;
+        _userPlaylistListDataSource = userPlaylistListDataSource,
+        _queueBuilder = TrackPlaybackQueueBuilder(musicDataRepository);
 
   final MusicDataRepository _musicDataRepository;
   final SearchRemoteDataSource _remoteDataSource;
   final SearchCacheStore _cacheStore;
   final UserPlaylistListDataSource _userPlaylistListDataSource;
+  final TrackPlaybackQueueBuilder _queueBuilder;
 
   /// 加载缓存的热搜关键词。
   Future<List<String>?> loadCachedHotKeywords() {
@@ -64,11 +66,8 @@ class SearchRepository {
       ),
     );
     final tracks = _mergeById(localTracks, remoteTracks, (track) => track.id);
-    final trackItems = await _musicDataRepository.getTracksWithResources(
-      tracks.map((track) => track.id),
-    );
-    return PlaybackQueueItemMapper.fromTrackWithResourcesList(
-      trackItems,
+    return _queueBuilder.build(
+      tracks,
       likedSongIds: likedSongIds,
     );
   }

@@ -37,6 +37,58 @@ void main() {
       expect(items.last.isCached, isTrue);
     });
 
+    test('normalizes resource lookup ids without changing queue order', () async {
+      final repository = _FakeMusicDataRepository(
+        resourcesByTrackId: {
+          'netease:2': TrackResourceBundle(
+            audio: _audioResource(
+              trackId: 'netease:2',
+              path: '/cache/audio/2.mp3',
+            ),
+          ),
+        },
+      );
+      final builder = TrackPlaybackQueueBuilder(repository);
+
+      final items = await builder.build(
+        [
+          _track(' netease:2 '),
+          _track('   '),
+          _track('netease:1'),
+          _track('netease:2'),
+        ],
+        likedSongIds: const [],
+      );
+
+      expect(repository.requestedTrackIds, ['netease:2', 'netease:1']);
+      expect(items.map((item) => item.id), ['netease:2', 'netease:1', 'netease:2']);
+      expect(items.first.playbackUrl, '/cache/audio/2.mp3');
+      expect(items.last.playbackUrl, '/cache/audio/2.mp3');
+    });
+
+    test('builds cached queue items from track ids through the same boundary', () async {
+      final repository = _FakeMusicDataRepository(
+        resourcesByTrackId: {
+          'netease:2': TrackResourceBundle(
+            audio: _audioResource(
+              trackId: 'netease:2',
+              path: '/cache/audio/2.mp3',
+            ),
+          ),
+        },
+      );
+      final builder = TrackPlaybackQueueBuilder(repository);
+
+      final items = await builder.buildFromTrackIds(
+        const [' netease:2 ', ' ', 'netease:2'],
+        likedSongIds: const [],
+      );
+
+      expect(repository.requestedTrackIds, ['netease:2']);
+      expect(items.single.id, 'netease:2');
+      expect(items.single.playbackUrl, '/cache/audio/2.mp3');
+    });
+
     test('does not query resources for empty track list', () async {
       final repository = _FakeMusicDataRepository(resourcesByTrackId: const {});
       final builder = TrackPlaybackQueueBuilder(repository);

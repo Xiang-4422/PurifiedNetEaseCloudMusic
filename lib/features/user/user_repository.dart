@@ -3,17 +3,15 @@ import 'package:bujuan/core/entities/music_resource_id.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/core/state/operation_result.dart';
-import 'package:bujuan/features/playback/application/playback_queue_item_mapper.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/user_scoped_data_source.dart';
 import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/track.dart';
-import 'package:bujuan/core/entities/track_resource_bundle.dart';
-import 'package:bujuan/core/entities/track_with_resources.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/core/entities/user_library_kinds.dart';
 import 'package:bujuan/core/entities/user_profile_data.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
+import 'package:bujuan/features/playback/application/track_playback_queue_builder.dart';
 
 /// 聚合用户远程数据、本地用户数据和曲库缓存的仓库。
 class UserRepository {
@@ -30,7 +28,8 @@ class UserRepository {
         _userProfileDataSource = userProfileDataSource,
         _userTrackListDataSource = userTrackListDataSource,
         _userPlaylistListDataSource = userPlaylistListDataSource,
-        _userSyncMarkerDataSource = userSyncMarkerDataSource;
+        _userSyncMarkerDataSource = userSyncMarkerDataSource,
+        _queueBuilder = TrackPlaybackQueueBuilder(musicDataRepository);
 
   final MusicDataRepository _musicDataRepository;
   final UserRemoteDataSource _remoteDataSource;
@@ -38,6 +37,7 @@ class UserRepository {
   final UserTrackListDataSource _userTrackListDataSource;
   final UserPlaylistListDataSource _userPlaylistListDataSource;
   final UserSyncMarkerDataSource _userSyncMarkerDataSource;
+  final TrackPlaybackQueueBuilder _queueBuilder;
 
   /// 从本地用户作用域缓存读取用户资料。
   Future<UserProfileData?> loadCachedUserDetail(String userId) {
@@ -321,12 +321,8 @@ class UserRepository {
     required List<int> likedSongIds,
   }) async {
     final normalizedIds = ids.map(MusicResourceId.toNeteaseEntityId).toList();
-    final tracks = await _musicDataRepository.getTracksWithResources(normalizedIds);
-    if (tracks.isEmpty) {
-      return const [];
-    }
-    return PlaybackQueueItemMapper.fromTrackWithResourcesList(
-      tracks,
+    return _queueBuilder.buildFromTrackIds(
+      normalizedIds,
       likedSongIds: likedSongIds,
     );
   }
@@ -402,23 +398,8 @@ class UserRepository {
     required List<int> likedSongIds,
     MediaType? mediaType,
   }) async {
-    if (tracks.isEmpty) {
-      return const [];
-    }
-    final tracksWithResources = await _musicDataRepository.getTracksWithResources(
-      tracks.map((track) => track.id),
-    );
-    final resourcesByTrackId = {
-      for (final item in tracksWithResources) item.track.id: item.resources,
-    };
-    return PlaybackQueueItemMapper.fromTrackWithResourcesList(
-      [
-        for (final track in tracks)
-          TrackWithResources(
-            track: track,
-            resources: resourcesByTrackId[track.id] ?? const TrackResourceBundle(),
-          ),
-      ],
+    return _queueBuilder.build(
+      tracks,
       likedSongIds: likedSongIds,
       mediaType: mediaType,
     );

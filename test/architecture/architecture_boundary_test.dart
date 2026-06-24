@@ -1464,6 +1464,22 @@ void main() {
       );
     });
 
+    test('feature repositories build queue items through playback queue builder', () {
+      final repositoryFiles = _dartFiles(Directory('${projectRoot.path}/lib/features')).where((file) => file.path.endsWith('_repository.dart')).toList();
+      final violations = repositoryFiles
+          .where(
+            (file) => file.readAsStringSync().contains('playback_queue_item_mapper.dart'),
+          )
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'feature repository 只能拿数据、保存数据和提交播放意图；曲目到播放队列项的资源补齐、liked 归一和空白 id 过滤必须收口到 TrackPlaybackQueueBuilder。',
+      );
+    });
+
     test('UI reads explicit queue item fields instead of metadata keys', () {
       final uiFiles = _dartFiles(Directory('${projectRoot.path}/lib/ui'));
       final violations = uiFiles

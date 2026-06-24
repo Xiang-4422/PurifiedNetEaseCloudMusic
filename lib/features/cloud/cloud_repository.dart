@@ -1,12 +1,9 @@
-import 'package:bujuan/features/playback/application/playback_queue_item_mapper.dart';
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/user_scoped_data_source.dart';
 import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
-import 'package:bujuan/core/entities/track.dart';
-import 'package:bujuan/core/entities/track_resource_bundle.dart';
-import 'package:bujuan/core/entities/track_with_resources.dart';
 import 'package:bujuan/core/entities/user_library_kinds.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
+import 'package:bujuan/features/playback/application/track_playback_queue_builder.dart';
 
 /// 云盘仓库，聚合云盘远程数据、用户缓存和本地曲库资源。
 class CloudRepository {
@@ -17,11 +14,13 @@ class CloudRepository {
     required CloudRemoteDataSource remoteDataSource,
   })  : _remoteDataSource = remoteDataSource,
         _musicDataRepository = musicDataRepository,
-        _userTrackListDataSource = userTrackListDataSource;
+        _userTrackListDataSource = userTrackListDataSource,
+        _queueBuilder = TrackPlaybackQueueBuilder(musicDataRepository);
 
   final CloudRemoteDataSource _remoteDataSource;
   final MusicDataRepository _musicDataRepository;
   final UserTrackListDataSource _userTrackListDataSource;
+  final TrackPlaybackQueueBuilder _queueBuilder;
 
   /// 加载缓存的云盘歌曲。
   Future<List<PlaybackQueueItem>> loadCachedSongs({
@@ -39,12 +38,8 @@ class CloudRepository {
     if (trackIds.isEmpty) {
       return const [];
     }
-    final tracks = await _musicDataRepository.getTracksWithResources(trackIds);
-    if (tracks.isEmpty) {
-      return const [];
-    }
-    return PlaybackQueueItemMapper.fromTrackWithResourcesList(
-      tracks,
+    return _queueBuilder.buildFromTrackIds(
+      trackIds,
       likedSongIds: likedSongIds,
     );
   }
@@ -73,7 +68,7 @@ class CloudRepository {
       precacheArtwork: true,
       awaitArtworkPrecache: false,
     );
-    final items = await _queueItemsFromSavedTracks(
+    final items = await _queueBuilder.build(
       result.tracks,
       likedSongIds: likedSongIds,
     );
@@ -96,32 +91,6 @@ class CloudRepository {
       items: items,
       hasMore: result.itemCount >= limit,
       nextOffset: offset + result.itemCount,
-    );
-  }
-
-  Future<List<PlaybackQueueItem>> _queueItemsFromSavedTracks(
-    List<Track> tracks, {
-    required List<int> likedSongIds,
-  }) async {
-    if (tracks.isEmpty) {
-      return const [];
-    }
-    final tracksWithResources = await _musicDataRepository.getTracksWithResources(
-      tracks.map((track) => track.id),
-    );
-    final resourcesByTrackId = {
-      for (final item in tracksWithResources) item.track.id: item,
-    };
-    return PlaybackQueueItemMapper.fromTrackWithResourcesList(
-      [
-        for (final track in tracks)
-          resourcesByTrackId[track.id] ??
-              TrackWithResources(
-                track: track,
-                resources: const TrackResourceBundle(),
-              ),
-      ],
-      likedSongIds: likedSongIds,
     );
   }
 

@@ -1,8 +1,33 @@
 import 'dart:io';
 
+import 'package:bujuan/ui/pages/settings/widgets/setting_section_widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('setting toggle labels stay stable', () {
+    expect(
+      settingToggleControlLabel(
+        title: ' 高音质优先 ',
+        isEnabled: true,
+      ),
+      '高音质优先：已开启',
+    );
+    expect(
+      settingToggleControlLabel(
+        title: '圆形专辑',
+        isEnabled: false,
+      ),
+      '圆形专辑：已关闭',
+    );
+    expect(
+      settingToggleControlLabel(
+        title: '  ',
+        isEnabled: false,
+      ),
+      '设置项：已关闭',
+    );
+  });
+
   test('setting page exposes focused player settings sections in order', () {
     final source = File('lib/ui/pages/settings/setting_page.dart').readAsStringSync();
     final sectionsSource = File(
@@ -127,6 +152,11 @@ void main() {
     expect(widgetsSource, contains('class SettingToggleTile'));
     expect(widgetsSource, contains('AdaptiveLayoutMetrics.of(context)'));
     expect(widgetsSource, contains('TablerIcons.chevron_right'));
+    expect(widgetsSource, contains('Switch.adaptive('));
+    expect(widgetsSource, contains('settingToggleControlLabel('));
+    expect(widgetsSource, contains('Tooltip('));
+    expect(widgetsSource, isNot(contains('TablerIcons.toggle_right')));
+    expect(widgetsSource, isNot(contains('TablerIcons.toggle_left')));
   });
 
   test('setting page delegates local media scan side effects to controller', () {

@@ -121,7 +121,6 @@ class SettingToggleTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final metrics = AdaptiveLayoutMetrics.of(context);
-    final iconSize = (AppDimensions.iconSizeLarge * metrics.textScale).clamp(34.0, 46.0).toDouble();
     return ConstrainedBox(
       constraints: BoxConstraints(minHeight: metrics.listTileMinHeight),
       child: ListTile(
@@ -149,16 +148,29 @@ class SettingToggleTile extends StatelessWidget {
               ),
         trailing: Obx(() {
           final enabled = isEnabled();
-          return Icon(
-            enabled ? TablerIcons.toggle_right : TablerIcons.toggle_left,
-            size: iconSize,
-            color: Theme.of(context).cardColor.withValues(
-                  alpha: enabled ? 0.7 : .4,
-                ),
+          return Tooltip(
+            message: settingToggleControlLabel(
+              title: title,
+              isEnabled: enabled,
+            ),
+            child: Switch.adaptive(
+              value: enabled,
+              onChanged: (_) => onTap(),
+            ),
           );
         }),
         onTap: onTap,
       ),
     );
   }
+}
+
+/// 生成设置页开关控件的辅助语义标签。
+@visibleForTesting
+String settingToggleControlLabel({
+  required String title,
+  required bool isEnabled,
+}) {
+  final resolvedTitle = title.trim().isEmpty ? '设置项' : title.trim();
+  return '$resolvedTitle：${isEnabled ? '已开启' : '已关闭'}';
 }

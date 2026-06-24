@@ -932,6 +932,27 @@ void main() {
       );
     });
 
+    test('playback restore coordinator normalizes queue ids before matching current song', () {
+      final coordinatorFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_restore_coordinator.dart',
+      );
+      final coordinator = coordinatorFile.readAsStringSync();
+      final violations = <String>[
+        if (!coordinator.contains('final currentSongId = _normalizedQueueItemId(restoreState.currentSongId);')) '${_relativePath(coordinatorFile)} can still match restore current song from a raw currentSongId',
+        if (!coordinator.contains('(element) => _normalizedQueueItemId(element.id) == currentSongId')) '${_relativePath(coordinatorFile)} can still match restore queue items by raw ids',
+        if (!coordinator.contains('.map(_normalizedQueueItem)')) '${_relativePath(coordinatorFile)} can still return decoded restore queue items with raw ids',
+        if (!coordinator.contains('PlaybackQueueItem _normalizedQueueItem(PlaybackQueueItem item)')) '${_relativePath(coordinatorFile)} does not normalize decoded restore queue items',
+        if (!coordinator.contains('String _normalizedQueueItemId(String id)')) '${_relativePath(coordinatorFile)} does not define restore queue item id normalization',
+        if (coordinator.contains('(element) => element.id == restoreState.currentSongId')) '${_relativePath(coordinatorFile)} still restores current index through raw id comparison',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '启动恢复必须按规范化 id 匹配 currentSongId 和恢复队列，否则历史队列缓存的空格差异会丢失当前索引和恢复进度。',
+      );
+    });
+
     test('music data repository delegates playback url cache coordination', () {
       final repositoryFile = File(
         '${projectRoot.path}/lib/data/music_data/music_data_repository.dart',

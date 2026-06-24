@@ -75,6 +75,28 @@ void main() {
       expect(restoreData.position, const Duration(seconds: 42));
     });
 
+    test('normalizes restored queue ids before matching current song', () async {
+      final coordinator = PlaybackRestoreCoordinator(
+        repository: _FakePlaybackRepository(
+          const PlaybackRestoreState(
+            queue: ['cached-1', 'cached-2'],
+            currentSongId: ' netease:2 ',
+            position: Duration(seconds: 42),
+          ),
+        ),
+        queueStore: _FakePlaybackQueueStore([
+          _item(' netease:1 '),
+          _item(' netease:2 '),
+        ]),
+      );
+
+      final restoreData = await coordinator.loadRestoreData();
+
+      expect(restoreData.queue.map((item) => item.id), ['netease:1', 'netease:2']);
+      expect(restoreData.index, 1);
+      expect(restoreData.position, const Duration(seconds: 42));
+    });
+
     test('drops negative restored position even when current song is matched', () async {
       final coordinator = PlaybackRestoreCoordinator(
         repository: _FakePlaybackRepository(

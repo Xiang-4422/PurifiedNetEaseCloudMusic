@@ -55,8 +55,9 @@ class PlaybackRestoreCoordinator {
   Future<PlaybackRestoreData> loadRestoreData() async {
     final restoreState = await _repository.getRestoreState();
     final playlist = await _decodeQueueSafely(restoreState.queue);
+    final currentSongId = _normalizedQueueItemId(restoreState.currentSongId);
     var index = playlist.indexWhere(
-      (element) => element.id == restoreState.currentSongId,
+      (element) => _normalizedQueueItemId(element.id) == currentSongId,
     );
     final currentSongMatched = index >= 0;
     if (index < 0 && playlist.isNotEmpty) {
@@ -79,9 +80,21 @@ class PlaybackRestoreCoordinator {
       return const <PlaybackQueueItem>[];
     }
     try {
-      return (await _queueStore.decodeQueue(queueState)).where((item) => item.id.isNotEmpty).toList(growable: false);
+      return (await _queueStore.decodeQueue(queueState)).map(_normalizedQueueItem).where((item) => item.id.isNotEmpty).toList(growable: false);
     } catch (_) {
       return const <PlaybackQueueItem>[];
     }
+  }
+
+  PlaybackQueueItem _normalizedQueueItem(PlaybackQueueItem item) {
+    final normalizedItemId = _normalizedQueueItemId(item.id);
+    if (normalizedItemId == item.id) {
+      return item;
+    }
+    return item.copyWith(id: normalizedItemId);
+  }
+
+  String _normalizedQueueItemId(String id) {
+    return id.trim();
   }
 }

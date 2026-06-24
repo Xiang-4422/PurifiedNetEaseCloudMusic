@@ -172,6 +172,36 @@ void main() {
       expect(controller.curTopPlayListSongs.map((song) => song.id), ['remote-song']);
     });
 
+    test('normalizes current user id before ranking cache and stale checks', () async {
+      var currentUserId = ' user-1 ';
+      final songLoad = Completer<List<PlaybackQueueItem>>();
+      final playlistRepository = _FakePlaylistRepository(
+        fetchSongsHandler: ({
+          required String playlistId,
+          required List<int> likedSongIds,
+          required int offset,
+          required int limit,
+        }) {
+          return songLoad.future;
+        },
+      );
+      final controller = _buildController(
+        playlistRepository: playlistRepository,
+        currentUserId: () => currentUserId,
+      );
+      addTearDown(controller.onClose);
+      controller.curTopPlayListId.value = 'ranking-1';
+
+      final load = controller.updateRankingPlayListSongs();
+      await _waitUntil(() => playlistRepository.fetchLikedSongRequests.isNotEmpty);
+      currentUserId = 'user-1';
+      songLoad.complete([_song('remote-song')]);
+      await load;
+
+      expect(playlistRepository.loadLocalDetailUserIds, ['user-1']);
+      expect(controller.curTopPlayListSongs.map((song) => song.id), ['remote-song']);
+    });
+
     test('resolves playlist playback plan with latest liked song ids', () async {
       var likedSongIds = <int>[101];
       final playlistRepository = _FakePlaylistRepository(
@@ -248,13 +278,14 @@ ExplorePageController _buildController({
   _FakeExploreRepository? exploreRepository,
   _FakePlaylistRepository? playlistRepository,
   List<int> Function()? likedSongIds,
+  String Function()? currentUserId,
   ExplorePageVisibility? pageVisibility,
 }) {
   return ExplorePageController(
     exploreRepository: exploreRepository ?? _FakeExploreRepository(),
     playlistRepository: playlistRepository ?? _FakePlaylistRepository(),
     likedSongIds: likedSongIds ?? () => const [],
-    currentUserId: () => 'user-1',
+    currentUserId: currentUserId ?? () => 'user-1',
     pageVisibility: pageVisibility ??
         ExplorePageVisibility(
           isVisible: () => true,
@@ -416,6 +447,7 @@ class _FakePlaylistRepository implements PlaylistRepository {
   final List<List<int>> indexLikedSongRequests = <List<int>>[];
   final List<List<int>> fetchLikedSongRequests = <List<int>>[];
   final List<String> fetchPlaylistIndexNames = <String>[];
+  final List<String?> loadLocalDetailUserIds = <String?>[];
 
   @override
   Future<PlaylistIndexData> fetchPlaylistIndex(
@@ -468,6 +500,7 @@ class _FakePlaylistRepository implements PlaylistRepository {
     required List<int> likedSongIds,
     required String? currentUserId,
   }) async {
+    loadLocalDetailUserIds.add(currentUserId);
     final error = cachedDetailError;
     if (error != null) {
       throw error;

@@ -240,7 +240,7 @@ class ExplorePageController extends GetxController {
     }
     final playlistId = curTopPlayListId.value;
     final likedSongIds = List<int>.of(_likedSongIds());
-    final currentUserId = _currentUserId();
+    final currentUserId = _currentUserIdSnapshot();
     if (await _loadCachedRankingPlayListSongs(
       playlistId: playlistId,
       likedSongIds: likedSongIds,
@@ -401,7 +401,7 @@ class ExplorePageController extends GetxController {
     }
     final playlistId = curTopPlayListId.value;
     final likedSongIds = List<int>.of(_likedSongIds());
-    final userId = _currentUserId();
+    final userId = _currentUserIdSnapshot();
     final generation = offset == 0 ? ++_rankingSongsRequestGeneration : _rankingSongsRequestGeneration;
     if (offset == 0 && !force) {
       final hasCachedSongs = await _loadCachedRankingPlayListSongs(
@@ -602,7 +602,7 @@ class ExplorePageController extends GetxController {
     required List<int> likedSongIds,
     required String currentUserId,
   }) {
-    return !_disposed && curTopPlayListId.value == playlistId && _currentUserId() == currentUserId && _sameLikedSongIds(likedSongIds);
+    return !_disposed && curTopPlayListId.value == playlistId && _currentUserIdSnapshot() == currentUserId && _sameLikedSongIds(likedSongIds);
   }
 
   bool _isCurrentRankingRequest({
@@ -630,5 +630,13 @@ class ExplorePageController extends GetxController {
       }
     }
     return true;
+  }
+
+  String _currentUserIdSnapshot() {
+    return _normalizedCurrentUserId(_currentUserId());
+  }
+
+  String _normalizedCurrentUserId(String userId) {
+    return userId.trim();
   }
 }

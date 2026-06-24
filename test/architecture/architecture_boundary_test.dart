@@ -3341,6 +3341,12 @@ void main() {
         if (!controller.contains('Future<ExplorePlaylistPlaybackPlan> resolvePlaylistPlayback')) 'explore controller does not expose playlist playback resolution',
         if (!controller.contains('final likedSongIds = List<int>.of(_likedSongIds())')) 'explore controller does not resolve playback with liked ids provider',
         if (!controller.contains('playlistIndex: index')) 'explore controller does not reuse fetched playlist index for playback songs',
+        if (!controller.contains('String _currentUserIdSnapshot()')) 'explore controller does not centralize current user snapshots',
+        if (!controller.contains('_normalizedCurrentUserId(_currentUserId())')) 'explore controller does not normalize current user snapshots',
+        if (!controller.contains('String _normalizedCurrentUserId(String userId)')) 'explore controller does not define current user normalization',
+        if (controller.contains('final currentUserId = _currentUserId();')) 'explore controller still uses raw current user id for cached ranking context',
+        if (controller.contains('final userId = _currentUserId();')) 'explore controller still uses raw current user id for ranking refresh context',
+        if (controller.contains('_currentUserId() == currentUserId')) 'explore controller still compares raw current user ids when checking stale ranking results',
       ];
 
       expect(

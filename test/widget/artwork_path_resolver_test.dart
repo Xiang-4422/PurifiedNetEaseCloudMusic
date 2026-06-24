@@ -163,5 +163,35 @@ void main() {
 
       expect(artwork, 'https://example.com/song.jpg');
     });
+
+    test('normalizes local display file uri before image rendering', () {
+      final fileUri = Uri(
+        scheme: 'file',
+        host: 'localhost',
+        path: '/local/song.jpg',
+        queryParameters: {'token': 'cached'},
+      ).toString();
+
+      expect(
+        ArtworkPathResolver.resolveDisplayPath(fileUri),
+        '/local/song.jpg',
+      );
+    });
+
+    test('normalizes remote display artwork before image cache lookup', () {
+      expect(
+        ArtworkPathResolver.resolveDisplayPath(
+          'https://example.com/song.jpg?param=200y200&token=keep',
+        ),
+        'https://example.com/song.jpg?token=keep',
+      );
+    });
+
+    test('uses placeholder for unsafe display artwork uri', () {
+      expect(
+        ArtworkPathResolver.resolveDisplayPath('ftp://example.com/song.jpg'),
+        isEmpty,
+      );
+    });
   });
 }

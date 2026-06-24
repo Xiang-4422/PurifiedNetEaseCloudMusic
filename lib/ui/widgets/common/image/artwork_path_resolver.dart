@@ -86,9 +86,21 @@ class ArtworkPathResolver {
 
   /// 把 nullable 封面路径收敛成图片组件可直接接收的字符串。
   ///
-  /// 这里故意不丢弃远程 URL，因为远程 URL 仍需要进入本地图片缓存后展示。
+  /// 本地路径会先规整成普通文件路径，远程 URL 会去掉网易云尺寸参数后继续交给
+  /// 本地图片缓存处理；其它 URI scheme 直接返回空字符串，让图片组件显示占位。
   static String resolveDisplayPath(String? artworkPath) {
-    return artworkPath ?? '';
+    final rawPath = artworkPath?.trim() ?? '';
+    if (rawPath.isEmpty) {
+      return '';
+    }
+    final localPath = LocalFilePathNormalizer.normalize(rawPath);
+    if (localPath.isNotEmpty) {
+      return localPath;
+    }
+    if (_isRemoteHttpArtwork(rawPath)) {
+      return ImageUrlNormalizer.normalize(rawPath);
+    }
+    return '';
   }
 
   /// 判断路径是否已经是本地资源。

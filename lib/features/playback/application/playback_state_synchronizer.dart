@@ -14,12 +14,12 @@ import 'package:bujuan/features/playback/application/playback_queue_coordinator.
 import 'package:bujuan/features/playback/application/playback_queue_service.dart';
 import 'package:bujuan/features/playback/application/playback_queue_store.dart';
 import 'package:bujuan/features/playback/application/playback_selection_service.dart';
+import 'package:bujuan/features/playback/application/playback_source_error_recovery_gate.dart';
 import 'package:bujuan/features/playback/application/playback_switch_trigger.dart';
 import 'package:bujuan/features/playback/application/playback_toast_port.dart';
 import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
 import 'package:bujuan/features/playback/playback_lyric_state.dart';
 import 'package:bujuan/features/playback/playback_runtime_state.dart';
-import 'package:bujuan/features/playback/playback_selection_state.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 
 /// 播放会话状态同步回调，用于把服务层变化写回控制器状态。
@@ -90,8 +90,7 @@ class PlaybackStateSynchronizer {
   bool _isFetchingFm = false;
   String? _lastConfirmedSideEffectKey;
   bool _completionAdvanceInFlight = false;
-  bool _sourceErrorRecoveryInFlight = false;
-  String? _lastSourceErrorRecoveryKey;
+  final PlaybackSourceErrorRecoveryGate _sourceErrorRecoveryGate = PlaybackSourceErrorRecoveryGate();
 
   static const Duration _positionSaveInterval = Duration(seconds: 5);
 
@@ -235,7 +234,7 @@ class PlaybackStateSynchronizer {
               _advanceAfterQueueCompletion(trackId: trackId);
             }
             if (_hasConfirmedPlaybackSource(playbackState.processingState)) {
-              _lastSourceErrorRecoveryKey = null;
+              _sourceErrorRecoveryGate.markSourceReady();
             } else if (playbackState.processingState == AudioProcessingState.error) {
               _recoverCurrentSourceAfterPlaybackError(runtimeState);
             }
@@ -416,26 +415,14 @@ class PlaybackStateSynchronizer {
   void _recoverCurrentSourceAfterPlaybackError(
     PlaybackRuntimeState Function() runtimeState,
   ) {
-    if (_sourceErrorRecoveryInFlight) {
-      return;
-    }
     final item = runtimeState().currentSong;
-    if (item.id.isEmpty) {
-      return;
-    }
     final selection = _selectionService.state;
-    if (!selection.hasSelection || selection.selectedItem.id != item.id) {
+    if (!_sourceErrorRecoveryGate.shouldStartRecovery(
+      currentItemId: item.id,
+      selection: selection,
+    )) {
       return;
     }
-    if (selection.sourceStatus == PlaybackSelectionSourceStatus.loading) {
-      return;
-    }
-    final recoveryKey = '${selection.selectionVersion}:${item.id}';
-    if (_lastSourceErrorRecoveryKey == recoveryKey) {
-      return;
-    }
-    _lastSourceErrorRecoveryKey = recoveryKey;
-    _sourceErrorRecoveryInFlight = true;
     _backgroundTasks.run(
       taskName: 'playback.sourceError.recover',
       trackId: item.id,
@@ -450,7 +437,7 @@ class PlaybackStateSynchronizer {
         playNow: true,
       );
     } finally {
-      _sourceErrorRecoveryInFlight = false;
+      _sourceErrorRecoveryGate.completeRecovery();
     }
   }
 

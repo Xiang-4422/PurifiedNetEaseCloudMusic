@@ -249,6 +249,7 @@ void main() {
       expect(report['specialNonLimitedMissingOracle'], isEmpty);
       expect(report['specialLimitedMissingReason'], isEmpty);
       expect(report['specialUnknownStatus'], isEmpty);
+      expect(_stringSet(report['specialDartBehavior']), {'song_url_match'});
       expect(report['specialDispatcherDuplicateCases'], isEmpty);
       expect(report['specialDispatcherMissing'], isEmpty);
       expect(report['specialDispatcherUnknown'], isEmpty);
@@ -318,7 +319,7 @@ void main() {
       expect(_stringSet(songUrlV1Status['coverage']), containsAll({'nodeOracle', 'limited'}));
       expect(songUrlV1Status['hasNodeOracleFixture'], isTrue);
       final songUrlMatchStatus = _jsonMap(specialStatusByModule['song_url_match']);
-      expect(_stringSet(songUrlMatchStatus['coverage']), {'limited'});
+      expect(_stringSet(songUrlMatchStatus['coverage']), {'dartBehavior', 'limited'});
       expect(songUrlMatchStatus['hasNodeOracleFixture'], isFalse);
       expect(songUrlMatchStatus['limitedReason'], contains('unblockmusic-utils'));
       final scrobbleV1Status = _jsonMap(specialStatusByModule['scrobble_v1']);
@@ -469,6 +470,7 @@ void main() {
         contains('| song_detail | songDetail | packages/netease_music_api/lib/src/endpoints/play/api.dart |'),
       );
       expect(markdown, contains('| module | coverage | oracle fixture | limited reason |'));
+      expect(markdown, contains('- Dart behavior: song_url_match'));
       expect(markdown, contains('| option | status | reason |'));
       expect(markdown, contains('## SDK Differences'));
       expect(markdown, contains('| scope | module | status | reason |'));
@@ -481,7 +483,7 @@ void main() {
       final songUrlMatchStatus = _jsonMap(specialStatusByModule['song_url_match']);
       expect(
         markdown,
-        contains('| song_url_match | limited | no | ${songUrlMatchStatus['limitedReason']} |'),
+        contains('| song_url_match | dartBehavior, limited | no | ${songUrlMatchStatus['limitedReason']} |'),
       );
       expect(markdown, contains('| api | nodeOracle | yes |  |'));
       final runtimeOptionStatusByName = _jsonMap(report['runtimeOptionStatusByName']);
@@ -1339,7 +1341,7 @@ void main() {
 
       expect(oracleModules.intersection(nodeOracleSpecialModules), nodeOracleSpecialModules);
       expect({...nodeOracleSpecialModules, ...dartBehaviorSpecialModules, ...limitedSpecialModules}, specialModules);
-      expect(dartBehaviorSpecialModules, isEmpty);
+      expect(dartBehaviorSpecialModules, {'song_url_match'});
       expect(specialModules.difference(limitedSpecialModules).difference(nodeOracleSpecialModules), isEmpty);
       expect(limitedSpecialModules.difference(specialModules), isEmpty);
       for (final entry in _jsonMap(status['limited']).entries) {

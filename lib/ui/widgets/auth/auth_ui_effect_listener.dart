@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 
-import 'package:bujuan/features/auth/auth_controller.dart';
+import 'package:bujuan/features/auth/auth_controller_bundle.dart';
 import 'package:bujuan/features/auth/auth_ui_effect.dart';
 import 'package:bujuan/features/auth/auth_ui_effect_dispatcher.dart';
 import 'package:bujuan/ui/services/toast_service.dart';
@@ -28,13 +28,12 @@ class AuthUiEffectListener extends StatefulWidget {
 }
 
 class _AuthUiEffectListenerState extends State<AuthUiEffectListener> {
-  late final AuthController _controller;
+  late final _controller = Get.find<AuthControllerBundle>().authController;
   Worker? _effectWorker;
 
   @override
   void initState() {
     super.initState();
-    _controller = Get.find<AuthController>();
     _effectWorker = ever<AuthUiEffect?>(_controller.uiEffect, _handleEffect);
     _handleEffect(_controller.uiEffect.value);
   }

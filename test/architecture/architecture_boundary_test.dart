@@ -4579,6 +4579,34 @@ void main() {
       );
     });
 
+    test('auth UI receives controller through auth bundle', () {
+      final loginPageFile = File('${projectRoot.path}/lib/ui/pages/auth/login_page_view.dart');
+      final effectListenerFile = File('${projectRoot.path}/lib/ui/widgets/auth/auth_ui_effect_listener.dart');
+      final bundleFile = File('${projectRoot.path}/lib/features/auth/auth_controller_bundle.dart');
+      final bootstrapFile = File('${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart');
+      final loginPage = loginPageFile.readAsStringSync();
+      final effectListener = effectListenerFile.readAsStringSync();
+      final bundle = bundleFile.readAsStringSync();
+      final bootstrap = bootstrapFile.readAsStringSync();
+      final violations = <String>[
+        if (loginPage.contains("features/auth/auth_controller.dart")) '${_relativePath(loginPageFile)} imports auth controller directly',
+        if (effectListener.contains("features/auth/auth_controller.dart")) '${_relativePath(effectListenerFile)} imports auth controller directly',
+        if (loginPage.contains('Get.find<AuthController>')) '${_relativePath(loginPageFile)} reads auth controller directly',
+        if (effectListener.contains('Get.find<AuthController>')) '${_relativePath(effectListenerFile)} reads auth controller directly',
+        if (!loginPage.contains('Get.find<AuthControllerBundle>().authController')) '${_relativePath(loginPageFile)} does not resolve auth controller through auth bundle',
+        if (!effectListener.contains('Get.find<AuthControllerBundle>().authController')) '${_relativePath(effectListenerFile)} does not resolve auth controller through auth bundle',
+        if (!bundle.contains('final AuthController authController')) '${_relativePath(bundleFile)} does not expose auth controller boundary',
+        if (!bootstrap.contains('Get.put<AuthControllerBundle>')) 'feature bootstrap does not register auth controller bundle',
+        if (!bootstrap.contains('authController: Get.find<AuthController>()')) 'feature bootstrap does not inject auth controller into auth bundle',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '登录页和登录副作用监听器只能解析 AuthControllerBundle，不能在 UI 内直接读取 AuthController。',
+      );
+    });
+
     test('user library reads session through narrow access boundary', () {
       final controllerFile = File('${projectRoot.path}/lib/features/user/user_library_controller.dart');
       final bootstrapFile = File('${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart');

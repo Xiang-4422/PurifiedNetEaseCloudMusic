@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:bujuan/features/auth/auth_controller.dart';
+import 'package:bujuan/features/auth/auth_controller_bundle.dart';
 import 'package:bujuan/app/routing/router.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
 import 'package:flutter/material.dart';
@@ -22,13 +22,12 @@ class LoginPageView extends StatefulWidget {
 }
 
 class _LoginPageViewState extends State<LoginPageView> {
-  late final AuthController controller;
+  late final controller = Get.find<AuthControllerBundle>().authController;
   Worker? _loginWorker;
 
   @override
   void initState() {
     super.initState();
-    controller = Get.find<AuthController>();
     _loginWorker = ever(controller.loginCompleted, (bool completed) {
       if (!completed || !mounted) {
         return;

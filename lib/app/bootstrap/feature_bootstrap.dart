@@ -8,6 +8,7 @@ import 'package:bujuan/features/album/album_page_controller_factory.dart';
 import 'package:bujuan/features/album/album_repository.dart';
 import 'package:bujuan/features/artist/artist_page_controller_factory.dart';
 import 'package:bujuan/features/artist/artist_repository.dart';
+import 'package:bujuan/features/auth/auth_controller_bundle.dart';
 import 'package:bujuan/features/auth/auth_controller.dart';
 import 'package:bujuan/features/auth/auth_repository.dart';
 import 'package:bujuan/features/cloud/cloud_page_controller_factory.dart';
@@ -240,6 +241,12 @@ void registerFeatureControllers() {
       ),
     ),
     fenix: true,
+  );
+  Get.put<AuthControllerBundle>(
+    AuthControllerBundle(
+      authController: Get.find<AuthController>(),
+    ),
+    permanent: true,
   );
   Get.lazyPut(
     () => AlbumPageControllerFactory(

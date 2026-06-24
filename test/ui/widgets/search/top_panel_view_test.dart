@@ -1,8 +1,14 @@
 import 'dart:io';
 
+import 'package:bujuan/ui/pages/shell/widgets/search/top_panel_search_widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('top panel search action labels stay stable', () {
+    expect(topPanelSearchActionLabel(hasKeyword: true), '清空搜索');
+    expect(topPanelSearchActionLabel(hasKeyword: false), '关闭搜索');
+  });
+
   test('top panel delegates search chrome and result items to local widgets', () {
     final panelSource = File(
       'lib/ui/pages/shell/widgets/search/top_panel_view.dart',
@@ -51,6 +57,11 @@ void main() {
 
     expect(widgetsSource, contains('class TopPanelSearchBar'));
     expect(widgetsSource, contains("hintText: '输入歌曲、歌手、歌单...'"));
+    expect(widgetsSource, contains('topPanelSearchActionLabel(hasKeyword: false)'));
+    expect(widgetsSource, contains('topPanelSearchActionLabel(hasKeyword: true)'));
+    expect(widgetsSource, contains("return hasKeyword ? '清空搜索' : '关闭搜索';"));
+    expect(widgetsSource, contains('SizedBox.square('));
+    expect(widgetsSource, isNot(contains('onPressed: () {},')));
     expect(widgetsSource, contains('class PlaylistSearchItem'));
     expect(widgetsSource, contains('class AlbumSearchItem'));
     expect(widgetsSource, contains('class ArtistSearchItem'));

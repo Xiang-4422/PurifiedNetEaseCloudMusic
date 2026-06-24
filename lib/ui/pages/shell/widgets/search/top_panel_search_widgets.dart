@@ -53,11 +53,14 @@ class TopPanelSearchBar extends StatelessWidget {
       height: height,
       child: Row(
         children: [
-          IconButton(
-            iconSize: iconSize,
-            padding: EdgeInsets.all(iconPadding),
-            icon: const Icon(TablerIcons.search),
-            onPressed: () {},
+          SizedBox.square(
+            dimension: height,
+            child: Center(
+              child: Icon(
+                TablerIcons.search,
+                size: iconSize,
+              ),
+            ),
           ).marginAll(iconPadding),
           Expanded(
             child: TextField(
@@ -83,6 +86,7 @@ class TopPanelSearchBar extends StatelessWidget {
             () => Visibility(
               visible: controller.searchContent.isNotEmpty,
               replacement: IconButton(
+                tooltip: topPanelSearchActionLabel(hasKeyword: false),
                 iconSize: iconSize,
                 padding: EdgeInsets.all(iconPadding),
                 style: IconButton.styleFrom(
@@ -94,6 +98,7 @@ class TopPanelSearchBar extends StatelessWidget {
                 },
               ).marginAll(iconPadding),
               child: IconButton(
+                tooltip: topPanelSearchActionLabel(hasKeyword: true),
                 iconSize: iconSize,
                 padding: EdgeInsets.all(iconPadding),
                 style: IconButton.styleFrom(
@@ -111,6 +116,12 @@ class TopPanelSearchBar extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 生成顶部搜索栏尾部按钮的辅助语义标签。
+@visibleForTesting
+String topPanelSearchActionLabel({required bool hasKeyword}) {
+  return hasKeyword ? '清空搜索' : '关闭搜索';
 }
 
 /// 搜索结果中的歌单条目。

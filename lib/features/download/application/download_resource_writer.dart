@@ -60,23 +60,28 @@ class DownloadResourceWriter {
     String trackId,
     TrackResourceBundle bundle,
   ) async {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (normalizedTrackId.isEmpty) {
+      return false;
+    }
     if (bundle.audio?.origin == TrackResourceOrigin.localImport) {
       return _hasAvailableAudioResource(
-        trackId,
+        normalizedTrackId,
         availableAudioOrigins: const {
           TrackResourceOrigin.localImport,
         },
       );
     }
-    if (bundle.audio?.path.isNotEmpty == true) {
+    final audioFile = _availableResourceFile(bundle.audio?.path);
+    if (audioFile != null) {
       await _resourceIndexRepository.saveAudioResource(
-        trackId,
-        path: bundle.audio!.path,
+        normalizedTrackId,
+        path: audioFile.path,
         origin: TrackResourceOrigin.managedDownload,
       );
     }
     final audioAvailable = await _hasAvailableAudioResource(
-      trackId,
+      normalizedTrackId,
       availableAudioOrigins: const {
         TrackResourceOrigin.localImport,
         TrackResourceOrigin.managedDownload,
@@ -85,17 +90,19 @@ class DownloadResourceWriter {
     if (!audioAvailable) {
       return false;
     }
-    if (bundle.artwork?.path.isNotEmpty == true) {
+    final artworkFile = _availableResourceFile(bundle.artwork?.path);
+    if (artworkFile != null) {
       await _resourceIndexRepository.saveArtworkResource(
-        trackId,
-        path: bundle.artwork!.path,
+        normalizedTrackId,
+        path: artworkFile.path,
         origin: TrackResourceOrigin.managedDownload,
       );
     }
-    if (bundle.lyrics?.path.isNotEmpty == true) {
+    final lyricsFile = _availableResourceFile(bundle.lyrics?.path);
+    if (lyricsFile != null) {
       await _resourceIndexRepository.saveLyricsResource(
-        trackId,
-        path: bundle.lyrics!.path,
+        normalizedTrackId,
+        path: lyricsFile.path,
         origin: TrackResourceOrigin.managedDownload,
       );
     }
@@ -110,29 +117,39 @@ class DownloadResourceWriter {
     required TrackResourceOrigin origin,
     required Set<TrackResourceOrigin> availableAudioOrigins,
   }) async {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (normalizedTrackId.isEmpty) {
+      return false;
+    }
+    final audioFile = _availableResourceFile(audioPath);
+    if (audioFile == null) {
+      return false;
+    }
     await _resourceIndexRepository.saveAudioResource(
-      trackId,
-      path: audioPath,
+      normalizedTrackId,
+      path: audioFile.path,
       origin: origin,
     );
     final audioAvailable = await _hasAvailableAudioResource(
-      trackId,
+      normalizedTrackId,
       availableAudioOrigins: availableAudioOrigins,
     );
     if (!audioAvailable) {
       return false;
     }
-    if (artworkPath?.isNotEmpty == true) {
+    final artworkFile = _availableResourceFile(artworkPath);
+    if (artworkFile != null) {
       await _resourceIndexRepository.saveArtworkResource(
-        trackId,
-        path: artworkPath!,
+        normalizedTrackId,
+        path: artworkFile.path,
         origin: origin,
       );
     }
-    if (lyricsPath?.isNotEmpty == true) {
+    final lyricsFile = _availableResourceFile(lyricsPath);
+    if (lyricsFile != null) {
       await _resourceIndexRepository.saveLyricsResource(
-        trackId,
-        path: lyricsPath!,
+        normalizedTrackId,
+        path: lyricsFile.path,
         origin: origin,
       );
     }
@@ -149,5 +166,18 @@ class DownloadResourceWriter {
     }
     final path = LocalFilePathNormalizer.normalize(audioResource.path);
     return path.isNotEmpty && File(path).existsSync();
+  }
+
+  File? _availableResourceFile(String? rawPath) {
+    final path = LocalFilePathNormalizer.normalize(rawPath);
+    if (path.isEmpty) {
+      return null;
+    }
+    final file = File(path);
+    return file.existsSync() ? file : null;
+  }
+
+  String _normalizedTrackId(String trackId) {
+    return trackId.trim();
   }
 }

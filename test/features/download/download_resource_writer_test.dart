@@ -23,6 +23,8 @@ void main() {
 
     test('saves supplemental resources only after audio becomes available', () async {
       final audioPath = await _writeFile(tempDirectory, 'audio.mp3');
+      final artworkPath = await _writeFile(tempDirectory, 'artwork.jpg');
+      final lyricsPath = await _writeFile(tempDirectory, 'lyrics.lrc');
       final resourceIndexRepository = _FakeLocalResourceIndexRepository(
         indexedAudioOrigin: TrackResourceOrigin.managedDownload,
       );
@@ -33,17 +35,20 @@ void main() {
       final saved = await writer.saveManagedDownloadResources(
         '1',
         localPath: audioPath,
-        artworkPath: '${tempDirectory.path}/artwork.jpg',
-        lyricsPath: '${tempDirectory.path}/lyrics.lrc',
+        artworkPath: artworkPath,
+        lyricsPath: lyricsPath,
       );
 
       expect(saved, isTrue);
+      expect(resourceIndexRepository.savedAudioTrackIds, ['1']);
       expect(resourceIndexRepository.savedAudioPaths, [audioPath]);
-      expect(resourceIndexRepository.savedArtworkPaths, ['${tempDirectory.path}/artwork.jpg']);
-      expect(resourceIndexRepository.savedLyricsPaths, ['${tempDirectory.path}/lyrics.lrc']);
+      expect(resourceIndexRepository.savedArtworkTrackIds, ['1']);
+      expect(resourceIndexRepository.savedArtworkPaths, [artworkPath]);
+      expect(resourceIndexRepository.savedLyricsTrackIds, ['1']);
+      expect(resourceIndexRepository.savedLyricsPaths, [lyricsPath]);
     });
 
-    test('does not save supplemental resources when audio is unavailable', () async {
+    test('does not save any resource index when audio is unavailable', () async {
       final resourceIndexRepository = _FakeLocalResourceIndexRepository();
       final writer = DownloadResourceWriter(
         resourceIndexRepository: resourceIndexRepository,
@@ -57,12 +62,12 @@ void main() {
       );
 
       expect(saved, isFalse);
-      expect(resourceIndexRepository.savedAudioPaths, ['/tmp/missing.mp3']);
+      expect(resourceIndexRepository.savedAudioPaths, isEmpty);
       expect(resourceIndexRepository.savedArtworkPaths, isEmpty);
       expect(resourceIndexRepository.savedLyricsPaths, isEmpty);
     });
 
-    test('does not treat indexed audio as available when the file is missing', () async {
+    test('does not write a missing indexed audio path before availability check', () async {
       final missingAudioPath = '${tempDirectory.path}/missing-indexed.mp3';
       final resourceIndexRepository = _FakeLocalResourceIndexRepository(
         indexedAudioOrigin: TrackResourceOrigin.managedDownload,
@@ -80,9 +85,54 @@ void main() {
       );
 
       expect(saved, isFalse);
-      expect(resourceIndexRepository.savedAudioPaths, [missingAudioPath]);
+      expect(resourceIndexRepository.savedAudioPaths, isEmpty);
       expect(resourceIndexRepository.savedArtworkPaths, isEmpty);
       expect(resourceIndexRepository.savedLyricsPaths, isEmpty);
+    });
+
+    test('normalizes track ids and local file uris before saving resources', () async {
+      final audioPath = await _writeFile(tempDirectory, 'uri-audio.mp3');
+      final artworkPath = await _writeFile(tempDirectory, 'uri-artwork.jpg');
+      final lyricsPath = await _writeFile(tempDirectory, 'uri-lyrics.lrc');
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        savedAudioAvailable: true,
+      );
+      final writer = DownloadResourceWriter(
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      final saved = await writer.savePlaybackCacheResources(
+        ' 1 ',
+        audioPath: ' ${Uri.file(audioPath)} ',
+        artworkPath: ' ${Uri.file(artworkPath)} ',
+        lyricsPath: ' ${Uri.file(lyricsPath)} ',
+      );
+
+      expect(saved, isTrue);
+      expect(resourceIndexRepository.savedAudioTrackIds, ['1']);
+      expect(resourceIndexRepository.savedAudioPaths, [audioPath]);
+      expect(resourceIndexRepository.savedArtworkTrackIds, ['1']);
+      expect(resourceIndexRepository.savedArtworkPaths, [artworkPath]);
+      expect(resourceIndexRepository.savedLyricsTrackIds, ['1']);
+      expect(resourceIndexRepository.savedLyricsPaths, [lyricsPath]);
+    });
+
+    test('rejects blank track ids before saving resource indexes', () async {
+      final audioPath = await _writeFile(tempDirectory, 'blank-track.mp3');
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        savedAudioAvailable: true,
+      );
+      final writer = DownloadResourceWriter(
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      final saved = await writer.saveManagedDownloadResources(
+        '   ',
+        localPath: audioPath,
+      );
+
+      expect(saved, isFalse);
+      expect(resourceIndexRepository.savedAudioPaths, isEmpty);
     });
 
     test('does not promote local import resources to managed download', () async {
@@ -208,10 +258,13 @@ class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository 
   final TrackResourceOrigin? indexedAudioOrigin;
   final String? indexedAudioPath;
   final bool savedAudioAvailable;
+  final List<String> savedAudioTrackIds = [];
   final List<String> savedAudioPaths = [];
   final List<TrackResourceOrigin> savedAudioOrigins = [];
+  final List<String> savedArtworkTrackIds = [];
   final List<String> savedArtworkPaths = [];
   final List<TrackResourceOrigin> savedArtworkOrigins = [];
+  final List<String> savedLyricsTrackIds = [];
   final List<String> savedLyricsPaths = [];
   final List<TrackResourceOrigin> savedLyricsOrigins = [];
 
@@ -221,6 +274,7 @@ class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository 
     required String path,
     required TrackResourceOrigin origin,
   }) async {
+    savedAudioTrackIds.add(trackId);
     savedAudioPaths.add(path);
     savedAudioOrigins.add(origin);
   }
@@ -252,6 +306,7 @@ class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository 
     required String path,
     required TrackResourceOrigin origin,
   }) async {
+    savedArtworkTrackIds.add(trackId);
     savedArtworkPaths.add(path);
     savedArtworkOrigins.add(origin);
   }
@@ -262,6 +317,7 @@ class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository 
     required String path,
     required TrackResourceOrigin origin,
   }) async {
+    savedLyricsTrackIds.add(trackId);
     savedLyricsPaths.add(path);
     savedLyricsOrigins.add(origin);
   }

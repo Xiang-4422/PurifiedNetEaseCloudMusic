@@ -2560,6 +2560,13 @@ void main() {
       final availabilityMethod = writer.indexOf('Future<bool> _hasAvailableAudioResource');
       final violations = <String>[
         if (availabilityMethod < 0) '${_relativePath(writerFile)} is missing audio availability verification',
+        if (!writer.contains('final normalizedTrackId = _normalizedTrackId(trackId);')) '${_relativePath(writerFile)} does not normalize track ids before writing resources',
+        if (!writer.contains('if (normalizedTrackId.isEmpty)')) '${_relativePath(writerFile)} does not reject blank track ids before writing resources',
+        if (!writer.contains('final audioFile = _availableResourceFile(audioPath);')) '${_relativePath(writerFile)} does not validate the audio path before saving an audio index',
+        if (!writer.contains('if (audioFile == null)')) '${_relativePath(writerFile)} can write resource indexes before audio file availability is known',
+        if (!writer.contains('path: audioFile.path')) '${_relativePath(writerFile)} does not save normalized audio file paths',
+        if (!writer.contains('final artworkFile = _availableResourceFile(artworkPath);')) '${_relativePath(writerFile)} does not validate artwork files before saving indexes',
+        if (!writer.contains('final lyricsFile = _availableResourceFile(lyricsPath);')) '${_relativePath(writerFile)} does not validate lyrics files before saving indexes',
         if (!writer.contains('LocalFilePathNormalizer.normalize(audioResource.path)')) '${_relativePath(writerFile)} does not normalize indexed audio paths before accepting them',
         if (!writer.contains('File(path).existsSync()')) '${_relativePath(writerFile)} accepts indexed audio without checking the file exists',
         if (!writer.contains('!availableAudioOrigins.contains(audioResource.origin)')) '${_relativePath(writerFile)} does not verify the expected audio resource origin',

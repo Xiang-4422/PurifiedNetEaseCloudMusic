@@ -28,6 +28,25 @@ import 'package:get/get.dart';
 @visibleForTesting
 const double artistHotAlbumCacheExtent = 360;
 
+/// 歌手页热门专辑年份展示文案。
+@visibleForTesting
+String artistHotAlbumYearLabel(int? publishTime) {
+  if (publishTime == null || publishTime <= 0) {
+    return '未知年份';
+  }
+  return DateTime.fromMillisecondsSinceEpoch(publishTime).year.toString();
+}
+
+/// 歌手页热门专辑卡片辅助语义标签。
+@visibleForTesting
+String artistHotAlbumTileSemanticsLabel({
+  required String title,
+  required int? publishTime,
+}) {
+  final resolvedTitle = title.trim().isEmpty ? '未知专辑' : title.trim();
+  return '打开专辑：$resolvedTitle - ${artistHotAlbumYearLabel(publishTime)}';
+}
+
 /// 歌手详情页面，展示热门歌曲和专辑。
 class ArtistPageView extends StatefulWidget {
   /// 创建歌手详情页面。
@@ -213,47 +232,65 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                 scrollDirection: Axis.horizontal,
                 physics: SnappingScrollPhysics(itemExtent: albumWidth + AppDimensions.paddingMedium),
                 itemBuilder: (context, index) {
-                  double marginLeft = index == 0 ? AppDimensions.paddingMedium : 0;
+                  final album = hotAlbums[index];
+                  final marginLeft = index == 0 ? AppDimensions.paddingMedium : 0.0;
+                  final yearLabel = artistHotAlbumYearLabel(album.publishTime);
+                  final label = artistHotAlbumTileSemanticsLabel(
+                    title: album.title,
+                    publishTime: album.publishTime,
+                  );
                   return KeepAliveWrapper(
-                    child: GestureDetector(
-                      onTap: () => context.router.push(const gr.AlbumRouteView().copyWith(queryParams: {'albumId': hotAlbums[index].sourceId})),
-                      child: SizedBox(
-                        height: albumWidth * 1.35,
-                        width: albumWidth,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SimpleExtendedImage.avatar(
-                                width: albumWidth,
-                                shape: BoxShape.rectangle,
-                                borderRadius: BorderRadius.circular(AppDimensions.paddingMedium),
-                                ArtworkPathResolver.resolvePreferredArtwork(
-                                      hotAlbums[index].artworkUrl,
-                                    ) ??
-                                    ''),
-                            Expanded(
-                                child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  hotAlbums[index].title,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: context.textTheme.bodyMedium?.copyWith(
-                                    color: onAlbumColor,
+                    child: Tooltip(
+                      message: label,
+                      child: Semantics(
+                        button: true,
+                        label: label,
+                        child: ExcludeSemantics(
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () => context.router.push(const gr.AlbumRouteView().copyWith(queryParams: {'albumId': album.sourceId})),
+                            child: SizedBox(
+                              height: albumWidth * 1.35,
+                              width: albumWidth,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SimpleExtendedImage.avatar(
+                                    width: albumWidth,
+                                    shape: BoxShape.rectangle,
+                                    borderRadius: BorderRadius.circular(AppDimensions.paddingMedium),
+                                    ArtworkPathResolver.resolvePreferredArtwork(
+                                          album.artworkUrl,
+                                        ) ??
+                                        '',
                                   ),
-                                ),
-                                Text(
-                                  "${DateTime.fromMillisecondsSinceEpoch(hotAlbums[index].publishTime ?? 0).year}",
-                                  maxLines: 1,
-                                  style: context.textTheme.bodySmall?.copyWith(
-                                    color: onAlbumColor,
-                                  ),
-                                ),
-                              ],
-                            ))
-                          ],
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          album.title,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: context.textTheme.bodyMedium?.copyWith(
+                                            color: onAlbumColor,
+                                          ),
+                                        ),
+                                        Text(
+                                          yearLabel,
+                                          maxLines: 1,
+                                          style: context.textTheme.bodySmall?.copyWith(
+                                            color: onAlbumColor,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),

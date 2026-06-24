@@ -44,8 +44,9 @@ class NeteaseCommentMapper {
 
   /// 将网易云评论条目转换为领域评论数据。
   static CommentData fromItem(CommentItem item) {
+    final commentId = _normalizedCommentId(item.commentId);
     return CommentData(
-      commentId: item.commentId,
+      commentId: commentId,
       user: CommentUserData(
         nickname: item.user.nickname ?? '',
         avatarUrl: item.user.avatarUrl ?? '',
@@ -60,6 +61,10 @@ class NeteaseCommentMapper {
 
   /// 将网易云评论条目列表转换为领域评论数据列表。
   static List<CommentData> fromItemList(List<CommentItem> items) {
-    return items.map(fromItem).toList();
+    return items.map(fromItem).where((item) => item.commentId.isNotEmpty).toList();
+  }
+
+  static String _normalizedCommentId(String commentId) {
+    return commentId.trim();
   }
 }

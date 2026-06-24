@@ -22,9 +22,10 @@ class NeteaseCommentRemoteDataSource implements CommentRemoteDataSource {
     required String cursor,
   }) async {
     final normalizedId = _normalizeResourceId(id);
+    final normalizedType = _normalizeText(type);
     final wrap = await _api.commentList2(
       normalizedId,
-      type,
+      normalizedType,
       pageNo: pageNo,
       pageSize: pageSize,
       showInner: showInner,
@@ -49,10 +50,12 @@ class NeteaseCommentRemoteDataSource implements CommentRemoteDataSource {
     required int limit,
   }) async {
     final normalizedId = _normalizeResourceId(id);
+    final normalizedType = _normalizeText(type);
+    final normalizedParentCommentId = _normalizeCommentId(parentCommentId);
     final wrap = await _api.floorComments(
       normalizedId,
-      type,
-      parentCommentId,
+      normalizedType,
+      normalizedParentCommentId,
       time: time,
       limit: limit,
     );
@@ -74,12 +77,15 @@ class NeteaseCommentRemoteDataSource implements CommentRemoteDataSource {
     String? commentId,
   }) async {
     final normalizedId = _normalizeResourceId(id);
+    final normalizedType = _normalizeText(type);
+    final normalizedOperation = _normalizeText(operation);
+    final normalizedCommentId = _normalizeOptionalCommentId(commentId);
     final result = await _api.comment(
       normalizedId,
-      type,
-      operation,
+      normalizedType,
+      normalizedOperation,
       content: content,
-      commentId: commentId,
+      commentId: normalizedCommentId,
     );
     return (
       success: result.code == 200,
@@ -96,12 +102,14 @@ class NeteaseCommentRemoteDataSource implements CommentRemoteDataSource {
     bool like,
   ) async {
     final normalizedId = _normalizeResourceId(id);
+    final normalizedType = _normalizeText(type);
+    final normalizedCommentId = _normalizeCommentId(commentId);
     final result = await _api.likeComment(
       normalizedId,
-      commentId,
-      type,
+      normalizedCommentId,
+      normalizedType,
       like,
-      threadId: _typeKey(type) + normalizedId,
+      threadId: _typeKey(normalizedType) + normalizedId,
     );
     return (
       success: result.code == 200,
@@ -130,10 +138,24 @@ class NeteaseCommentRemoteDataSource implements CommentRemoteDataSource {
   }
 
   String _normalizeResourceId(String id) {
-    final separatorIndex = id.indexOf(':');
+    final normalizedId = id.trim();
+    final separatorIndex = normalizedId.indexOf(':');
     if (separatorIndex == -1) {
-      return id;
+      return normalizedId;
     }
-    return id.substring(separatorIndex + 1);
+    return normalizedId.substring(separatorIndex + 1).trim();
+  }
+
+  String _normalizeCommentId(String commentId) {
+    return commentId.trim();
+  }
+
+  String? _normalizeOptionalCommentId(String? commentId) {
+    final normalizedCommentId = commentId?.trim();
+    return normalizedCommentId == null || normalizedCommentId.isEmpty ? null : normalizedCommentId;
+  }
+
+  String _normalizeText(String value) {
+    return value.trim();
   }
 }

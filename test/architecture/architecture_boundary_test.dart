@@ -630,6 +630,35 @@ void main() {
       );
     });
 
+    test('netease comment boundary normalizes remote comment ids', () {
+      final mapperFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/netease/mappers/netease_comment_mapper.dart',
+      );
+      final remoteFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/netease/remote/netease_comment_remote_data_source.dart',
+      );
+      final mapper = mapperFile.readAsStringSync();
+      final remote = remoteFile.readAsStringSync();
+      final violations = <String>[
+        if (!mapper.contains('final commentId = _normalizedCommentId(item.commentId);')) '${_relativePath(mapperFile)} still maps comment ids without normalization',
+        if (!mapper.contains('commentId: commentId')) '${_relativePath(mapperFile)} can still write raw comment ids',
+        if (!mapper.contains('items.map(fromItem).where((item) => item.commentId.isNotEmpty).toList()')) '${_relativePath(mapperFile)} can still batch-map blank comment ids',
+        if (!mapper.contains('String _normalizedCommentId(String commentId)')) '${_relativePath(mapperFile)} does not define comment id normalization',
+        if (!remote.contains('final normalizedId = _normalizeResourceId(id);')) '${_relativePath(remoteFile)} does not normalize resource ids before SDK calls',
+        if (!remote.contains('final normalizedType = _normalizeText(type);')) '${_relativePath(remoteFile)} does not normalize comment resource type before SDK calls',
+        if (!remote.contains('final normalizedParentCommentId = _normalizeCommentId(parentCommentId);')) '${_relativePath(remoteFile)} does not normalize floor parent comment ids',
+        if (!remote.contains('final normalizedCommentId = _normalizeOptionalCommentId(commentId);')) '${_relativePath(remoteFile)} does not normalize optional send comment ids',
+        if (!remote.contains('threadId: _typeKey(normalizedType) + normalizedId')) '${_relativePath(remoteFile)} can still derive comment thread id from raw type or id',
+        if (!remote.contains('return normalizedId.substring(separatorIndex + 1).trim();')) '${_relativePath(remoteFile)} does not trim resource ids after stripping source prefix',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '网易云评论进入缓存和楼层入口前必须规范化评论 id；远端评论请求进入 SDK 前必须规范化资源 id、资源类型和评论 id。',
+      );
+    });
+
     test('netease playlist mapper normalizes remote playlist and track ids', () {
       final mapperFile = File(
         '${projectRoot.path}/lib/data/music_data/sources/netease/mappers/netease_playlist_mapper.dart',

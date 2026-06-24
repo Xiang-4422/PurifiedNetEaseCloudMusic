@@ -68,6 +68,20 @@ void main() {
       expect(
         LocalResourceRetentionPolicy.shouldDeleteResourceFile(
           _resource(
+            trackId: 'shared',
+            path: sharedFile.path,
+            origin: TrackResourceOrigin.playbackCache,
+          ),
+          {
+            sharedFile.uri.replace(queryParameters: {'token': 'legacy'}).toString(),
+          },
+          deleteSourceFiles: true,
+        ),
+        isFalse,
+      );
+      expect(
+        LocalResourceRetentionPolicy.shouldDeleteResourceFile(
+          _resource(
             trackId: 'owned',
             path: ownedFile.path,
             origin: TrackResourceOrigin.playbackCache,

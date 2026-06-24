@@ -33,11 +33,18 @@ class LocalResourceRetentionPolicy {
       return false;
     }
     final path = normalizedPath(resource);
-    return path.isNotEmpty && !retainedPaths.contains(path);
+    if (path.isEmpty) {
+      return false;
+    }
+    return !_normalizedRetainedPaths(retainedPaths).contains(path);
   }
 
   /// Normalizes a local resource path and rejects remote or unsafe URI values.
   static String normalizedPath(LocalResourceEntry resource) {
     return LocalFilePathNormalizer.normalize(resource.path);
+  }
+
+  static Set<String> _normalizedRetainedPaths(Set<String> retainedPaths) {
+    return retainedPaths.map(LocalFilePathNormalizer.normalize).where((path) => path.isNotEmpty).toSet();
   }
 }

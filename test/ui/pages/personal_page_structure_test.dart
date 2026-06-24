@@ -120,6 +120,9 @@ void main() {
     expect(source, isNot(contains('RecommendedPlaylistPinnedHeaderSliver(')));
     expect(standardSource, contains('RecommendedPlaylistPinnedHeaderSliver('));
     expect(standardSource, contains('RecommendedPlaylistListSliver(controller: recommendationController)'));
+    expect(standardSource, contains('const double standardPersonalHomeScrollCacheExtent = 360;'));
+    expect(standardSource, contains('cacheExtent: standardPersonalHomeScrollCacheExtent'));
+    expect(standardSource, isNot(contains('cacheExtent: 120')));
     expect(source, isNot(contains('class RecommendedPlaylistsPageView')));
     expect(source, isNot(contains('SliverList.builder(')));
     expect(source, isNot(contains('PlayListItem(recommendationController.recoPlayLists')));
@@ -128,6 +131,9 @@ void main() {
     expect(sliverSource, contains('controller.recoPlayLists'));
     expect(sliverSource, contains('PlayListItem('));
     expect(pageSource, contains('class RecommendedPlaylistsPageView extends GetView<RecommendationController>'));
+    expect(pageSource, contains('const double recommendedPlaylistsPageScrollCacheExtent = 360;'));
+    expect(pageSource, contains('cacheExtent: recommendedPlaylistsPageScrollCacheExtent'));
+    expect(pageSource, isNot(contains('cacheExtent: 120')));
     expect(pageSource, contains('RecommendedPlaylistHeaderSliver'));
     expect(pageSource, contains('RecommendedPlaylistListSliver(controller: controller)'));
     expect(pageSource, isNot(contains('RecommendationController.to')));
@@ -238,6 +244,9 @@ void main() {
     expect(squareLibrarySource, contains('RecentPlaybackStrip('));
     expect(squareLibrarySource, contains('FrequentPlaylistSection('));
     expect(squareLibrarySource, contains('LibraryShortcutSection('));
+    expect(squareLibrarySource, contains('const double squareLibraryPageScrollCacheExtent = 240;'));
+    expect(squareLibrarySource, contains('cacheExtent: squareLibraryPageScrollCacheExtent'));
+    expect(squareLibrarySource, isNot(contains('cacheExtent: 120')));
     expect(source, isNot(contains('watchCurrentSong')));
   });
 

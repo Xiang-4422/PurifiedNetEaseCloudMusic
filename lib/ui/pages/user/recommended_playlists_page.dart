@@ -6,6 +6,10 @@ import 'package:bujuan/ui/widgets/common/refresh/app_smart_refresher.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// 独立推荐歌单页主滚动内容的预渲染范围。
+@visibleForTesting
+const double recommendedPlaylistsPageScrollCacheExtent = 360;
+
 /// 方屏首页侧边菜单中的独立推荐歌单页。
 class RecommendedPlaylistsPageView extends GetView<RecommendationController> {
   /// 创建独立推荐歌单页。
@@ -22,7 +26,7 @@ class RecommendedPlaylistsPageView extends GetView<RecommendationController> {
         enablePullUp: true,
         onLoading: () => controller.updateRecoPlayLists(getMore: true),
         child: CustomScrollView(
-          cacheExtent: 120,
+          cacheExtent: recommendedPlaylistsPageScrollCacheExtent,
           physics: const ClampingScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(

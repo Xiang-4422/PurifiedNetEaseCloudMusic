@@ -12,6 +12,10 @@ import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/ui/widgets/common/refresh/app_smart_refresher.dart';
 import 'package:flutter/material.dart';
 
+/// 常规首页主滚动内容的预渲染范围。
+@visibleForTesting
+const double standardPersonalHomeScrollCacheExtent = 360;
+
 /// 常规屏幕下的个人首页布局。
 class StandardPersonalHomePage extends StatelessWidget {
   /// 创建常规个人首页布局。
@@ -54,7 +58,7 @@ class StandardPersonalHomePage extends StatelessWidget {
       enablePullUp: true,
       onLoading: () => recommendationController.updateRecoPlayLists(getMore: true),
       child: CustomScrollView(
-        cacheExtent: 120,
+        cacheExtent: standardPersonalHomeScrollCacheExtent,
         physics: const ClampingScrollPhysics(),
         slivers: [
           SliverToBoxAdapter(

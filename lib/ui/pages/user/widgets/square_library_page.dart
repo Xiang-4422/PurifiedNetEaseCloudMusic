@@ -9,6 +9,10 @@ import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/ui/widgets/user/personal_home_layout_metrics.dart';
 import 'package:flutter/material.dart';
 
+/// 方屏资料库页片主滚动内容的预渲染范围。
+@visibleForTesting
+const double squareLibraryPageScrollCacheExtent = 240;
+
 /// 方屏个人页中的资料库页片。
 class SquareLibraryPage extends StatelessWidget {
   /// 创建方屏资料库页片。
@@ -41,7 +45,7 @@ class SquareLibraryPage extends StatelessWidget {
     return SafeArea(
       bottom: false,
       child: CustomScrollView(
-        cacheExtent: 120,
+        cacheExtent: squareLibraryPageScrollCacheExtent,
         physics: const ClampingScrollPhysics(),
         slivers: [
           SliverToBoxAdapter(

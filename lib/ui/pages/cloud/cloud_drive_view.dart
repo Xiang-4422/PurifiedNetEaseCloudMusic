@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
@@ -57,7 +59,9 @@ class _CloudDriveViewState extends State<CloudDriveView> {
                 return const LoadingView();
               }
               if (state.hasInitialError) {
-                return const ErrorView();
+                return ErrorView(
+                  onRetry: () => unawaited(_controller.loadInitial()),
+                );
               }
               if (state.isEmpty) {
                 return const EmptyView();

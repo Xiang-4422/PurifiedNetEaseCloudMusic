@@ -9,6 +9,9 @@ void main() {
     expect(source, contains('const double cloudDriveListCacheExtent = 480;'));
     expect(source, contains('ListView.builder('));
     expect(source, contains('cacheExtent: cloudDriveListCacheExtent'));
+    expect(source, contains('ErrorView('));
+    expect(source, contains('onRetry: () => unawaited(_controller.loadInitial())'));
+    expect(source, isNot(contains('return const ErrorView();')));
     expect(source, isNot(contains('shrinkWrap: true')));
   });
 }

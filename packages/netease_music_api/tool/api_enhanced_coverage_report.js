@@ -1115,12 +1115,21 @@ function buildSpecialCoverageStatusByModule() {
       coverage.push('limited')
     }
     statusByModule[module] = {
+      status: limitedSpecial.has(module) ? 'limited' : coverage.length > 0 ? 'covered' : 'missing',
       coverage,
       hasNodeOracleFixture: oracleModules.has(module),
       limitedReason: specialLimitedReasons[module] || null,
     }
   }
   return statusByModule
+}
+
+function buildStatusCounts(statusByName, statuses) {
+  const counts = Object.fromEntries(statuses.map((status) => [status, 0]))
+  for (const status of Object.values(statusByName)) {
+    counts[status.status] = (counts[status.status] || 0) + 1
+  }
+  return sortedObject(counts)
 }
 
 function buildRuntimeOptionStatusByName() {
@@ -1139,6 +1148,9 @@ function buildRuntimeOptionStatusByName() {
   }
   return sortedObject(statusByName)
 }
+
+const specialCoverageStatusByModule = buildSpecialCoverageStatusByModule()
+const runtimeOptionStatusByName = buildRuntimeOptionStatusByName()
 
 const report = {
   schemaVersion: coverageReportSchemaVersion,
@@ -1204,8 +1216,10 @@ const report = {
   specialLimited: sorted(limitedSpecial),
   runtimeSupported: sorted(runtimeSupported),
   runtimeLimited: sorted(runtimeLimited),
-  specialCoverageStatusByModule: buildSpecialCoverageStatusByModule(),
-  runtimeOptionStatusByName: buildRuntimeOptionStatusByName(),
+  specialCoverageStatusByModule,
+  specialCoverageStatusCounts: buildStatusCounts(specialCoverageStatusByModule, ['covered', 'limited', 'missing']),
+  runtimeOptionStatusByName,
+  runtimeOptionStatusCounts: buildStatusCounts(runtimeOptionStatusByName, ['supported', 'limited']),
   specialLimitedReasons,
   runtimeSupportedReasons,
   runtimeLimitedReasons,
@@ -1310,15 +1324,16 @@ function renderMarkdownReport(report) {
     `- node oracle: ${report.specialNodeOracle.join(', ') || 'none'}`,
     `- Dart behavior: ${report.specialDartBehavior.join(', ') || 'none'}`,
     `- limited: ${report.specialLimited.join(', ') || 'none'}`,
+    `- status counts: covered ${report.specialCoverageStatusCounts.covered || 0}, limited ${report.specialCoverageStatusCounts.limited || 0}, missing ${report.specialCoverageStatusCounts.missing || 0}`,
     '',
-    '| module | coverage | oracle fixture | limited reason |',
-    '| --- | --- | --- | --- |',
+    '| module | status | coverage | oracle fixture | limited reason |',
+    '| --- | --- | --- | --- | --- |',
   )
 
   for (const module of Object.keys(report.specialCoverageStatusByModule).sort()) {
     const status = report.specialCoverageStatusByModule[module]
     lines.push(
-      `| ${escapeMarkdownTableCell(module)} | ${escapeMarkdownTableCell(status.coverage.join(', ') || 'none')} | ${status.hasNodeOracleFixture ? 'yes' : 'no'} | ${escapeMarkdownTableCell(status.limitedReason || '')} |`,
+      `| ${escapeMarkdownTableCell(module)} | ${escapeMarkdownTableCell(status.status)} | ${escapeMarkdownTableCell(status.coverage.join(', ') || 'none')} | ${status.hasNodeOracleFixture ? 'yes' : 'no'} | ${escapeMarkdownTableCell(status.limitedReason || '')} |`,
     )
   }
 
@@ -1328,6 +1343,7 @@ function renderMarkdownReport(report) {
     '',
     `- supported: ${report.runtimeSupported.join(', ') || 'none'}`,
     `- limited: ${report.runtimeLimited.join(', ') || 'none'}`,
+    `- status counts: supported ${report.runtimeOptionStatusCounts.supported || 0}, limited ${report.runtimeOptionStatusCounts.limited || 0}`,
     '',
     '| option | status | reason |',
     '| --- | --- | --- |',
@@ -1427,7 +1443,9 @@ if (jsonOutput) {
   console.log(`runtime supported: ${report.runtimeSupported.join(', ')}`)
   console.log(`runtime limited: ${report.runtimeLimited.join(', ')}`)
   console.log(`special coverage status entries: ${Object.keys(report.specialCoverageStatusByModule).length}`)
+  console.log(`special coverage status counts: ${JSON.stringify(report.specialCoverageStatusCounts)}`)
   console.log(`runtime option status entries: ${Object.keys(report.runtimeOptionStatusByName).length}`)
+  console.log(`runtime option status counts: ${JSON.stringify(report.runtimeOptionStatusCounts)}`)
   console.log(`SDK differences: ${report.sdkDifferences.length}`)
   console.log('special limited reasons:')
   for (const [module, reason] of Object.entries(report.specialLimitedReasons)) {

@@ -301,14 +301,23 @@ void main() {
       );
       expect(_jsonMap(runtimeOptionStatusByName['runtime:FLAC'])['status'], 'supported');
       expect(_jsonMap(runtimeOptionStatusByName['runtime:source_order'])['status'], 'limited');
+      final runtimeOptionStatusCounts = _jsonMap(report['runtimeOptionStatusCounts']);
+      expect(runtimeOptionStatusCounts['supported'], _stringSet(report['runtimeSupported']).length);
+      expect(runtimeOptionStatusCounts['limited'], _stringSet(report['runtimeLimited']).length);
       final oracleModules = _nodeOracleFixtureModules();
       final specialStatusByModule = _jsonMap(report['specialCoverageStatusByModule']);
+      final specialCoverageStatusCounts = _jsonMap(report['specialCoverageStatusCounts']);
+      final limitedSpecialModules = _stringSet(report['specialLimited']);
       expect(specialStatusByModule, hasLength(report['specialModuleCount']));
+      expect(specialCoverageStatusCounts['covered'], specialStatusByModule.length - limitedSpecialModules.length);
+      expect(specialCoverageStatusCounts['limited'], limitedSpecialModules.length);
+      expect(specialCoverageStatusCounts['missing'], 0);
       for (final module in apiEnhancedModules.where((module) => module.special)) {
         final status = _jsonMap(specialStatusByModule[module.module]);
+        expect(status['status'], limitedSpecialModules.contains(module.module) ? 'limited' : 'covered', reason: module.module);
         expect(_stringSet(status['coverage']), isNotEmpty, reason: module.module);
         expect(status['hasNodeOracleFixture'], oracleModules.contains(module.module), reason: module.module);
-        if (_stringSet(report['specialLimited']).contains(module.module)) {
+        if (limitedSpecialModules.contains(module.module)) {
           expect(status['limitedReason'], limitedReasons[module.module], reason: module.module);
         }
       }
@@ -379,7 +388,9 @@ void main() {
           'nodeOracleScenarioCount',
           'nodeOracleFixtureCount',
           'specialCoverageStatusByModule',
+          'specialCoverageStatusCounts',
           'runtimeOptionStatusByName',
+          'runtimeOptionStatusCounts',
           'publicApiExports',
           'publicApiExpectedExports',
           'publicApiMissingExports',
@@ -397,7 +408,9 @@ void main() {
         }),
       );
       expect(report['specialCoverageStatusByModule'], isA<Map<String, dynamic>>());
+      expect(report['specialCoverageStatusCounts'], isA<Map<String, dynamic>>());
       expect(report['runtimeOptionStatusByName'], isA<Map<String, dynamic>>());
+      expect(report['runtimeOptionStatusCounts'], isA<Map<String, dynamic>>());
       expect(report['publicApiExports'], isA<List<dynamic>>());
       expect(report['publicFacadeMixins'], isA<List<dynamic>>());
       expect(report['publicFacadeTypedMixinCount'], isA<int>());
@@ -469,8 +482,22 @@ void main() {
         markdown,
         contains('| song_detail | songDetail | packages/netease_music_api/lib/src/endpoints/play/api.dart |'),
       );
-      expect(markdown, contains('| module | coverage | oracle fixture | limited reason |'));
+      final specialCoverageStatusCounts = _jsonMap(report['specialCoverageStatusCounts']);
+      expect(
+        markdown,
+        contains(
+          '- status counts: covered ${specialCoverageStatusCounts['covered']}, limited ${specialCoverageStatusCounts['limited']}, missing 0',
+        ),
+      );
+      expect(markdown, contains('| module | status | coverage | oracle fixture | limited reason |'));
       expect(markdown, contains('- Dart behavior: song_url_match'));
+      final runtimeOptionStatusCounts = _jsonMap(report['runtimeOptionStatusCounts']);
+      expect(
+        markdown,
+        contains(
+          '- status counts: supported ${runtimeOptionStatusCounts['supported']}, limited ${runtimeOptionStatusCounts['limited']}',
+        ),
+      );
       expect(markdown, contains('| option | status | reason |'));
       expect(markdown, contains('## SDK Differences'));
       expect(markdown, contains('| scope | module | status | reason |'));
@@ -478,14 +505,14 @@ void main() {
       final cloudStatus = _jsonMap(specialStatusByModule['cloud']);
       expect(
         markdown,
-        contains('| cloud | nodeOracle, limited | yes | ${cloudStatus['limitedReason']} |'),
+        contains('| cloud | limited | nodeOracle, limited | yes | ${cloudStatus['limitedReason']} |'),
       );
       final songUrlMatchStatus = _jsonMap(specialStatusByModule['song_url_match']);
       expect(
         markdown,
-        contains('| song_url_match | dartBehavior, limited | no | ${songUrlMatchStatus['limitedReason']} |'),
+        contains('| song_url_match | limited | dartBehavior, limited | no | ${songUrlMatchStatus['limitedReason']} |'),
       );
-      expect(markdown, contains('| api | nodeOracle | yes |  |'));
+      expect(markdown, contains('| api | covered | nodeOracle | yes |  |'));
       final runtimeOptionStatusByName = _jsonMap(report['runtimeOptionStatusByName']);
       for (final entry in runtimeOptionStatusByName.entries) {
         final status = _jsonMap(entry.value);
@@ -647,6 +674,10 @@ void main() {
       expect(result.exitCode, isNot(0), reason: '${result.stdout}\n${result.stderr}');
       final report = _jsonMap(jsonDecode(result.stdout as String));
       expect(report['specialDispatcherMissing'], contains('album'));
+      final albumStatus = _jsonMap(_jsonMap(report['specialCoverageStatusByModule'])['album']);
+      expect(albumStatus['status'], 'missing');
+      expect(albumStatus['coverage'], isEmpty);
+      expect(_jsonMap(report['specialCoverageStatusCounts'])['missing'], 1);
       final sdkDifferences = _jsonMapList(report['sdkDifferences']);
       expect(
         sdkDifferences.where((item) => item['module'] == 'album').map((item) => item['status']),

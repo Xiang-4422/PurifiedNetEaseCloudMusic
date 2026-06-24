@@ -467,7 +467,11 @@ void main() {
     expect(listWidgetSource, contains('onRetry: controller.loadInitial'));
     expect(listWidgetSource, contains('const double _localSongListCacheExtent = 360;'));
     expect(listWidgetSource, contains('cacheExtent: _localSongListCacheExtent'));
-    expect(listWidgetSource, contains('ListView.separated('));
+    expect(listWidgetSource, contains('prototypeItem: const Padding('));
+    expect(listWidgetSource, contains('child: _LocalSongTile('));
+    expect(listWidgetSource, contains('const LocalSongEntry _localSongListPrototypeEntry'));
+    expect(listWidgetSource, contains('ListView.builder('));
+    expect(listWidgetSource, isNot(contains('ListView.separated(')));
     expect(listWidgetSource, contains('ListTile('));
     expect(listWidgetSource, contains('TablerIcons.trash'));
     expect(listWidgetSource, contains('TrackResourceOrigin.playbackCache'));

@@ -1,5 +1,7 @@
 import 'package:bujuan/core/entities/local_song_entry.dart';
+import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
+import 'package:bujuan/core/entities/track_resource_bundle.dart';
 import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/features/download/local_song_list_controller.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
@@ -9,6 +11,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
 const double _localSongListCacheExtent = 360;
+
+const LocalSongEntry _localSongListPrototypeEntry = LocalSongEntry(
+  track: Track(
+    id: 'prototype',
+    sourceType: SourceType.unknown,
+    sourceId: 'prototype',
+    title: '本地歌曲',
+    artistNames: ['本地艺人'],
+  ),
+  resources: TrackResourceBundle(),
+  origin: TrackResourceOrigin.localImport,
+  totalSizeBytes: 0,
+);
+
+Future<void> _ignoreLocalSongPrototypeDelete() async {}
 
 /// 本地歌曲 tab 内容。
 class LocalSongTabView extends StatelessWidget {
@@ -46,22 +63,31 @@ class LocalSongTabView extends StatelessWidget {
           builder: (items) {
             return RefreshIndicator(
               onRefresh: controller.refresh,
-              child: ListView.separated(
+              child: ListView.builder(
                 cacheExtent: _localSongListCacheExtent,
+                prototypeItem: const Padding(
+                  padding: EdgeInsets.only(bottom: AppDimensions.paddingSmall),
+                  child: _LocalSongTile(
+                    entry: _localSongListPrototypeEntry,
+                    onDelete: _ignoreLocalSongPrototypeDelete,
+                  ),
+                ),
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppDimensions.paddingSmall,
                   vertical: AppDimensions.paddingSmall,
                 ),
                 itemCount: items.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
                   final entry = items[index];
-                  return _LocalSongTile(
-                    entry: entry,
-                    onDelete: () async {
-                      await controller.removeLocalTrack(entry.track.id);
-                      await onMutated();
-                    },
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: AppDimensions.paddingSmall),
+                    child: _LocalSongTile(
+                      entry: entry,
+                      onDelete: () async {
+                        await controller.removeLocalTrack(entry.track.id);
+                        await onMutated();
+                      },
+                    ),
                   );
                 },
               ),

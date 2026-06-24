@@ -34,6 +34,7 @@ class TopPanelHotKeywordList extends StatelessWidget {
       builder: (context, state, child) {
         return LoadStateView<List<String>>(
           state: state,
+          onRetry: () => searchController.loadInitial(force: true),
           builder: (keywords) => ListView.builder(
             cacheExtent: _topPanelSearchCacheExtent,
             itemCount: keywords.length,
@@ -81,6 +82,7 @@ class TopPanelSongSearchResult extends StatelessWidget {
       builder: (context, state, child) {
         return LoadStateView<List<PlaybackQueueItem>>(
           state: state,
+          onRetry: searchController.retryCurrentSearch,
           builder: (list) => ListView.builder(
             cacheExtent: _topPanelSearchCacheExtent,
             itemBuilder: (context, index) => SongItem(
@@ -119,6 +121,7 @@ class TopPanelPlaylistSearchResult extends StatelessWidget {
       builder: (context, state, child) {
         return LoadStateView<List<PlaylistEntity>>(
           state: state,
+          onRetry: searchController.retryCurrentSearch,
           builder: (playlists) => ListView.builder(
             cacheExtent: _topPanelSearchCacheExtent,
             itemCount: playlists.length,
@@ -155,6 +158,7 @@ class TopPanelAlbumSearchResult extends StatelessWidget {
       builder: (context, state, child) {
         return LoadStateView<List<AlbumEntity>>(
           state: state,
+          onRetry: searchController.retryCurrentSearch,
           builder: (albums) => ListView.builder(
             cacheExtent: _topPanelSearchCacheExtent,
             itemCount: albums.length,
@@ -191,6 +195,7 @@ class TopPanelArtistSearchResult extends StatelessWidget {
       builder: (context, state, child) {
         return LoadStateView<List<ArtistEntity>>(
           state: state,
+          onRetry: searchController.retryCurrentSearch,
           builder: (artists) => ListView.builder(
             cacheExtent: _topPanelSearchCacheExtent,
             itemCount: artists.length,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +14,7 @@ class LoadStateView<T> extends StatelessWidget {
     this.loadingView,
     this.emptyView,
     this.errorView,
+    this.onRetry,
   });
 
   /// 当前加载状态。
@@ -29,6 +32,9 @@ class LoadStateView<T> extends StatelessWidget {
   /// 自定义错误态组件。
   final Widget? errorView;
 
+  /// 默认错误态的重试回调。
+  final FutureOr<void> Function()? onRetry;
+
   @override
   Widget build(BuildContext context) {
     final data = state.data;
@@ -39,11 +45,19 @@ class LoadStateView<T> extends StatelessWidget {
       return loadingView ?? const LoadingView();
     }
     if (state.hasError) {
-      return errorView ?? const ErrorView();
+      return errorView ?? ErrorView(onRetry: onRetry == null ? null : _retry);
     }
     if (state.isEmpty) {
       return emptyView ?? const EmptyView();
     }
     return emptyView ?? const EmptyView();
+  }
+
+  void _retry() {
+    final onRetry = this.onRetry;
+    if (onRetry == null) {
+      return;
+    }
+    unawaited(Future<void>.sync(onRetry));
   }
 }

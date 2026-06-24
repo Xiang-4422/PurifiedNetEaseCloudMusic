@@ -20,4 +20,28 @@ void main() {
     expect(find.text('cached song'), findsOneWidget);
     expect(find.text('加载失败'), findsNothing);
   });
+
+  testWidgets('LoadStateView wires default error retry to async callback', (tester) async {
+    var retryCount = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: LoadStateView<List<String>>(
+          state: LoadState.error(StateError('offline')),
+          onRetry: () async {
+            retryCount += 1;
+          },
+          builder: (_) => const Text('data'),
+        ),
+      ),
+    );
+
+    expect(find.text('加载失败'), findsOneWidget);
+    expect(find.text('重试'), findsOneWidget);
+
+    await tester.tap(find.text('重试'));
+    await tester.pump();
+
+    expect(retryCount, 1);
+  });
 }

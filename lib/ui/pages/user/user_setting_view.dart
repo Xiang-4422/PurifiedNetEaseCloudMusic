@@ -45,6 +45,7 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
           valueListenable: _controller.state,
           builder: (context, state, child) => LoadStateView(
             state: state,
+            onRetry: _controller.loadInitial,
             builder: (userData) => LayoutBuilder(
               builder: (context, constraints) {
                 final cardTopMargin = constraints.maxWidth < 360 ? 150.0 : 200.0;

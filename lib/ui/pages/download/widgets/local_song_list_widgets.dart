@@ -32,6 +32,7 @@ class LocalSongTabView extends StatelessWidget {
       builder: (context, state, child) {
         return LoadStateView<List<LocalSongEntry>>(
           state: state,
+          onRetry: controller.loadInitial,
           emptyView: RefreshIndicator(
             onRefresh: controller.refresh,
             child: ListView(

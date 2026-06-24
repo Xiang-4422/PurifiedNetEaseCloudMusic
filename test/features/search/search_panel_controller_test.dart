@@ -314,6 +314,34 @@ void main() {
       expect(controller.artistState.value.data?.single.name, 'artist');
     });
 
+    test('retries current keyword through controller boundary', () async {
+      final repository = _FakeSearchRepository();
+      final controller = _buildController(
+        repository: repository,
+        likedSongIds: () => const [101],
+      );
+      addTearDown(controller.dispose);
+
+      final initialSearch = controller.search('keyword');
+      repository.complete('keyword', _resultFor('first'));
+      await initialSearch;
+
+      final retry = controller.retryCurrentSearch();
+      await _flushAsync();
+
+      expect(repository.requestedLikedSongIds, [
+        [101],
+        [101],
+      ]);
+      expect(controller.songState.value.status, LoadStatus.loading);
+      expect(controller.songState.value.data?.single.title, 'first');
+
+      repository.complete('keyword', _resultFor('retried'));
+      await retry;
+
+      expect(controller.songState.value.data?.single.title, 'retried');
+    });
+
     test('only applies the latest hot keyword refresh', () async {
       final repository = _FakeSearchRepository(
         cachedHotKeywords: null,

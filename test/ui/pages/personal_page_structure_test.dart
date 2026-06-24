@@ -69,6 +69,7 @@ void main() {
     expect(source, contains('Tooltip('));
     expect(source, contains('excludeFromSemantics: true'));
     expect(source, contains('_controller.logoutCurrentUser()'));
+    expect(source, contains('onRetry: _controller.loadInitial'));
     expect(source, isNot(contains('GestureDetector(')));
   });
 
@@ -452,6 +453,7 @@ void main() {
     expect(bulkActionSource, contains('删除所有缓存'));
     expect(listWidgetSource, contains('class LocalSongTabView'));
     expect(listWidgetSource, contains('LoadStateView<List<LocalSongEntry>>'));
+    expect(listWidgetSource, contains('onRetry: controller.loadInitial'));
     expect(listWidgetSource, contains('const double _localSongListCacheExtent = 360;'));
     expect(listWidgetSource, contains('cacheExtent: _localSongListCacheExtent'));
     expect(listWidgetSource, contains('ListView.separated('));

@@ -231,6 +231,11 @@ class SearchPanelController {
     ]);
   }
 
+  /// 使用当前搜索上下文强制重试。
+  Future<void> retryCurrentSearch() {
+    return search(_currentKeyword, force: true);
+  }
+
   Future<LoadState<List<String>>> _fetchHotKeywords({
     required List<String>? cachedKeywords,
   }) async {

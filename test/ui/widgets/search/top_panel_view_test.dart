@@ -118,6 +118,11 @@ void main() {
     expect(resultsSource, contains('class TopPanelArtistSearchResult'));
     expect(resultsSource, contains('ValueListenableBuilder'));
     expect(resultsSource, contains('LoadStateView'));
+    expect(resultsSource, contains('onRetry: () => searchController.loadInitial(force: true)'));
+    expect(
+      'onRetry: searchController.retryCurrentSearch'.allMatches(resultsSource),
+      hasLength(4),
+    );
     expect(resultsSource, contains('PlaylistSearchItem('));
     expect(resultsSource, contains('AlbumSearchItem('));
     expect(resultsSource, contains('ArtistSearchItem('));

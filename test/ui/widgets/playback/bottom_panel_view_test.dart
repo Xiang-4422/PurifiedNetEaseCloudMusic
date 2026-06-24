@@ -376,6 +376,9 @@ void main() {
     final progressSource = controlsSource.substring(progressStart, controlsStart);
     expect(progressSource, contains('required this.playerController'));
     expect(progressSource, contains('required this.settingsController'));
+    expect(progressSource, contains('playbackProgressSemanticsLabel('));
+    expect(progressSource, contains('Tooltip('));
+    expect(progressSource, contains('Semantics('));
     expect(progressSource, isNot(contains('PlayerController.to')));
     expect(progressSource, isNot(contains('SettingsController.to')));
     expect(playbackControlsSource, contains('required this.playerController'));

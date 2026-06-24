@@ -16,6 +16,44 @@ void main() {
       expect(playbackPlayPauseControlLabel(isPlaying: true), '暂停');
     });
 
+    test('builds progress bar semantics label', () {
+      expect(
+        playbackProgressSemanticsLabel(
+          position: const Duration(minutes: 1, seconds: 5),
+          total: const Duration(minutes: 3, seconds: 9),
+        ),
+        '播放进度：01:05 / 03:09',
+      );
+      expect(
+        playbackProgressSemanticsLabel(
+          position: const Duration(seconds: -5),
+          total: const Duration(minutes: 3),
+        ),
+        '播放进度：00:00 / 03:00',
+      );
+      expect(
+        playbackProgressSemanticsLabel(
+          position: const Duration(minutes: 5),
+          total: const Duration(minutes: 3),
+        ),
+        '播放进度：03:00 / 03:00',
+      );
+      expect(
+        playbackProgressSemanticsLabel(
+          position: const Duration(seconds: 5),
+          total: null,
+        ),
+        '播放进度：00:05 / 未知时长',
+      );
+      expect(
+        playbackProgressSemanticsLabel(
+          position: const Duration(seconds: 5),
+          total: Duration.zero,
+        ),
+        '播放进度：00:05 / 未知时长',
+      );
+    });
+
     test('builds quality button semantics label', () {
       expect(
         playbackQualityControlLabel(preferHighQuality: false),

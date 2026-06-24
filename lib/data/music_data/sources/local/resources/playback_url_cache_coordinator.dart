@@ -1,3 +1,5 @@
+import 'package:bujuan/core/util/playback_url_expiry.dart';
+
 /// Resolves playback URLs through a short-lived in-memory remote URL cache.
 typedef LocalPlaybackResourceResolver = Future<String?> Function(String trackId);
 
@@ -44,7 +46,7 @@ class PlaybackUrlCacheCoordinator {
     final cachedUrl = _cache[cacheKey];
     final now = _now();
     if (!forceRefresh && cachedUrl != null) {
-      if (now.difference(cachedUrl.createdAt) < _ttl) {
+      if (now.difference(cachedUrl.createdAt) < _ttl && !PlaybackUrlExpiry.isExpired(cachedUrl.url, now: now)) {
         _touch(cacheKey, cachedUrl);
         return cachedUrl.url;
       }
@@ -80,11 +82,12 @@ class PlaybackUrlCacheCoordinator {
   }
 
   void _cacheRemoteUrl(String cacheKey, String? url) {
-    if (url != null && _isRemoteUrl(url)) {
+    final now = _now();
+    if (url != null && _isRemoteUrl(url) && !PlaybackUrlExpiry.isExpired(url, now: now)) {
       _cache.remove(cacheKey);
       _cache[cacheKey] = _CachedPlaybackUrl(
         url: url,
-        createdAt: _now(),
+        createdAt: now,
       );
       _trim();
     }

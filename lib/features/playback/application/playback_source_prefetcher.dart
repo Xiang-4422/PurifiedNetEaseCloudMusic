@@ -6,6 +6,7 @@ import 'package:bujuan/features/playback/playback_performance_logger.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/util/local_file_path_normalizer.dart';
+import 'package:bujuan/core/util/playback_url_expiry.dart';
 import 'package:bujuan/features/playback/application/playback_resolved_source.dart';
 import 'package:bujuan/features/playback/application/playback_source_resolver.dart';
 
@@ -16,9 +17,12 @@ class PlaybackSourcePrefetcher {
     required PlaybackSourceResolver resolver,
     this.ttl = const Duration(minutes: 2),
     this.maxEntries = 24,
-  }) : _resolver = resolver;
+    DateTime Function()? now,
+  })  : _resolver = resolver,
+        _now = now ?? DateTime.now;
 
   final PlaybackSourceResolver _resolver;
+  final DateTime Function() _now;
 
   /// 预取结果有效期。
   final Duration ttl;
@@ -124,7 +128,7 @@ class PlaybackSourcePrefetcher {
     required bool allowLocalRecovery,
   }) {
     final cached = _cache[key];
-    final now = DateTime.now();
+    final now = _now();
     if (cached == null) {
       return null;
     }
@@ -149,8 +153,9 @@ class PlaybackSourcePrefetcher {
       case PlaybackResolvedSourceKind.neteaseCacheStream:
         return source.url.isNotEmpty && File(source.url).existsSync();
       case PlaybackResolvedSourceKind.url:
+        return source.url.trim().isNotEmpty && !PlaybackUrlExpiry.isExpired(source.url, now: _now());
       case PlaybackResolvedSourceKind.empty:
-        return true;
+        return false;
     }
   }
 
@@ -187,7 +192,7 @@ class PlaybackSourcePrefetcher {
     loadFuture = load().then((source) {
       if (identical(_inFlight[key], loadFuture) && !source.isEmpty) {
         _cache.remove(key);
-        _cache[key] = _CachedPlaybackSource(source, DateTime.now());
+        _cache[key] = _CachedPlaybackSource(source, _now());
         _trimCache();
       }
       PlaybackPerformanceLogger.elapsed(

@@ -29,6 +29,28 @@ void main() {
       expect(resolver.resolveCallCount, 2);
     });
 
+    test('re-resolves remote source after playback url query timestamp expires', () async {
+      var now = DateTime.fromMillisecondsSinceEpoch(1700000000000);
+      final resolver = _ExpiringRemoteSourceResolver(() => now);
+      final prefetcher = PlaybackSourcePrefetcher(
+        resolver: resolver,
+        ttl: const Duration(minutes: 5),
+        now: () => now,
+      );
+      final item = _item('1');
+
+      final initial = await prefetcher.resolve(item, preferHighQuality: false);
+      now = now.add(const Duration(seconds: 20));
+      final cached = await prefetcher.resolve(item, preferHighQuality: false);
+      now = now.add(const Duration(seconds: 11));
+      final refreshed = await prefetcher.resolve(item, preferHighQuality: false);
+
+      expect(initial.url, startsWith('https://audio.test/1-1.mp3?authTime='));
+      expect(cached.url, initial.url);
+      expect(refreshed.url, startsWith('https://audio.test/1-2.mp3?authTime='));
+      expect(resolver.resolveCallCount, 2);
+    });
+
     test('keeps normal and high quality cache entries separate', () async {
       final resolver = _CountingSourceResolver();
       final prefetcher = PlaybackSourcePrefetcher(resolver: resolver);
@@ -478,6 +500,35 @@ class _CountingSourceResolver implements PlaybackSourceResolver {
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
       url: '${preferHighQuality ? 'high' : 'normal'}-url-$resolveCallCount',
+    );
+  }
+
+  @override
+  Future<PlaybackResolvedSource> resolveRemote(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+    bool forceRefresh = false,
+  }) {
+    return resolve(item, preferHighQuality: preferHighQuality);
+  }
+}
+
+class _ExpiringRemoteSourceResolver implements PlaybackSourceResolver {
+  _ExpiringRemoteSourceResolver(this.now);
+
+  final DateTime Function() now;
+  int resolveCallCount = 0;
+
+  @override
+  Future<PlaybackResolvedSource> resolve(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) async {
+    resolveCallCount++;
+    final expiresAt = now().add(const Duration(seconds: 30)).millisecondsSinceEpoch ~/ 1000;
+    return PlaybackResolvedSource(
+      kind: PlaybackResolvedSourceKind.url,
+      url: 'https://audio.test/${item.id}-$resolveCallCount.mp3?authTime=$expiresAt',
     );
   }
 

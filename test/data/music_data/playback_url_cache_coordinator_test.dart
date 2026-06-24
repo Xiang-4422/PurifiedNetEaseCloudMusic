@@ -159,6 +159,33 @@ void main() {
       expect(loadCount, 2);
     });
 
+    test('expires remote cache by playback url query timestamp before ttl', () async {
+      var now = DateTime.fromMillisecondsSinceEpoch(1700000000000);
+      var loadCount = 0;
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async => null,
+        ttl: const Duration(minutes: 5),
+        now: () => now,
+      );
+
+      Future<String?> load() async {
+        loadCount++;
+        final expiresAt = now.add(const Duration(seconds: 30)).millisecondsSinceEpoch ~/ 1000;
+        return 'https://audio.test/1-$loadCount.mp3?authTime=$expiresAt';
+      }
+
+      final initial = await coordinator.resolve('1', qualityLevel: 'standard', forceRefresh: false, load: load);
+      now = now.add(const Duration(seconds: 20));
+      final cached = await coordinator.resolve('1', qualityLevel: 'standard', forceRefresh: false, load: load);
+      now = now.add(const Duration(seconds: 11));
+      final refreshed = await coordinator.resolve('1', qualityLevel: 'standard', forceRefresh: false, load: load);
+
+      expect(initial, startsWith('https://audio.test/1-1.mp3?authTime='));
+      expect(cached, initial);
+      expect(refreshed, startsWith('https://audio.test/1-2.mp3?authTime='));
+      expect(loadCount, 2);
+    });
+
     test('normalizes remote url before returning and caching it', () async {
       var loadCount = 0;
       final coordinator = PlaybackUrlCacheCoordinator(

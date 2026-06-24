@@ -182,6 +182,49 @@ function loadPublicFacadeMixins() {
     .sort()
 }
 
+function listFilesRecursively(dirPath) {
+  const files = []
+  for (const entry of fs.readdirSync(dirPath, { withFileTypes: true })) {
+    const entryPath = path.join(dirPath, entry.name)
+    if (entry.isDirectory()) {
+      files.push(...listFilesRecursively(entryPath))
+    } else {
+      files.push(entryPath)
+    }
+  }
+  return files.sort()
+}
+
+function stripDartComments(source) {
+  return source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '')
+}
+
+function loadTypedFacadeMethods() {
+  const endpointDir = path.join(repoRoot, 'packages/netease_music_api/lib/src/endpoints')
+  const methods = []
+  for (const filePath of listFilesRecursively(endpointDir)) {
+    if (!filePath.endsWith('.dart') || filePath.includes(`${path.sep}raw${path.sep}`)) {
+      continue
+    }
+    const source = stripDartComments(fs.readFileSync(filePath, 'utf8'))
+    const relativeFile = path.relative(repoRoot, filePath).replace(/\\/g, '/')
+    for (const line of source.split(/\r?\n/)) {
+      const match = line.match(/^\s*(?:@override\s*)?(?:[A-Za-z_$][\w$<>, ?.\[\]]+\s+)+([A-Za-z]\w*)\s*(?:<[^>\n]+>)?\(/)
+      if (!match) {
+        continue
+      }
+      const methodName = match[1]
+      if (!methodName.startsWith('_')) {
+        methods.push({
+          methodName,
+          file: relativeFile,
+        })
+      }
+    }
+  }
+  return methods.sort((left, right) => `${left.methodName}:${left.file}`.localeCompare(`${right.methodName}:${right.file}`))
+}
+
 function gitOutput(args) {
   try {
     return execFileSync('git', args, {
@@ -542,6 +585,23 @@ function validateManifestMapEntries(entries, mapEntries) {
   return mismatches.sort((left, right) => `${left.module}:${left.field}`.localeCompare(`${right.module}:${right.field}`))
 }
 
+function facadeMethodCollisions(rawMethods, typedMethods) {
+  const typedByName = new Map()
+  for (const method of typedMethods) {
+    const files = typedByName.get(method.methodName) || new Set()
+    files.add(method.file)
+    typedByName.set(method.methodName, files)
+  }
+  return rawMethods
+    .filter((entry) => typedByName.has(entry.methodName))
+    .map((entry) => ({
+      module: entry.module,
+      methodName: entry.methodName,
+      typedFiles: sorted([...typedByName.get(entry.methodName)]),
+    }))
+    .sort((left, right) => left.module.localeCompare(right.module))
+}
+
 function duplicateSpecialCoverageEntries(coverage) {
   if (!isRecord(coverage)) {
     return []
@@ -609,6 +669,7 @@ const manifest = loadManifest()
 const entries = manifest.entries
 const oracleFixtures = loadOracleFixtures()
 const rawConvenienceMethods = loadRawConvenienceMethods()
+const typedFacadeMethods = loadTypedFacadeMethods()
 const rawDispatcherModules = loadRawDispatcherModules()
 const publicApiExports = loadPublicApiExports()
 const publicFacadeMixins = loadPublicFacadeMixins()
@@ -689,6 +750,7 @@ const rawConvenienceMethodNameMismatches = rawConvenienceMethods
     rawMethodName: entry.methodName,
   }))
   .sort((left, right) => left.module.localeCompare(right.module))
+const rawConvenienceFacadeMethodCollisions = facadeMethodCollisions(rawConvenienceMethods, typedFacadeMethods)
 const publicApiMissingExports = expectedPublicApiExports.filter((exportPath) => !publicApiExportSet.has(exportPath))
 const publicFacadeMissingMixins = expectedPublicFacadeMixins.filter((mixinName) => !publicFacadeMixinSet.has(mixinName))
 const normalMissingOracle = sorted(normalModules.filter((module) => !oracleModules.has(module)))
@@ -1118,6 +1180,8 @@ const report = {
   rawConvenienceDuplicateMethodNames,
   rawConvenienceOrderMismatches,
   rawConvenienceMethodNameMismatches,
+  rawConvenienceFacadeMethodCollisionCount: rawConvenienceFacadeMethodCollisions.length,
+  rawConvenienceFacadeMethodCollisions,
   publicApiExports,
   publicApiExpectedExports: expectedPublicApiExports,
   publicApiMissingExports,
@@ -1210,6 +1274,7 @@ function renderMarkdownReport(report) {
     `- node oracle scenarios: ${report.nodeOracleScenarioCount}`,
     `- node oracle fixtures: ${report.nodeOracleFixtureCount}`,
     `- raw convenience methods: ${report.rawConvenienceMethodCount}`,
+    `- raw convenience facade method collisions: ${report.rawConvenienceFacadeMethodCollisionCount}`,
     '',
     '## Public Facade',
     '',
@@ -1222,6 +1287,24 @@ function renderMarkdownReport(report) {
     `- raw facade mixin: ${report.publicFacadeHasRawMixin ? 'yes' : 'no'}`,
     `- missing facade mixins: ${report.publicFacadeMissingMixins.join(', ') || 'none'}`,
     '',
+    '## Raw Convenience Method Collisions',
+    '',
+  ]
+
+  if (report.rawConvenienceFacadeMethodCollisions.length === 0) {
+    lines.push('- none')
+  } else {
+    lines.push('| module | raw method | typed files |')
+    lines.push('| --- | --- | --- |')
+    for (const collision of report.rawConvenienceFacadeMethodCollisions) {
+      lines.push(
+        `| ${escapeMarkdownTableCell(collision.module)} | ${escapeMarkdownTableCell(collision.methodName)} | ${escapeMarkdownTableCell(collision.typedFiles.join(', '))} |`,
+      )
+    }
+  }
+
+  lines.push(
+    '',
     '## Special Modules',
     '',
     `- node oracle: ${report.specialNodeOracle.join(', ') || 'none'}`,
@@ -1230,7 +1313,7 @@ function renderMarkdownReport(report) {
     '',
     '| module | coverage | oracle fixture | limited reason |',
     '| --- | --- | --- | --- |',
-  ]
+  )
 
   for (const module of Object.keys(report.specialCoverageStatusByModule).sort()) {
     const status = report.specialCoverageStatusByModule[module]
@@ -1322,6 +1405,7 @@ if (jsonOutput) {
   console.log(`raw convenience duplicate method names: ${report.rawConvenienceDuplicateMethodNames.length}`)
   console.log(`raw convenience order mismatches: ${report.rawConvenienceOrderMismatches.length}`)
   console.log(`raw convenience method name mismatches: ${report.rawConvenienceMethodNameMismatches.length}`)
+  console.log(`raw convenience facade method collisions: ${report.rawConvenienceFacadeMethodCollisionCount}`)
   console.log(`public api exports: ${report.publicApiExports.join(', ')}`)
   console.log(`public api missing exports: ${report.publicApiMissingExports.length}`)
   console.log(`public facade mixins: ${report.publicFacadeMixins.join(', ')}`)

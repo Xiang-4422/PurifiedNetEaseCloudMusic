@@ -49,12 +49,14 @@ module file count, generated manifest upstream version/commit, and generated
 manifest differences so upstream refreshes are auditable from one command.
 The report also verifies that the package barrel keeps exporting both the
 typed SDK facade and the raw api-enhanced dispatcher, and that `NeteaseMusicApi`
-continues to mix in the typed endpoint APIs plus `ApiEnhancedRaw`. Runtime
-option limitations, such as unsupported PAC proxy URLs, are also included in
+continues to mix in the typed endpoint APIs plus `ApiEnhancedRaw`. It exposes
+raw convenience methods that are shadowed by typed facade methods; these modules
+remain available through `requestModule('<module_name>', query)`. Runtime option
+limitations, such as unsupported PAC proxy URLs, are also included in
 `sdkDifferences`. Use `--json` when an automation or follow-up goal needs the
 full machine-readable report, and `--markdown` when reviewing the current
-baseline, public facade status, per-special-module coverage status, and SDK
-differences by hand.
+baseline, public facade status, raw convenience method collisions,
+per-special-module coverage status, and SDK differences by hand.
 
 Upstream protocol reference is tracked in the repository submodule:
 

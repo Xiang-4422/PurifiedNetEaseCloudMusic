@@ -213,6 +213,15 @@ void main() {
       expect(report['rawConvenienceDuplicateMethodNames'], isEmpty);
       expect(report['rawConvenienceOrderMismatches'], isEmpty);
       expect(report['rawConvenienceMethodNameMismatches'], isEmpty);
+      final rawFacadeMethodCollisions = _jsonMapList(report['rawConvenienceFacadeMethodCollisions']);
+      expect(report['rawConvenienceFacadeMethodCollisionCount'], rawFacadeMethodCollisions.length);
+      expect(rawFacadeMethodCollisions, isNotEmpty);
+      final songDetailCollision = rawFacadeMethodCollisions.singleWhere((item) => item['module'] == 'song_detail');
+      expect(songDetailCollision['methodName'], 'songDetail');
+      expect(
+        _stringSet(songDetailCollision['typedFiles']),
+        {'packages/netease_music_api/lib/src/endpoints/play/api.dart'},
+      );
       expect(_stringSet(report['publicApiExpectedExports']), {
         'src/client/netease_api.dart',
         'src/client/netease_bean.dart',
@@ -378,6 +387,8 @@ void main() {
           'publicFacadeMissingMixins',
           'publicFacadeTypedMixinCount',
           'publicFacadeHasRawMixin',
+          'rawConvenienceFacadeMethodCollisionCount',
+          'rawConvenienceFacadeMethodCollisions',
           'specialLimitedReasons',
           'runtimeSupportedReasons',
           'runtimeLimitedReasons',
@@ -390,6 +401,13 @@ void main() {
       expect(report['publicFacadeMixins'], isA<List<dynamic>>());
       expect(report['publicFacadeTypedMixinCount'], isA<int>());
       expect(report['publicFacadeHasRawMixin'], isA<bool>());
+      expect(report['rawConvenienceFacadeMethodCollisionCount'], isA<int>());
+      for (final collision in _jsonMapList(report['rawConvenienceFacadeMethodCollisions'])) {
+        expect(collision.keys.toSet(), containsAll({'module', 'methodName', 'typedFiles'}));
+        expect(collision['module'], isA<String>());
+        expect(collision['methodName'], isA<String>());
+        expect(collision['typedFiles'], isA<List<dynamic>>());
+      }
       for (final difference in _jsonMapList(report['sdkDifferences'])) {
         expect(difference.keys.toSet(), containsAll({'module', 'status', 'reason', 'scope'}));
         expect(difference['module'], isA<String>());
@@ -444,6 +462,12 @@ void main() {
       expect(markdown, contains('- typed facade mixins: 7/7'));
       expect(markdown, contains('- raw facade mixin: yes'));
       expect(markdown, contains('- missing facade mixins: none'));
+      expect(markdown, contains('## Raw Convenience Method Collisions'));
+      expect(markdown, contains('| module | raw method | typed files |'));
+      expect(
+        markdown,
+        contains('| song_detail | songDetail | packages/netease_music_api/lib/src/endpoints/play/api.dart |'),
+      );
       expect(markdown, contains('| module | coverage | oracle fixture | limited reason |'));
       expect(markdown, contains('| option | status | reason |'));
       expect(markdown, contains('## SDK Differences'));

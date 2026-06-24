@@ -106,6 +106,40 @@ void main() {
       expect(controller.runtimeState.value.currentSong.isLiked, isTrue);
     });
 
+    test('normalizes current item id before applying resolved artwork', () async {
+      final rawItem = _queueItem(' 1 ', sourceId: '1');
+      final currentItem = _queueItem('1', sourceId: '1');
+      final updatedItem = currentItem.copyWith(
+        localArtworkPath: '/tmp/cover.jpg',
+      );
+      final queueService = _FakePlaybackQueueService();
+      final playbackService = _FakePlaybackService();
+      final artworkPresenter = _FakePlaybackArtworkPresenter(
+        resolveMissingArtworkHandler: (item) async {
+          return item.copyWith(localArtworkPath: updatedItem.localArtworkPath);
+        },
+      );
+      final controller = _playerController(
+        playbackService: playbackService,
+        queueService: queueService,
+        artworkPresenter: artworkPresenter,
+      );
+      controller.runtimeState.value = PlaybackRuntimeState(
+        queue: [rawItem],
+        currentSong: currentItem,
+      );
+
+      await controller.ensureCurrentTrackArtwork(rawItem);
+
+      expect(artworkPresenter.resolveMissingArtworkItems.map((item) => item.id), ['1']);
+      expect(queueService.updatedItems.map((item) => item.id), ['1']);
+      expect(playbackService.updatedItems.map((item) => item.id), ['1']);
+      expect(controller.runtimeState.value.currentSong.id, '1');
+      expect(controller.runtimeState.value.currentSong.localArtworkPath, '/tmp/cover.jpg');
+      expect(controller.runtimeState.value.queue.map((item) => item.id), ['1']);
+      expect(controller.runtimeState.value.queue.single.localArtworkPath, '/tmp/cover.jpg');
+    });
+
     test('builds mini player feedback metric details for success', () {
       expect(
         miniPlayerFeedbackMetricDetails(
@@ -192,6 +226,7 @@ PlayerController _playerController({
   PlaybackUiCommandService? commandService,
   PlaybackPreferencePort? preferencePort,
   PlaybackUserContentPort? userContentPort,
+  PlaybackArtworkPresenter? artworkPresenter,
 }) {
   return PlayerController(
     playbackService: playbackService ?? _FakePlaybackService(),
@@ -203,7 +238,7 @@ PlayerController _playerController({
     lyricUiStateController: _FakePlaybackLyricUiStateController(),
     preferencePort: preferencePort ?? _preferencePort(),
     userContentPort: userContentPort ?? _userContentPort(),
-    artworkPresenter: _FakePlaybackArtworkPresenter(),
+    artworkPresenter: artworkPresenter ?? _FakePlaybackArtworkPresenter(),
     selectionUiEffectCoordinator: _FakePlaybackSelectionUiEffectCoordinator(),
     downloadUseCase: _FakeCurrentTrackDownloadUseCase(),
     toastPort: _FakePlaybackToastPort(),
@@ -239,6 +274,7 @@ PlaybackQueueItem _queueItem(
   String id, {
   required String sourceId,
   bool isLiked = false,
+  String? localArtworkPath,
 }) {
   return PlaybackQueueItem(
     id: id,
@@ -249,7 +285,7 @@ PlaybackQueueItem _queueItem(
     artistIds: const [],
     duration: null,
     artworkUrl: null,
-    localArtworkPath: null,
+    localArtworkPath: localArtworkPath,
     mediaType: MediaType.playlist,
     playbackUrl: null,
     lyricKey: null,
@@ -331,6 +367,19 @@ class _FakePlaybackLyricUiStateController implements PlaybackLyricUiStateControl
 }
 
 class _FakePlaybackArtworkPresenter implements PlaybackArtworkPresenter {
+  _FakePlaybackArtworkPresenter({
+    this.resolveMissingArtworkHandler,
+  });
+
+  final FutureOr<PlaybackQueueItem?> Function(PlaybackQueueItem item)? resolveMissingArtworkHandler;
+  final List<PlaybackQueueItem> resolveMissingArtworkItems = <PlaybackQueueItem>[];
+
+  @override
+  Future<PlaybackQueueItem?> resolveMissingArtwork(PlaybackQueueItem currentItem) async {
+    resolveMissingArtworkItems.add(currentItem);
+    return resolveMissingArtworkHandler?.call(currentItem);
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

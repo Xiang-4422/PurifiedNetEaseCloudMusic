@@ -1604,6 +1604,28 @@ void main() {
       );
     });
 
+    test('player artwork sync normalizes item ids before async artwork writeback', () {
+      final artworkSyncFile = File(
+        '${projectRoot.path}/lib/features/playback/player_artwork_sync.dart',
+      );
+      final artworkSync = artworkSyncFile.readAsStringSync();
+      final violations = <String>[
+        if (!artworkSync.contains('String _normalizedQueueItemId(String id)')) '${_relativePath(artworkSyncFile)} does not define queue item id normalization',
+        if (!artworkSync.contains('final itemId = _normalizedQueueItemId(item.id);')) '${_relativePath(artworkSyncFile)} can still start artwork writeback from raw item id',
+        if (!artworkSync.contains('final normalizedItem = _normalizedQueueItem(item);')) '${_relativePath(artworkSyncFile)} can still resolve artwork with a raw queue item id',
+        if (!artworkSync.contains('resolveMissingArtwork(normalizedItem)')) '${_relativePath(artworkSyncFile)} does not pass the normalized item to artwork presenter',
+        if (!artworkSync.contains('_normalizedQueueItemId(runtimeState.value.currentSong.id) != itemId')) '${_relativePath(artworkSyncFile)} can still drop async artwork results through raw current song comparison',
+        if (!artworkSync.contains('await syncCurrentQueueItem(_normalizedQueueItem(updatedItem));')) '${_relativePath(artworkSyncFile)} can still write back raw artwork queue item ids',
+        if (!artworkSync.contains('_normalizedQueueItemId(item.id) == itemId ? normalizedItem : item')) '${_relativePath(artworkSyncFile)} can still replace queue artwork by raw item id',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '封面补全是异步 UI 反馈路径，回写前必须用规范化歌曲 id 判断当前歌曲和替换队列项，避免 id 空格差异导致封面丢失。',
+      );
+    });
+
     test('playback like control stays behind player controller boundary', () {
       final controlsFile = File(
         '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_playback_controls.dart',

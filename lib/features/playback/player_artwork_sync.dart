@@ -4,22 +4,32 @@ part of 'player_controller.dart';
 extension PlayerArtworkSync on PlayerController {
   /// 确保当前歌曲具备可展示封面。
   Future<void> ensureCurrentTrackArtwork(PlaybackQueueItem item) async {
-    final updatedItem = await _artworkPresenter.resolveMissingArtwork(item);
-    if (updatedItem == null || runtimeState.value.currentSong.id != item.id) {
+    final itemId = _normalizedQueueItemId(item.id);
+    if (itemId.isEmpty) {
       return;
     }
-    await syncCurrentQueueItem(updatedItem);
+    final normalizedItem = _normalizedQueueItem(item);
+    final updatedItem = await _artworkPresenter.resolveMissingArtwork(normalizedItem);
+    if (updatedItem == null || _normalizedQueueItemId(runtimeState.value.currentSong.id) != itemId) {
+      return;
+    }
+    await syncCurrentQueueItem(_normalizedQueueItem(updatedItem));
   }
 
   /// 同步当前队列项到 UI 队列和播放服务。
   Future<void> syncCurrentQueueItem(PlaybackQueueItem updatedItem) async {
-    final queue = runtimeState.value.queue.map((item) => item.id == updatedItem.id ? updatedItem : item).toList(growable: false);
-    await _queueService.updateQueueItem(updatedItem);
+    final normalizedItem = _normalizedQueueItem(updatedItem);
+    final itemId = normalizedItem.id;
+    if (itemId.isEmpty) {
+      return;
+    }
+    final queue = runtimeState.value.queue.map((item) => _normalizedQueueItemId(item.id) == itemId ? normalizedItem : item).toList(growable: false);
+    await _queueService.updateQueueItem(normalizedItem);
     syncRuntimeState(
       queue: queue,
-      currentSong: updatedItem,
+      currentSong: normalizedItem,
     );
-    await _playbackService.updateQueueItem(updatedItem);
+    await _playbackService.updateQueueItem(normalizedItem);
   }
 
   /// 同步底部封面分页使用的轻量展示队列。
@@ -91,6 +101,18 @@ extension PlayerArtworkSync on PlayerController {
         current.localArtworkPath == next.localArtworkPath &&
         current.isLiked == next.isLiked &&
         current.isCached == next.isCached;
+  }
+
+  PlaybackQueueItem _normalizedQueueItem(PlaybackQueueItem item) {
+    final normalizedItemId = _normalizedQueueItemId(item.id);
+    if (normalizedItemId == item.id) {
+      return item;
+    }
+    return item.copyWith(id: normalizedItemId);
+  }
+
+  String _normalizedQueueItemId(String id) {
+    return id.trim();
   }
 
   /// 预加载当前 selection 附近的封面图片。

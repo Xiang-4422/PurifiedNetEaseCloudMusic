@@ -23,6 +23,38 @@ void main() {
       expect(source, contains('itemExtent: itemExtent'));
       expect(source, contains('bottomPanelQueueItemExtent('));
       expect(source, contains('ListView.builder('));
+      expect(source, contains('Tooltip('));
+      expect(source, contains('playbackQueueItemSemanticsLabel('));
+    });
+
+    test('builds queue item semantics label', () {
+      expect(
+        playbackQueueItemSemanticsLabel(
+          item: _queueItem(
+            title: ' Track ',
+            artistNames: const ['Artist'],
+          ),
+          isCurrent: false,
+        ),
+        '播放队列：Track - Artist',
+      );
+      expect(
+        playbackQueueItemSemanticsLabel(
+          item: _queueItem(
+            title: 'Current',
+            artistNames: const [],
+          ),
+          isCurrent: true,
+        ),
+        '当前播放：Current - 未知歌手',
+      );
+      expect(
+        playbackQueueItemSemanticsLabel(
+          item: _queueItem(title: '  '),
+          isCurrent: false,
+        ),
+        '播放队列：未知歌曲 - 未知歌手',
+      );
     });
 
     test('builds artist display text with fallback', () {
@@ -70,12 +102,13 @@ void main() {
 }
 
 PlaybackQueueItem _queueItem({
+  String title = 'Track',
   List<String> artistNames = const [],
 }) {
   return PlaybackQueueItem(
     id: 'queue-item',
     sourceId: '1',
-    title: 'Track',
+    title: title,
     albumTitle: null,
     artistNames: artistNames,
     artistIds: const [],

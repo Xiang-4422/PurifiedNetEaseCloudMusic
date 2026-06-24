@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 const _unknownQueueArtistText = '未知歌手';
+const _unknownQueueTitleText = '未知歌曲';
 const _currentQueueItemColor = Colors.red;
 const double _bottomPanelQueueCacheExtent = 480;
 
@@ -85,44 +86,51 @@ class _BottomPanelQueueItem extends StatelessWidget {
       final isCurrent = playerController.currentQueueIndex.value == index;
       final panelColor = settingsController.panelWidgetColor.value;
       final artistText = playbackQueueArtistDisplayText(item);
-      return Semantics(
-        button: true,
-        excludeSemantics: true,
-        selected: isCurrent,
-        label: '${item.title}, $artistText',
-        child: GestureDetector(
-          onTap: () => playerController.playQueueIndex(index),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: itemExtent),
-            child: Container(
-              color: Colors.transparent,
-              alignment: AlignmentDirectional.centerStart,
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    item.title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: playbackQueueTitleColor(
-                            isCurrent: isCurrent,
-                            panelColor: panelColor,
+      final actionLabel = playbackQueueItemSemanticsLabel(
+        item: item,
+        isCurrent: isCurrent,
+      );
+      return Tooltip(
+        message: actionLabel,
+        child: Semantics(
+          button: true,
+          excludeSemantics: true,
+          selected: isCurrent,
+          label: actionLabel,
+          child: GestureDetector(
+            onTap: () => playerController.playQueueIndex(index),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: itemExtent),
+              child: Container(
+                color: Colors.transparent,
+                alignment: AlignmentDirectional.centerStart,
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      item.title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: playbackQueueTitleColor(
+                              isCurrent: isCurrent,
+                              panelColor: panelColor,
+                            ),
                           ),
-                        ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                  Text(
-                    artistText,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: panelColor.withValues(alpha: 0.5),
-                        ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ],
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                    Text(
+                      artistText,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: panelColor.withValues(alpha: 0.5),
+                          ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -130,6 +138,18 @@ class _BottomPanelQueueItem extends StatelessWidget {
       );
     });
   }
+}
+
+/// 生成播放队列条目的辅助语义标签。
+@visibleForTesting
+String playbackQueueItemSemanticsLabel({
+  required PlaybackQueueItem item,
+  required bool isCurrent,
+}) {
+  final title = item.title.trim().isEmpty ? _unknownQueueTitleText : item.title.trim();
+  final artistText = playbackQueueArtistDisplayText(item);
+  final prefix = isCurrent ? '当前播放' : '播放队列';
+  return '$prefix：$title - $artistText';
 }
 
 /// 生成播放队列条目的歌手展示文本。

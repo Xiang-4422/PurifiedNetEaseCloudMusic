@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -92,6 +94,17 @@ void main() {
         ),
         Duration.zero,
       );
+    });
+
+    test('routes back navigation homepage switch through the shared boundary', () {
+      final source = File('lib/features/shell/home_shell_controller.dart').readAsStringSync();
+      final handleStart = source.indexOf('bool handleWillPop(');
+      final keyboardStart = source.indexOf('void updateKeyboardHeight', handleStart);
+      final handleSource = source.substring(handleStart, keyboardStart);
+
+      expect(handleSource, contains('switchHomePage(0)'));
+      expect(handleSource, isNot(contains('homePageController.animateToPage(')));
+      expect(handleSource, isNot(contains('homePageController.page != 0')));
     });
   });
 }

@@ -284,12 +284,7 @@ class HomeShellController extends GetxController with GetTickerProviderStateMixi
       closeDrawer?.call();
       return true;
     }
-    if (homePageController.page != 0) {
-      homePageController.animateToPage(
-        0,
-        duration: Duration(milliseconds: 100 * (homePageController.page)!.toInt()),
-        curve: Curves.linear,
-      );
+    if (switchHomePage(0)) {
       return true;
     }
     return false;

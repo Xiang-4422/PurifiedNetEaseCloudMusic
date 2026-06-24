@@ -189,7 +189,7 @@ class PlaybackSourcePrefetcher {
     }
     final stopwatch = PlaybackPerformanceLogger.start();
     late final Future<PlaybackResolvedSource> loadFuture;
-    loadFuture = load().then((source) {
+    loadFuture = Future.sync(load).then((source) {
       if (identical(_inFlight[key], loadFuture) && !source.isEmpty) {
         _cache.remove(key);
         _cache[key] = _CachedPlaybackSource(source, _now());

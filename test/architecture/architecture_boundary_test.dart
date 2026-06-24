@@ -722,13 +722,21 @@ void main() {
         if (!mapper.contains('normalizeNeteaseSongIds((playlist.trackIds ?? const []).map((track) => track.id))')) '${_relativePath(mapperFile)} does not normalize playlist track refs',
         if (!mapper.contains('trackId: _neteaseSongEntityId(entry.value)')) '${_relativePath(mapperFile)} can still write raw playlist ref track ids',
         if (!mapper.contains('playlists.where((playlist) => _normalizedPlaylistId(playlist.id).isNotEmpty)')) '${_relativePath(mapperFile)} can still batch-map blank playlist ids',
+        if (!remote.contains('final normalizedPlaylistId = _normalizedPlaylistSourceId(playlistId);')) '${_relativePath(remoteFile)} does not normalize playlist ids before SDK calls',
+        if (!remote.contains('_api.playListDetail(normalizedPlaylistId)')) '${_relativePath(remoteFile)} can still fetch playlist detail with raw id',
+        if (!remote.contains('ids: songIds.map(_normalizedSongSourceId).toList()')) '${_relativePath(remoteFile)} can still plan song detail batches from raw song ids',
+        if (!remote.contains('_api.subscribePlayList(normalizedPlaylistId')) '${_relativePath(remoteFile)} can still toggle subscription with raw playlist id',
+        if (!remote.contains('final normalizedSongId = _normalizedSongSourceId(songId);')) '${_relativePath(remoteFile)} does not normalize manipulated song ids before SDK calls',
+        if (!remote.contains('_api.playlistManipulateTracks(normalizedPlaylistId, normalizedSongId, add)')) '${_relativePath(remoteFile)} can still manipulate playlist tracks with raw ids',
+        if (!remote.contains('String _normalizedPlaylistSourceId(String playlistId)')) '${_relativePath(remoteFile)} does not define playlist source id normalization',
+        if (!remote.contains('String _normalizedSongSourceId(String songId)')) '${_relativePath(remoteFile)} does not define song source id normalization',
         if (!remote.contains('trackIds: normalizeNeteaseSongIds((playlist?.trackIds ?? const []).map((track) => track.id))')) '${_relativePath(remoteFile)} can still return raw playlist index track ids',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: '网易云歌单和歌单索引进入领域模型前必须规范化歌单 id 和歌曲 id，空白 id 不能写入歌单索引、trackRefs 或本地缓存。',
+        reason: '网易云歌单和歌单索引进入领域模型或 SDK 请求前必须规范化歌单 id 和歌曲 id，空白 id 不能写入歌单索引、trackRefs、本地缓存或远端操作。',
       );
     });
 

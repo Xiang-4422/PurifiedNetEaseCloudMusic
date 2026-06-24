@@ -1,4 +1,5 @@
 import 'package:netease_music_api/netease_music_api.dart';
+import 'package:bujuan/core/entities/music_resource_id.dart';
 import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_playlist_mapper.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_track_mapper.dart';
@@ -24,7 +25,11 @@ class NeteasePlaylistRemoteDataSource implements PlaylistRemoteDataSource {
         String? creatorUserId,
         bool isLikedSongs,
       })> fetchPlaylistIndex(String playlistId) async {
-    final wrap = await _api.playListDetail(playlistId);
+    final normalizedPlaylistId = _normalizedPlaylistSourceId(playlistId);
+    if (normalizedPlaylistId.isEmpty) {
+      throw ArgumentError.value(playlistId, 'playlistId', 'Expected a non-empty netease playlist id');
+    }
+    final wrap = await _api.playListDetail(normalizedPlaylistId);
     final playlist = wrap.playlist;
     final playlistEntity = playlist == null ? null : NeteasePlaylistMapper.fromPlaylist(playlist);
     return (
@@ -46,7 +51,7 @@ class NeteasePlaylistRemoteDataSource implements PlaylistRemoteDataSource {
   }) async {
     final tracks = <Track>[];
     final batches = planNeteaseSongDetailBatches(
-      ids: songIds,
+      ids: songIds.map(_normalizedSongSourceId).toList(),
       offset: offset,
       limit: limit,
     );
@@ -64,7 +69,11 @@ class NeteasePlaylistRemoteDataSource implements PlaylistRemoteDataSource {
     String playlistId, {
     required bool subscribe,
   }) async {
-    final result = await _api.subscribePlayList(playlistId, subscribe: subscribe);
+    final normalizedPlaylistId = _normalizedPlaylistSourceId(playlistId);
+    if (normalizedPlaylistId.isEmpty) {
+      throw ArgumentError.value(playlistId, 'playlistId', 'Expected a non-empty netease playlist id');
+    }
+    final result = await _api.subscribePlayList(normalizedPlaylistId, subscribe: subscribe);
     return (
       success: result.code == 200,
       message: result.message,
@@ -78,10 +87,34 @@ class NeteasePlaylistRemoteDataSource implements PlaylistRemoteDataSource {
     String songId, {
     required bool add,
   }) async {
-    final result = await _api.playlistManipulateTracks(playlistId, songId, add);
+    final normalizedPlaylistId = _normalizedPlaylistSourceId(playlistId);
+    final normalizedSongId = _normalizedSongSourceId(songId);
+    if (normalizedPlaylistId.isEmpty) {
+      throw ArgumentError.value(playlistId, 'playlistId', 'Expected a non-empty netease playlist id');
+    }
+    if (normalizedSongId.isEmpty) {
+      throw ArgumentError.value(songId, 'songId', 'Expected a non-empty netease song id');
+    }
+    final result = await _api.playlistManipulateTracks(normalizedPlaylistId, normalizedSongId, add);
     return (
       success: result.code == 200,
       message: result.message,
     );
+  }
+
+  String _normalizedPlaylistSourceId(String playlistId) {
+    final sourcePlaylistId = MusicResourceId.toNeteaseSourceId(playlistId).trim();
+    if (sourcePlaylistId.isEmpty || MusicResourceId.hasKnownPrefix(sourcePlaylistId)) {
+      return '';
+    }
+    return sourcePlaylistId;
+  }
+
+  String _normalizedSongSourceId(String songId) {
+    final sourceSongId = MusicResourceId.toNeteaseSourceId(songId).trim();
+    if (sourceSongId.isEmpty || MusicResourceId.hasKnownPrefix(sourceSongId)) {
+      return '';
+    }
+    return sourceSongId;
   }
 }

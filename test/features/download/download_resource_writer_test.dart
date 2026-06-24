@@ -75,6 +75,78 @@ void main() {
       expect(resourceIndexRepository.savedAudioPaths, isEmpty);
       expect(resourceIndexRepository.savedAudioOrigins, isEmpty);
     });
+
+    test('promotes playback cache resources to managed download facts', () async {
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        savedAudioAvailable: true,
+      );
+      final writer = DownloadResourceWriter(
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      final promoted = await writer.promoteResourcesToManagedDownload(
+        '1',
+        TrackResourceBundle(
+          audio: _resource(
+            kind: LocalResourceKind.audio,
+            path: '/tmp/cache-audio.mp3',
+            origin: TrackResourceOrigin.playbackCache,
+          ),
+          artwork: _resource(
+            kind: LocalResourceKind.artwork,
+            path: '/tmp/cache-artwork.jpg',
+            origin: TrackResourceOrigin.playbackCache,
+          ),
+          lyrics: _resource(
+            kind: LocalResourceKind.lyrics,
+            path: '/tmp/cache-lyrics.lrc',
+            origin: TrackResourceOrigin.playbackCache,
+          ),
+        ),
+      );
+
+      expect(promoted, isTrue);
+      expect(resourceIndexRepository.savedAudioPaths, ['/tmp/cache-audio.mp3']);
+      expect(resourceIndexRepository.savedAudioOrigins, [
+        TrackResourceOrigin.managedDownload,
+      ]);
+      expect(resourceIndexRepository.savedArtworkPaths, ['/tmp/cache-artwork.jpg']);
+      expect(resourceIndexRepository.savedArtworkOrigins, [
+        TrackResourceOrigin.managedDownload,
+      ]);
+      expect(resourceIndexRepository.savedLyricsPaths, ['/tmp/cache-lyrics.lrc']);
+      expect(resourceIndexRepository.savedLyricsOrigins, [
+        TrackResourceOrigin.managedDownload,
+      ]);
+    });
+
+    test('does not promote supplemental resources when audio is unavailable', () async {
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository();
+      final writer = DownloadResourceWriter(
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      final promoted = await writer.promoteResourcesToManagedDownload(
+        '1',
+        TrackResourceBundle(
+          artwork: _resource(
+            kind: LocalResourceKind.artwork,
+            path: '/tmp/cache-artwork.jpg',
+            origin: TrackResourceOrigin.playbackCache,
+          ),
+          lyrics: _resource(
+            kind: LocalResourceKind.lyrics,
+            path: '/tmp/cache-lyrics.lrc',
+            origin: TrackResourceOrigin.playbackCache,
+          ),
+        ),
+      );
+
+      expect(promoted, isFalse);
+      expect(resourceIndexRepository.savedAudioPaths, isEmpty);
+      expect(resourceIndexRepository.savedArtworkPaths, isEmpty);
+      expect(resourceIndexRepository.savedLyricsPaths, isEmpty);
+    });
   });
 }
 
@@ -82,14 +154,18 @@ class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository 
   _FakeLocalResourceIndexRepository({
     this.indexedAudioOrigin,
     this.indexedAudioPath,
+    this.savedAudioAvailable = false,
   });
 
   final TrackResourceOrigin? indexedAudioOrigin;
   final String? indexedAudioPath;
+  final bool savedAudioAvailable;
   final List<String> savedAudioPaths = [];
   final List<TrackResourceOrigin> savedAudioOrigins = [];
   final List<String> savedArtworkPaths = [];
+  final List<TrackResourceOrigin> savedArtworkOrigins = [];
   final List<String> savedLyricsPaths = [];
+  final List<TrackResourceOrigin> savedLyricsOrigins = [];
 
   @override
   Future<void> saveAudioResource(
@@ -103,7 +179,7 @@ class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository 
 
   @override
   Future<LocalResourceEntry?> getPrimaryAudioResource(String trackId) async {
-    final origin = indexedAudioOrigin;
+    final origin = indexedAudioOrigin ?? (savedAudioAvailable && savedAudioOrigins.isNotEmpty ? savedAudioOrigins.last : null);
     if (origin == null) {
       return null;
     }
@@ -129,6 +205,7 @@ class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository 
     required TrackResourceOrigin origin,
   }) async {
     savedArtworkPaths.add(path);
+    savedArtworkOrigins.add(origin);
   }
 
   @override
@@ -138,8 +215,25 @@ class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository 
     required TrackResourceOrigin origin,
   }) async {
     savedLyricsPaths.add(path);
+    savedLyricsOrigins.add(origin);
   }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+LocalResourceEntry _resource({
+  required LocalResourceKind kind,
+  required String path,
+  required TrackResourceOrigin origin,
+}) {
+  return LocalResourceEntry(
+    trackId: '1',
+    kind: kind,
+    path: path,
+    origin: origin,
+    sizeBytes: 1,
+    createdAt: DateTime(2026),
+    lastAccessedAt: DateTime(2026),
+  );
 }

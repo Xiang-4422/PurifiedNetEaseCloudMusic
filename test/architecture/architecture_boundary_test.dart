@@ -1713,6 +1713,30 @@ void main() {
       );
     });
 
+    test('player download commands normalize track ids before usecase and queue sync', () {
+      final downloadCommandsFile = File(
+        '${projectRoot.path}/lib/features/playback/player_download_commands.dart',
+      );
+      final downloadCommands = downloadCommandsFile.readAsStringSync();
+      final violations = <String>[
+        if (!downloadCommands.contains('final currentSongId = _normalizedPlaybackQueueItemId(currentSong.id);')) '${_relativePath(downloadCommandsFile)} can still start current download commands from raw current song id',
+        if (!downloadCommands.contains('final normalizedTrackId = _normalizedPlaybackQueueItemId(trackId);')) '${_relativePath(downloadCommandsFile)} can still send raw track ids to download usecase',
+        if (!downloadCommands.contains('_downloadUseCase.downloadTrackById(\n      normalizedTrackId,')) '${_relativePath(downloadCommandsFile)} can still download by a raw track id',
+        if (!downloadCommands.contains('.map(_normalizedPlaybackQueueItemId)')) '${_relativePath(downloadCommandsFile)} can still queue raw batch download ids',
+        if (!downloadCommands.contains('where((trackId) => trackId.isNotEmpty)')) '${_relativePath(downloadCommandsFile)} can still queue blank batch download ids',
+        if (!downloadCommands.contains('final resultTrackId = _normalizedPlaybackQueueItemId(result.track.id);')) '${_relativePath(downloadCommandsFile)} can still compare raw download result track id',
+        if (!downloadCommands.contains('currentSongId.isEmpty || currentSongId != resultTrackId')) '${_relativePath(downloadCommandsFile)} can still sync download results through raw current song comparison',
+        if (!downloadCommands.contains('await syncCurrentQueueItem(_normalizedPlaybackQueueItem(result.queueItem!));')) '${_relativePath(downloadCommandsFile)} can still write back raw download queue item ids',
+        if (downloadCommands.contains('currentSongState.value.id != result.track.id')) '${_relativePath(downloadCommandsFile)} still drops download results through raw id comparison',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '当前歌曲下载、取消、删除、重试和批量下载入口必须先规范化 track id，下载结果回写也要按规范化 id 判断当前歌曲。',
+      );
+    });
+
     test('playback control commands normalize ids before resume decisions', () {
       final commandServiceFile = File(
         '${projectRoot.path}/lib/features/playback/application/playback_ui_command_service.dart',

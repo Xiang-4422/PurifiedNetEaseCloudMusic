@@ -7,11 +7,12 @@ extension PlayerDownloadCommands on PlayerController {
     bool preferHighQuality = true,
   }) async {
     final currentSong = currentSongState.value;
-    if (currentSong.id.isEmpty) {
+    final currentSongId = _normalizedPlaybackQueueItemId(currentSong.id);
+    if (currentSongId.isEmpty) {
       return null;
     }
     return downloadTrackById(
-      currentSong.id,
+      currentSongId,
       preferHighQuality: preferHighQuality,
     );
   }
@@ -19,19 +20,21 @@ extension PlayerDownloadCommands on PlayerController {
   /// 删除当前歌曲的下载资源。
   Future<Track?> removeCurrentTrackDownload() async {
     final currentSong = currentSongState.value;
-    if (currentSong.id.isEmpty) {
+    final currentSongId = _normalizedPlaybackQueueItemId(currentSong.id);
+    if (currentSongId.isEmpty) {
       return null;
     }
-    return removeDownloadedTrackById(currentSong.id);
+    return removeDownloadedTrackById(currentSongId);
   }
 
   /// 取消当前歌曲的下载任务。
   Future<Track?> cancelCurrentTrackDownload() async {
     final currentSong = currentSongState.value;
-    if (currentSong.id.isEmpty) {
+    final currentSongId = _normalizedPlaybackQueueItemId(currentSong.id);
+    if (currentSongId.isEmpty) {
       return null;
     }
-    return cancelTrackDownloadById(currentSong.id);
+    return cancelTrackDownloadById(currentSongId);
   }
 
   /// 重试当前歌曲的下载任务。
@@ -39,11 +42,12 @@ extension PlayerDownloadCommands on PlayerController {
     bool preferHighQuality = true,
   }) async {
     final currentSong = currentSongState.value;
-    if (currentSong.id.isEmpty) {
+    final currentSongId = _normalizedPlaybackQueueItemId(currentSong.id);
+    if (currentSongId.isEmpty) {
       return null;
     }
     return retryTrackDownloadById(
-      currentSong.id,
+      currentSongId,
       preferHighQuality: preferHighQuality,
     );
   }
@@ -53,8 +57,12 @@ extension PlayerDownloadCommands on PlayerController {
     String trackId, {
     bool preferHighQuality = true,
   }) async {
+    final normalizedTrackId = _normalizedPlaybackQueueItemId(trackId);
+    if (normalizedTrackId.isEmpty) {
+      return null;
+    }
     final result = await _downloadUseCase.downloadTrackById(
-      trackId,
+      normalizedTrackId,
       preferHighQuality: preferHighQuality,
     );
     await _syncDownloadResultIfCurrent(result);
@@ -63,14 +71,26 @@ extension PlayerDownloadCommands on PlayerController {
 
   /// 删除指定曲目的下载资源并同步当前队列项。
   Future<Track?> removeDownloadedTrackById(String trackId) async {
-    final result = await _downloadUseCase.removeDownloadedTrackById(trackId);
+    final normalizedTrackId = _normalizedPlaybackQueueItemId(trackId);
+    if (normalizedTrackId.isEmpty) {
+      return null;
+    }
+    final result = await _downloadUseCase.removeDownloadedTrackById(
+      normalizedTrackId,
+    );
     await _syncDownloadResultIfCurrent(result);
     return result?.track;
   }
 
   /// 取消指定曲目的下载任务并同步当前队列项。
   Future<Track?> cancelTrackDownloadById(String trackId) async {
-    final result = await _downloadUseCase.cancelTrackDownloadById(trackId);
+    final normalizedTrackId = _normalizedPlaybackQueueItemId(trackId);
+    if (normalizedTrackId.isEmpty) {
+      return null;
+    }
+    final result = await _downloadUseCase.cancelTrackDownloadById(
+      normalizedTrackId,
+    );
     await _syncDownloadResultIfCurrent(result);
     return result?.track;
   }
@@ -80,8 +100,12 @@ extension PlayerDownloadCommands on PlayerController {
     String trackId, {
     bool preferHighQuality = true,
   }) async {
+    final normalizedTrackId = _normalizedPlaybackQueueItemId(trackId);
+    if (normalizedTrackId.isEmpty) {
+      return null;
+    }
     final result = await _downloadUseCase.retryTrackDownloadById(
-      trackId,
+      normalizedTrackId,
       preferHighQuality: preferHighQuality,
     );
     await _syncDownloadResultIfCurrent(result);
@@ -93,8 +117,12 @@ extension PlayerDownloadCommands on PlayerController {
     Iterable<String> trackIds, {
     bool preferHighQuality = true,
   }) {
+    final normalizedTrackIds = trackIds.map(_normalizedPlaybackQueueItemId).where((trackId) => trackId.isNotEmpty).toList(growable: false);
+    if (normalizedTrackIds.isEmpty) {
+      return Future<void>.value();
+    }
     return _downloadUseCase.queueTrackDownloads(
-      trackIds,
+      normalizedTrackIds,
       preferHighQuality: preferHighQuality,
     );
   }
@@ -102,9 +130,16 @@ extension PlayerDownloadCommands on PlayerController {
   Future<void> _syncDownloadResultIfCurrent(
     CurrentTrackDownloadResult? result,
   ) async {
-    if (result == null || currentSongState.value.id != result.track.id || result.queueItem == null) {
+    if (result == null || result.queueItem == null) {
       return;
     }
-    await syncCurrentQueueItem(result.queueItem!);
+    final currentSongId = _normalizedPlaybackQueueItemId(
+      currentSongState.value.id,
+    );
+    final resultTrackId = _normalizedPlaybackQueueItemId(result.track.id);
+    if (currentSongId.isEmpty || currentSongId != resultTrackId) {
+      return;
+    }
+    await syncCurrentQueueItem(_normalizedPlaybackQueueItem(result.queueItem!));
   }
 }

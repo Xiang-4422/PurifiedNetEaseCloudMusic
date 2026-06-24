@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
+import 'package:bujuan/core/entities/source_type.dart';
+import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
 import 'package:bujuan/features/playback/application/playback_lyric_ui_state_controller.dart';
 import 'package:bujuan/features/playback/application/playback_mode_command_service.dart';
@@ -145,6 +147,41 @@ void main() {
 
       expect(controller.runtimeState.value.currentIndex, 0);
       expect(controller.currentQueueIndex.value, 0);
+    });
+
+    test('normalizes current download ids before syncing queue item', () async {
+      final rawItem = _queueItem(' 1 ', sourceId: '1');
+      final currentItem = _queueItem('1', sourceId: '1');
+      final updatedItem = rawItem.copyWith(isCached: true);
+      final queueService = _FakePlaybackQueueService();
+      final playbackService = _FakePlaybackService();
+      final downloadUseCase = _FakeCurrentTrackDownloadUseCase(
+        downloadTrackByIdResult: CurrentTrackDownloadResult(
+          track: _track(' 1 '),
+          queueItem: updatedItem,
+        ),
+      );
+      final controller = _playerController(
+        playbackService: playbackService,
+        queueService: queueService,
+        downloadUseCase: downloadUseCase,
+      );
+      controller.currentSongState.value = rawItem;
+      controller.runtimeState.value = PlaybackRuntimeState(
+        queue: [rawItem],
+        currentSong: currentItem,
+      );
+
+      final track = await controller.downloadCurrentTrack();
+
+      expect(track?.id, ' 1 ');
+      expect(downloadUseCase.downloadedTrackIds, ['1']);
+      expect(queueService.updatedItems.map((item) => item.id), ['1']);
+      expect(playbackService.updatedItems.map((item) => item.id), ['1']);
+      expect(controller.runtimeState.value.currentSong.id, '1');
+      expect(controller.runtimeState.value.currentSong.isCached, isTrue);
+      expect(controller.runtimeState.value.queue.map((item) => item.id), ['1']);
+      expect(controller.runtimeState.value.queue.single.isCached, isTrue);
     });
 
     test('coalesces like toggles with normalized playback item ids', () async {
@@ -309,6 +346,7 @@ PlayerController _playerController({
   PlaybackPreferencePort? preferencePort,
   PlaybackUserContentPort? userContentPort,
   PlaybackArtworkPresenter? artworkPresenter,
+  CurrentTrackDownloadUseCase? downloadUseCase,
 }) {
   return PlayerController(
     playbackService: playbackService ?? _FakePlaybackService(),
@@ -322,7 +360,7 @@ PlayerController _playerController({
     userContentPort: userContentPort ?? _userContentPort(),
     artworkPresenter: artworkPresenter ?? _FakePlaybackArtworkPresenter(),
     selectionUiEffectCoordinator: _FakePlaybackSelectionUiEffectCoordinator(),
-    downloadUseCase: _FakeCurrentTrackDownloadUseCase(),
+    downloadUseCase: downloadUseCase ?? _FakeCurrentTrackDownloadUseCase(),
     toastPort: _FakePlaybackToastPort(),
   );
 }
@@ -373,6 +411,15 @@ PlaybackQueueItem _queueItem(
     lyricKey: null,
     isLiked: isLiked,
     isCached: false,
+  );
+}
+
+Track _track(String id) {
+  return Track(
+    id: id,
+    sourceType: SourceType.netease,
+    sourceId: id.trim(),
+    title: 'Track $id',
   );
 }
 
@@ -472,6 +519,22 @@ class _FakePlaybackSelectionUiEffectCoordinator implements PlaybackSelectionUiEf
 }
 
 class _FakeCurrentTrackDownloadUseCase implements CurrentTrackDownloadUseCase {
+  _FakeCurrentTrackDownloadUseCase({
+    this.downloadTrackByIdResult,
+  });
+
+  final CurrentTrackDownloadResult? downloadTrackByIdResult;
+  final List<String> downloadedTrackIds = <String>[];
+
+  @override
+  Future<CurrentTrackDownloadResult?> downloadTrackById(
+    String trackId, {
+    bool preferHighQuality = true,
+  }) async {
+    downloadedTrackIds.add(trackId);
+    return downloadTrackByIdResult;
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

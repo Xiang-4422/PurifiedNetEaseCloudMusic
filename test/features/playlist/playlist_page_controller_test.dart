@@ -11,6 +11,7 @@ import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_resource_bundle.dart';
 import 'package:bujuan/core/entities/track_with_resources.dart';
+import 'package:bujuan/core/state/operation_result.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 import 'package:bujuan/features/playlist/playlist_detail_data.dart';
 import 'package:bujuan/features/playlist/playlist_page_controller.dart';
@@ -124,6 +125,25 @@ void main() {
       );
 
       await expectLater(controller.loadLocalDetail('1'), completion(isNull));
+    });
+
+    test('normalizes current user id before repository access', () async {
+      final repository = _FakePlaylistRepository();
+      final controller = PlaylistPageController(
+        repository: repository,
+        likedSongIds: () => const [],
+        currentUserId: () => ' user-1 ',
+      );
+
+      await controller.loadLocalDetail('1');
+      await controller.loadInitialDetail('1');
+      await controller.fetchFirstPage('1');
+      await controller.toggleSubscription('1', subscribe: true);
+
+      expect(repository.loadLocalDetailUserIds, ['user-1']);
+      expect(repository.loadInitialDetailUserIds, ['user-1']);
+      expect(repository.fetchDetailUserIds, ['user-1']);
+      expect(repository.toggleSubscriptionUserIds, ['user-1']);
     });
 
     test('loads initial detail as partial when local database contains first page only', () async {
@@ -777,6 +797,10 @@ class _FakePlaylistRepository implements PlaylistRepository {
 
   final Object? loadLocalInitialDetailError;
   final Object? loadLocalPlaylistDetailError;
+  final List<String?> loadInitialDetailUserIds = <String?>[];
+  final List<String?> loadLocalDetailUserIds = <String?>[];
+  final List<String?> fetchDetailUserIds = <String?>[];
+  final List<String?> toggleSubscriptionUserIds = <String?>[];
 
   @override
   Future<PlaylistLocalInitialData> loadLocalInitialDetail({
@@ -784,6 +808,7 @@ class _FakePlaylistRepository implements PlaylistRepository {
     required List<int> likedSongIds,
     required String? currentUserId,
   }) async {
+    loadInitialDetailUserIds.add(currentUserId);
     final error = loadLocalInitialDetailError;
     if (error != null) {
       throw error;
@@ -800,11 +825,34 @@ class _FakePlaylistRepository implements PlaylistRepository {
     required List<int> likedSongIds,
     required String? currentUserId,
   }) async {
+    loadLocalDetailUserIds.add(currentUserId);
     final error = loadLocalPlaylistDetailError;
     if (error != null) {
       throw error;
     }
     return null;
+  }
+
+  @override
+  Future<PlaylistDetailData> fetchPlaylistDetail({
+    required String playlistId,
+    required List<int> likedSongIds,
+    required String? currentUserId,
+    int offset = 0,
+    int limit = -1,
+  }) async {
+    fetchDetailUserIds.add(currentUserId);
+    return _detail(songCount: 1, source: PlaylistDetailSource.remote);
+  }
+
+  @override
+  Future<OperationResult> toggleSubscription(
+    String playlistId, {
+    required bool subscribe,
+    String? currentUserId,
+  }) async {
+    toggleSubscriptionUserIds.add(currentUserId);
+    return const OperationResult(success: true);
   }
 
   @override

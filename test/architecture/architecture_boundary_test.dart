@@ -2932,11 +2932,15 @@ void main() {
       final factoryFile = File(
         '${projectRoot.path}/lib/features/playlist/playlist_page_controller_factory.dart',
       );
+      final controllerFile = File(
+        '${projectRoot.path}/lib/features/playlist/playlist_page_controller.dart',
+      );
       final bootstrapFile = File(
         '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
       );
       final page = pageFile.readAsStringSync();
       final factory = factoryFile.readAsStringSync();
+      final controller = controllerFile.readAsStringSync();
       final bootstrap = bootstrapFile.readAsStringSync();
       final violations = <String>[
         if (page.contains('PlaylistRepository')) '${_relativePath(pageFile)} names playlist repository directly',
@@ -2954,6 +2958,10 @@ void main() {
         if (!factory.contains('likedSongIds: _likedSongIds')) 'playlist page controller factory does not inject liked ids provider',
         if (!factory.contains('currentUserId: _currentUserId')) 'playlist page controller factory does not inject current user provider',
         if (!factory.contains('repository: _repository')) 'playlist page controller factory does not inject playlist repository',
+        if (!controller.contains('String _currentUserIdSnapshot()')) 'playlist page controller does not centralize current user snapshots',
+        if (!controller.contains('_normalizedCurrentUserId(_currentUserId())')) 'playlist page controller does not normalize current user snapshots',
+        if (!controller.contains('static String _normalizedCurrentUserId(String userId)')) 'playlist page controller does not define current user normalization',
+        if (controller.contains('currentUserId: _currentUserId()')) 'playlist page controller still passes raw current user ids to repository',
         if (!bootstrap.contains('Get.put<PlaylistArtworkColorService>')) 'feature bootstrap does not register playlist artwork color service',
         if (!bootstrap.contains('PlaylistPageControllerFactory(')) 'feature bootstrap does not register playlist page controller factory',
       ];

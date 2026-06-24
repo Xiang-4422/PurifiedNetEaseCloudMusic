@@ -57,7 +57,7 @@ class PlaylistPageController {
       return await _repository.loadLocalPlaylistDetail(
         playlistId: playlistId,
         likedSongIds: _likedSongIds(),
-        currentUserId: _currentUserId(),
+        currentUserId: _currentUserIdSnapshot(),
       );
     } catch (_) {
       return null;
@@ -70,7 +70,7 @@ class PlaylistPageController {
       final initialData = await _repository.loadLocalInitialDetail(
         playlistId: playlistId,
         likedSongIds: _likedSongIds(),
-        currentUserId: _currentUserId(),
+        currentUserId: _currentUserIdSnapshot(),
       );
       return PlaylistInitialDetailData(
         localDetail: initialData.localDetail,
@@ -95,7 +95,7 @@ class PlaylistPageController {
     return _repository.fetchPlaylistDetail(
       playlistId: playlistId,
       likedSongIds: _likedSongIds(),
-      currentUserId: _currentUserId(),
+      currentUserId: _currentUserIdSnapshot(),
       offset: offset,
       limit: limit,
     );
@@ -156,7 +156,15 @@ class PlaylistPageController {
     return _repository.toggleSubscription(
       playlistId,
       subscribe: subscribe,
-      currentUserId: _currentUserId(),
+      currentUserId: _currentUserIdSnapshot(),
     );
+  }
+
+  String _currentUserIdSnapshot() {
+    return _normalizedCurrentUserId(_currentUserId());
+  }
+
+  static String _normalizedCurrentUserId(String userId) {
+    return userId.trim();
   }
 }

@@ -105,6 +105,7 @@ class _FakeMusicDataRepository implements MusicDataRepository {
   Future<void> saveTrack(
     Track track, {
     bool precacheArtwork = true,
+    bool awaitArtworkPrecache = true,
   }) async {
     savedTracks.add(track);
   }
@@ -113,6 +114,7 @@ class _FakeMusicDataRepository implements MusicDataRepository {
   Future<void> saveTracks(
     List<Track> tracks, {
     bool precacheArtwork = true,
+    bool awaitArtworkPrecache = true,
   }) async {
     savedTracks.addAll(tracks);
   }

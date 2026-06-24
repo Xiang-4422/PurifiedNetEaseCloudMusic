@@ -242,7 +242,11 @@ class UserRepository {
       return const [];
     }
     final tracks = await _remoteDataSource.fetchTodayRecommendSongs();
-    await _musicDataRepository.saveTracks(tracks, precacheArtwork: true);
+    await _musicDataRepository.saveTracks(
+      tracks,
+      precacheArtwork: true,
+      awaitArtworkPrecache: false,
+    );
     await _userTrackListDataSource.replaceTrackList(
       userId,
       UserTrackListKind.dailyRecommend,
@@ -260,7 +264,11 @@ class UserRepository {
       return const [];
     }
     final tracks = await _remoteDataSource.fetchFmSongs();
-    await _musicDataRepository.saveTracks(tracks, precacheArtwork: true);
+    await _musicDataRepository.saveTracks(
+      tracks,
+      precacheArtwork: true,
+      awaitArtworkPrecache: false,
+    );
     await _userTrackListDataSource.replaceTrackList(
       userId,
       UserTrackListKind.fm,
@@ -285,7 +293,11 @@ class UserRepository {
       randomLikedSongId: randomLikedSongId,
       fromPlayAll: fromPlayAll,
     );
-    await _musicDataRepository.saveTracks(tracks, precacheArtwork: true);
+    await _musicDataRepository.saveTracks(
+      tracks,
+      precacheArtwork: true,
+      awaitArtworkPrecache: false,
+    );
     return _queueItemsFromSavedTracks(tracks, likedSongIds: likedSongIds);
   }
 
@@ -297,7 +309,11 @@ class UserRepository {
     final tracks = await _remoteDataSource.fetchSongsByIds(
       ids: ids,
     );
-    await _musicDataRepository.saveTracks(tracks, precacheArtwork: true);
+    await _musicDataRepository.saveTracks(
+      tracks,
+      precacheArtwork: true,
+      awaitArtworkPrecache: false,
+    );
     return _queueItemsFromSavedTracks(tracks, likedSongIds: likedSongIds);
   }
 

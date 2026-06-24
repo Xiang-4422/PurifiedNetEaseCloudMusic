@@ -69,6 +69,7 @@ class CloudRepository {
     await _musicDataRepository.saveTracks(
       result.tracks,
       precacheArtwork: true,
+      awaitArtworkPrecache: false,
     );
     final items = await _queueItemsFromSavedTracks(
       result.tracks,

@@ -662,6 +662,7 @@ class _FakeMusicDataRepository implements MusicDataRepository {
   Future<void> saveTracks(
     List<Track> tracks, {
     bool precacheArtwork = true,
+    bool awaitArtworkPrecache = true,
   }) async {
     for (final track in tracks) {
       _tracks[track.id] = track;

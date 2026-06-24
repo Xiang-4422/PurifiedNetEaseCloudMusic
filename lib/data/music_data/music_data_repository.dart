@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:bujuan/data/music_data/sources/local/database/data_sources/local_library_data_source.dart';
@@ -49,10 +50,18 @@ class MusicDataRepository {
   Future<void> saveTracks(
     List<Track> tracks, {
     bool precacheArtwork = true,
+    bool awaitArtworkPrecache = true,
   }) async {
     await _localDataSource.saveTracks(tracks);
     if (precacheArtwork) {
-      await _artworkCacheRepository.cacheTrackArtwork(tracks);
+      final precacheFuture = Future<List<Track>>.sync(
+        () => _artworkCacheRepository.cacheTrackArtwork(tracks),
+      ).catchError((_) => tracks);
+      if (awaitArtworkPrecache) {
+        await precacheFuture;
+      } else {
+        unawaited(precacheFuture);
+      }
     }
   }
 
@@ -60,8 +69,13 @@ class MusicDataRepository {
   Future<void> saveTrack(
     Track track, {
     bool precacheArtwork = true,
+    bool awaitArtworkPrecache = true,
   }) async {
-    await saveTracks([track], precacheArtwork: precacheArtwork);
+    await saveTracks(
+      [track],
+      precacheArtwork: precacheArtwork,
+      awaitArtworkPrecache: awaitArtworkPrecache,
+    );
   }
 
   /// 保存歌单摘要或详情。

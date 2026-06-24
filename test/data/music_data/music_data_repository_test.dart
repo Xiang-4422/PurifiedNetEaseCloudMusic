@@ -801,6 +801,63 @@ void main() {
       expect(artworkCacheRepository.cachedTrackIds, ['1']);
     });
 
+    test('awaits artwork precache by default while saving tracks', () async {
+      final completer = Completer<List<Track>>();
+      addTearDown(() {
+        if (!completer.isCompleted) {
+          completer.complete([_track('1')]);
+        }
+      });
+      final artworkCacheRepository = _FakeLocalArtworkCacheRepository(
+        precacheCompleter: completer,
+      );
+      final repository = _buildRepository(
+        artworkCacheRepository: artworkCacheRepository,
+      );
+      var completed = false;
+
+      final saveFuture = repository.saveTracks([_track('1')]).then((_) {
+        completed = true;
+      });
+      await Future<void>.delayed(Duration.zero);
+
+      expect(completed, isFalse);
+      expect(artworkCacheRepository.cachedTrackIds, ['1']);
+
+      completer.complete([_track('1')]);
+      await saveFuture;
+
+      expect(completed, isTrue);
+    });
+
+    test('can schedule artwork precache without blocking track saves', () async {
+      final completer = Completer<List<Track>>();
+      addTearDown(() {
+        if (!completer.isCompleted) {
+          completer.complete([_track('1')]);
+        }
+      });
+      final artworkCacheRepository = _FakeLocalArtworkCacheRepository(
+        precacheCompleter: completer,
+      );
+      final repository = _buildRepository(
+        artworkCacheRepository: artworkCacheRepository,
+      );
+      var completed = false;
+
+      await repository.saveTracks(
+        [_track('1')],
+        awaitArtworkPrecache: false,
+      ).then((_) {
+        completed = true;
+      });
+
+      expect(completed, isTrue);
+      expect(artworkCacheRepository.cachedTrackIds, ['1']);
+
+      completer.complete([_track('1')]);
+    });
+
     test('clears playback cache resources without deleting other indexed resources', () async {
       final directory = await Directory.systemTemp.createTemp('music-data-cache-cleanup-');
       addTearDown(() async {
@@ -1408,6 +1465,11 @@ class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository 
 }
 
 class _FakeLocalArtworkCacheRepository implements LocalArtworkCacheRepository {
+  _FakeLocalArtworkCacheRepository({
+    this.precacheCompleter,
+  });
+
+  final Completer<List<Track>>? precacheCompleter;
   int cacheCallCount = 0;
   final List<String> cachedTrackIds = [];
 
@@ -1415,6 +1477,10 @@ class _FakeLocalArtworkCacheRepository implements LocalArtworkCacheRepository {
   Future<List<Track>> cacheTrackArtwork(List<Track> tracks) async {
     cacheCallCount++;
     cachedTrackIds.addAll(tracks.map((track) => track.id));
+    final completer = precacheCompleter;
+    if (completer != null) {
+      return completer.future;
+    }
     return tracks;
   }
 

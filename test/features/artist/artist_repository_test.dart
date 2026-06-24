@@ -41,6 +41,7 @@ void main() {
 
       expect(musicDataRepository.savedArtistIds, ['netease:artist-1']);
       expect(musicDataRepository.savedTrackIds, ['netease:1']);
+      expect(musicDataRepository.awaitArtworkPrecacheValues, [false]);
       expect(musicDataRepository.savedAlbumIds, ['netease:album-1']);
       expect(musicDataRepository.requestedResourceIds, ['netease:1']);
       expect(detail.artist.id, 'netease:artist-1');
@@ -190,6 +191,7 @@ class _FakeMusicDataRepository implements MusicDataRepository {
   final List<String> savedArtistIds = [];
   final List<String> savedAlbumIds = [];
   final List<String> savedTrackIds = [];
+  final List<bool> awaitArtworkPrecacheValues = [];
   final List<String> requestedArtistIds = [];
   final List<String> requestedArtistTrackSourceIds = [];
   final List<String> requestedResourceIds = [];
@@ -225,8 +227,10 @@ class _FakeMusicDataRepository implements MusicDataRepository {
   Future<void> saveTracks(
     List<Track> tracks, {
     bool precacheArtwork = true,
+    bool awaitArtworkPrecache = true,
   }) async {
     savedTrackIds.addAll(tracks.map((track) => track.id));
+    awaitArtworkPrecacheValues.add(awaitArtworkPrecache);
   }
 
   @override

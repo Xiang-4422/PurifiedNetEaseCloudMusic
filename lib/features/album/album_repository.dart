@@ -76,7 +76,11 @@ class AlbumRepository {
     if (album != null) {
       await _musicDataRepository.saveAlbums([album]);
     }
-    await _musicDataRepository.saveTracks(tracks, precacheArtwork: true);
+    await _musicDataRepository.saveTracks(
+      tracks,
+      precacheArtwork: true,
+      awaitArtworkPrecache: false,
+    );
     return AlbumDetailData(
       album: album!,
       albumSongs: await _mapTracksToPlaybackQueueItems(

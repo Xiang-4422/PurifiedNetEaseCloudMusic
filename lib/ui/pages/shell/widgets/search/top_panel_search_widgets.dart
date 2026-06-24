@@ -8,15 +8,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 
-/// 顶部搜索面板的内容卡片间距容器。
-class TopPanelCard extends StatelessWidget {
-  /// 创建搜索面板内容卡片。
-  const TopPanelCard({
+/// 顶部搜索面板内容区的水平边距容器。
+class TopPanelContentPadding extends StatelessWidget {
+  /// 创建搜索面板内容边距容器。
+  const TopPanelContentPadding({
     super.key,
     required this.child,
   });
 
-  /// 卡片内容。
+  /// 内容区子组件。
   final Widget child;
 
   @override

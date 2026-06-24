@@ -59,7 +59,7 @@ class TopPanelContentArea extends StatelessWidget {
               onOpenArtist: onOpenArtist,
             ),
           ),
-          child: TopPanelCard(
+          child: TopPanelContentPadding(
             child: TopPanelHotKeywordList(
               searchController: searchController,
               shellController: shellController,
@@ -92,26 +92,26 @@ class _TopPanelResultTabs extends StatelessWidget {
   Widget build(BuildContext context) {
     return TabBarView(
       children: [
-        TopPanelCard(
+        TopPanelContentPadding(
           child: TopPanelSongSearchResult(
             searchController: searchController,
             keyword: keyword,
             playerController: playerController,
           ),
         ),
-        TopPanelCard(
+        TopPanelContentPadding(
           child: TopPanelPlaylistSearchResult(
             searchController: searchController,
             onOpenPlaylist: onOpenPlaylist,
           ),
         ),
-        TopPanelCard(
+        TopPanelContentPadding(
           child: TopPanelAlbumSearchResult(
             searchController: searchController,
             onOpenAlbum: onOpenAlbum,
           ),
         ),
-        TopPanelCard(
+        TopPanelContentPadding(
           child: TopPanelArtistSearchResult(
             searchController: searchController,
             onOpenArtist: onOpenArtist,

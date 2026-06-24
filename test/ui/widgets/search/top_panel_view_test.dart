@@ -45,7 +45,7 @@ void main() {
     expect(homeSource, contains('shellController: controller'));
     expect(homeSource, contains('searchController: searchController'));
     expect(homeSource, contains('playerController: playerController'));
-    expect(panelSource, isNot(contains('TopPanelCard(')));
+    expect(panelSource, isNot(contains('TopPanelContentPadding(')));
     expect(panelSource, isNot(contains('TabBarView(')));
     expect(panelSource, isNot(contains('BlurryContainer(')));
     expect(panelSource, isNot(contains('MyTabBar(')));
@@ -55,6 +55,8 @@ void main() {
     expect(panelSource, isNot(contains('class _AlbumSearchItem')));
     expect(panelSource, isNot(contains('class _ArtistSearchItem')));
 
+    expect(widgetsSource, contains('class TopPanelContentPadding'));
+    expect(widgetsSource, isNot(contains('class TopPanelCard')));
     expect(widgetsSource, contains('class TopPanelSearchBar'));
     expect(widgetsSource, contains("hintText: '输入歌曲、歌手、歌单...'"));
     expect(widgetsSource, contains('topPanelSearchActionLabel(hasKeyword: false)'));
@@ -77,7 +79,8 @@ void main() {
 
     expect(contentSource, contains('class TopPanelContentArea'));
     expect(contentSource, contains('TabBarView('));
-    expect(contentSource, contains('TopPanelCard('));
+    expect(contentSource, contains('TopPanelContentPadding('));
+    expect(contentSource, isNot(contains('TopPanelCard(')));
   });
 
   test('top panel delegates search result states to local widgets', () {

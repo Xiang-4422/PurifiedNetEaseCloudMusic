@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_resource_bundle.dart';
+import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 import 'package:bujuan/data/music_data/sources/local/resources/local_resource_index_repository.dart';
 
 /// 下载资源索引写入器，集中处理缓存资源和正式下载资源的归属。
@@ -141,6 +144,10 @@ class DownloadResourceWriter {
     required Set<TrackResourceOrigin> availableAudioOrigins,
   }) async {
     final audioResource = await _resourceIndexRepository.getPrimaryAudioResource(trackId);
-    return audioResource != null && availableAudioOrigins.contains(audioResource.origin);
+    if (audioResource == null || !availableAudioOrigins.contains(audioResource.origin)) {
+      return false;
+    }
+    final path = LocalFilePathNormalizer.normalize(audioResource.path);
+    return path.isNotEmpty && File(path).existsSync();
   }
 }

@@ -1808,6 +1808,26 @@ void main() {
       );
     });
 
+    test('download resource writer verifies indexed audio files before completion', () {
+      final writerFile = File(
+        '${projectRoot.path}/lib/features/download/application/download_resource_writer.dart',
+      );
+      final writer = writerFile.readAsStringSync();
+      final availabilityMethod = writer.indexOf('Future<bool> _hasAvailableAudioResource');
+      final violations = <String>[
+        if (availabilityMethod < 0) '${_relativePath(writerFile)} is missing audio availability verification',
+        if (!writer.contains('LocalFilePathNormalizer.normalize(audioResource.path)')) '${_relativePath(writerFile)} does not normalize indexed audio paths before accepting them',
+        if (!writer.contains('File(path).existsSync()')) '${_relativePath(writerFile)} accepts indexed audio without checking the file exists',
+        if (!writer.contains('!availableAudioOrigins.contains(audioResource.origin)')) '${_relativePath(writerFile)} does not verify the expected audio resource origin',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'DownloadResourceWriter 清理下载任务或保存附属资源前，必须确认主音频资源来源正确且文件真实存在。',
+      );
+    });
+
     test('download queue planner skips available local audio resources', () {
       final plannerFile = File(
         '${projectRoot.path}/lib/features/download/application/download_queue_planner.dart',

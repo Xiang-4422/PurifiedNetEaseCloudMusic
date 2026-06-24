@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:bujuan/core/entities/local_resource_entry.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_resource_bundle.dart';
@@ -7,7 +9,20 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('DownloadResourceWriter', () {
+    late Directory tempDirectory;
+
+    setUp(() async {
+      tempDirectory = await Directory.systemTemp.createTemp('download-resource-writer-');
+    });
+
+    tearDown(() async {
+      if (tempDirectory.existsSync()) {
+        await tempDirectory.delete(recursive: true);
+      }
+    });
+
     test('saves supplemental resources only after audio becomes available', () async {
+      final audioPath = await _writeFile(tempDirectory, 'audio.mp3');
       final resourceIndexRepository = _FakeLocalResourceIndexRepository(
         indexedAudioOrigin: TrackResourceOrigin.managedDownload,
       );
@@ -17,15 +32,15 @@ void main() {
 
       final saved = await writer.saveManagedDownloadResources(
         '1',
-        localPath: '/tmp/audio.mp3',
-        artworkPath: '/tmp/artwork.jpg',
-        lyricsPath: '/tmp/lyrics.lrc',
+        localPath: audioPath,
+        artworkPath: '${tempDirectory.path}/artwork.jpg',
+        lyricsPath: '${tempDirectory.path}/lyrics.lrc',
       );
 
       expect(saved, isTrue);
-      expect(resourceIndexRepository.savedAudioPaths, ['/tmp/audio.mp3']);
-      expect(resourceIndexRepository.savedArtworkPaths, ['/tmp/artwork.jpg']);
-      expect(resourceIndexRepository.savedLyricsPaths, ['/tmp/lyrics.lrc']);
+      expect(resourceIndexRepository.savedAudioPaths, [audioPath]);
+      expect(resourceIndexRepository.savedArtworkPaths, ['${tempDirectory.path}/artwork.jpg']);
+      expect(resourceIndexRepository.savedLyricsPaths, ['${tempDirectory.path}/lyrics.lrc']);
     });
 
     test('does not save supplemental resources when audio is unavailable', () async {
@@ -47,10 +62,34 @@ void main() {
       expect(resourceIndexRepository.savedLyricsPaths, isEmpty);
     });
 
+    test('does not treat indexed audio as available when the file is missing', () async {
+      final missingAudioPath = '${tempDirectory.path}/missing-indexed.mp3';
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        indexedAudioOrigin: TrackResourceOrigin.managedDownload,
+        indexedAudioPath: missingAudioPath,
+      );
+      final writer = DownloadResourceWriter(
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      final saved = await writer.saveManagedDownloadResources(
+        '1',
+        localPath: missingAudioPath,
+        artworkPath: '${tempDirectory.path}/artwork.jpg',
+        lyricsPath: '${tempDirectory.path}/lyrics.lrc',
+      );
+
+      expect(saved, isFalse);
+      expect(resourceIndexRepository.savedAudioPaths, [missingAudioPath]);
+      expect(resourceIndexRepository.savedArtworkPaths, isEmpty);
+      expect(resourceIndexRepository.savedLyricsPaths, isEmpty);
+    });
+
     test('does not promote local import resources to managed download', () async {
+      final localImportPath = await _writeFile(tempDirectory, 'local-import.mp3');
       final resourceIndexRepository = _FakeLocalResourceIndexRepository(
         indexedAudioOrigin: TrackResourceOrigin.localImport,
-        indexedAudioPath: '/tmp/local-import.mp3',
+        indexedAudioPath: localImportPath,
       );
       final writer = DownloadResourceWriter(
         resourceIndexRepository: resourceIndexRepository,
@@ -62,7 +101,7 @@ void main() {
           audio: LocalResourceEntry(
             trackId: '1',
             kind: LocalResourceKind.audio,
-            path: '/tmp/local-import.mp3',
+            path: localImportPath,
             origin: TrackResourceOrigin.localImport,
             sizeBytes: 1,
             createdAt: DateTime(2026),
@@ -77,6 +116,9 @@ void main() {
     });
 
     test('promotes playback cache resources to managed download facts', () async {
+      final audioPath = await _writeFile(tempDirectory, 'cache-audio.mp3');
+      final artworkPath = await _writeFile(tempDirectory, 'cache-artwork.jpg');
+      final lyricsPath = await _writeFile(tempDirectory, 'cache-lyrics.lrc');
       final resourceIndexRepository = _FakeLocalResourceIndexRepository(
         savedAudioAvailable: true,
       );
@@ -89,32 +131,32 @@ void main() {
         TrackResourceBundle(
           audio: _resource(
             kind: LocalResourceKind.audio,
-            path: '/tmp/cache-audio.mp3',
+            path: audioPath,
             origin: TrackResourceOrigin.playbackCache,
           ),
           artwork: _resource(
             kind: LocalResourceKind.artwork,
-            path: '/tmp/cache-artwork.jpg',
+            path: artworkPath,
             origin: TrackResourceOrigin.playbackCache,
           ),
           lyrics: _resource(
             kind: LocalResourceKind.lyrics,
-            path: '/tmp/cache-lyrics.lrc',
+            path: lyricsPath,
             origin: TrackResourceOrigin.playbackCache,
           ),
         ),
       );
 
       expect(promoted, isTrue);
-      expect(resourceIndexRepository.savedAudioPaths, ['/tmp/cache-audio.mp3']);
+      expect(resourceIndexRepository.savedAudioPaths, [audioPath]);
       expect(resourceIndexRepository.savedAudioOrigins, [
         TrackResourceOrigin.managedDownload,
       ]);
-      expect(resourceIndexRepository.savedArtworkPaths, ['/tmp/cache-artwork.jpg']);
+      expect(resourceIndexRepository.savedArtworkPaths, [artworkPath]);
       expect(resourceIndexRepository.savedArtworkOrigins, [
         TrackResourceOrigin.managedDownload,
       ]);
-      expect(resourceIndexRepository.savedLyricsPaths, ['/tmp/cache-lyrics.lrc']);
+      expect(resourceIndexRepository.savedLyricsPaths, [lyricsPath]);
       expect(resourceIndexRepository.savedLyricsOrigins, [
         TrackResourceOrigin.managedDownload,
       ]);
@@ -148,6 +190,12 @@ void main() {
       expect(resourceIndexRepository.savedLyricsPaths, isEmpty);
     });
   });
+}
+
+Future<String> _writeFile(Directory directory, String name) async {
+  final file = File('${directory.path}/$name');
+  await file.writeAsBytes([1, 2, 3]);
+  return file.path;
 }
 
 class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository {

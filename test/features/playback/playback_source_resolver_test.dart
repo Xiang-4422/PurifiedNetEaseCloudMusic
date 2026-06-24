@@ -288,11 +288,10 @@ void main() {
     });
 
     test('treats missing local playback url from repository as empty source', () async {
-      final resolver = PlaybackSourceResolver(
-        repository: _FakePlaybackRepository(
-          playbackUrl: '/missing/audio/repository-cache.mp3',
-        ),
+      final repository = _FakePlaybackRepository(
+        playbackUrl: '/missing/audio/repository-cache.mp3',
       );
+      final resolver = PlaybackSourceResolver(repository: repository);
 
       final source = await resolver.resolveRemote(
         _mediaItem(
@@ -304,6 +303,7 @@ void main() {
 
       expect(source.kind, PlaybackResolvedSourceKind.empty);
       expect(source.isEmpty, isTrue);
+      expect(repository.trackResourceLookups, ['netease:1']);
     });
 
     test('treats unsafe file uri playback url from repository as empty source', () async {

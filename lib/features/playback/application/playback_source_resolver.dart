@@ -68,6 +68,7 @@ class PlaybackSourceResolver {
     final localPath = LocalFilePathNormalizer.normalize(url);
     if (localPath.isNotEmpty) {
       if (!File(localPath).existsSync()) {
+        await _pruneMissingIndexedAudioResource(item);
         return const PlaybackResolvedSource(
           kind: PlaybackResolvedSourceKind.empty,
         );

@@ -80,6 +80,35 @@ const expectedTypedFacadeMixins = [
 ]
 const expectedRawFacadeMixins = ['ApiEnhancedRaw']
 const expectedPublicFacadeMixins = sorted([...expectedTypedFacadeMixins, ...expectedRawFacadeMixins])
+const requiredSpecialModules = [
+  'api',
+  'audio_match',
+  'avatar_upload',
+  'cloud',
+  'cloud_import',
+  'cloud_upload_complete',
+  'cloud_upload_token',
+  'decrypt',
+  'eapi_decrypt',
+  'inner_version',
+  'login_qr_create',
+  'playlist_cover_update',
+  'playlist_track_all',
+  'playlist_tracks',
+  'register_anonimous',
+  'register_xeapikey',
+  'related_playlist',
+  'scrobble',
+  'scrobble_v1',
+  'song_url_match',
+  'song_url_ncmget',
+  'song_url_v1',
+  'song_url_v1_302',
+  'top_list',
+  'vip_sign_history',
+  'vip_tasks_v1',
+  'voice_upload',
+]
 
 function validateArgs(args, { flags, pathPrefixes }) {
   for (const arg of args) {
@@ -853,6 +882,7 @@ const upstreamModuleSet = new Set(upstreamModules)
 const manifestModuleSet = new Set(manifestModules)
 const rawConvenienceModuleSet = new Set(rawConvenienceModules)
 const rawConvenienceAliasModuleSet = new Set(rawConvenienceAliasModules)
+const requiredSpecialModuleSet = new Set(requiredSpecialModules)
 const normalModules = entries.filter((entry) => !entry.special).map((entry) => entry.module)
 const specialModules = entries.filter((entry) => entry.special).map((entry) => entry.module)
 const specialSet = new Set(specialModules)
@@ -943,6 +973,12 @@ const specialLimitedMissingReason = sorted(
     return typeof reason !== 'string' || reason.trim().length === 0
   }),
 )
+const requiredSpecialDuplicateModules = duplicateValues(requiredSpecialModules)
+const requiredSpecialMissingUpstreamModules = sorted(requiredSpecialModules.filter((module) => !upstreamModuleSet.has(module)))
+const requiredSpecialMissingManifestModules = sorted(requiredSpecialModules.filter((module) => !manifestModuleSet.has(module)))
+const requiredSpecialNotMarkedSpecial = sorted(requiredSpecialModules.filter((module) => manifestModuleSet.has(module) && !specialSet.has(module)))
+const requiredSpecialMissingStatus = sorted(requiredSpecialModules.filter((module) => !categorizedSpecial.has(module)))
+const unexpectedSpecialModules = sorted(specialModules.filter((module) => !requiredSpecialModuleSet.has(module)))
 const specialDispatcherDuplicateCases = duplicateValues(rawDispatcherModules)
 const specialDispatcherMissing = sorted(specialModules.filter((module) => !rawDispatcherModuleSet.has(module)))
 const specialDispatcherUnknown = sorted(rawDispatcherModules.filter((module) => !specialSet.has(module)))
@@ -1001,6 +1037,54 @@ function buildSdkDifferences() {
       status: 'special_coverage_order_mismatch',
       reason: `Special coverage ${mismatch.field} index ${mismatch.index} has ${mismatch.actual || '<missing>'}, expected ${mismatch.expected || '<missing>'}.`,
       scope: 'special_coverage_config',
+    })
+  }
+  for (const module of requiredSpecialDuplicateModules) {
+    differences.push({
+      module,
+      status: 'duplicate_required_special_module',
+      reason: 'Required special module list defines this module more than once.',
+      scope: 'required_special_modules',
+    })
+  }
+  for (const module of requiredSpecialMissingUpstreamModules) {
+    differences.push({
+      module,
+      status: 'missing_required_special_upstream_module',
+      reason: 'Required special module is not present in upstream module/*.js.',
+      scope: 'required_special_modules',
+    })
+  }
+  for (const module of requiredSpecialMissingManifestModules) {
+    differences.push({
+      module,
+      status: 'missing_required_special_manifest_module',
+      reason: 'Required special module is not present in the generated manifest.',
+      scope: 'required_special_modules',
+    })
+  }
+  for (const module of requiredSpecialNotMarkedSpecial) {
+    differences.push({
+      module,
+      status: 'required_module_not_marked_special',
+      reason: 'Required special module is present in the manifest but is not marked special.',
+      scope: 'required_special_modules',
+    })
+  }
+  for (const module of requiredSpecialMissingStatus) {
+    differences.push({
+      module,
+      status: 'missing_required_special_status',
+      reason: 'Required special module is not categorized as Node oracle, Dart behavior, or limited.',
+      scope: 'required_special_modules',
+    })
+  }
+  for (const module of unexpectedSpecialModules) {
+    differences.push({
+      module,
+      status: 'unexpected_special_module',
+      reason: 'Generated manifest marks this module special, but it is not in the required special module list.',
+      scope: 'required_special_modules',
     })
   }
   for (const [module, reason] of Object.entries(specialLimitedReasons)) {
@@ -1416,6 +1500,13 @@ const report = {
   specialCoverageInvalidEntries,
   specialCoverageDuplicateEntries,
   specialCoverageOrderMismatches,
+  requiredSpecialModules,
+  requiredSpecialDuplicateModules,
+  requiredSpecialMissingUpstreamModules,
+  requiredSpecialMissingManifestModules,
+  requiredSpecialNotMarkedSpecial,
+  requiredSpecialMissingStatus,
+  unexpectedSpecialModules,
   upstreamModuleFileCount: upstreamModules.length,
   moduleCount: entries.length,
   normalModuleCount: normalModules.length,
@@ -1494,6 +1585,12 @@ const hasFailure =
   report.specialCoverageInvalidEntries.length > 0 ||
   report.specialCoverageDuplicateEntries.length > 0 ||
   report.specialCoverageOrderMismatches.length > 0 ||
+  report.requiredSpecialDuplicateModules.length > 0 ||
+  report.requiredSpecialMissingUpstreamModules.length > 0 ||
+  report.requiredSpecialMissingManifestModules.length > 0 ||
+  report.requiredSpecialNotMarkedSpecial.length > 0 ||
+  report.requiredSpecialMissingStatus.length > 0 ||
+  report.unexpectedSpecialModules.length > 0 ||
   report.manifestMissingUpstreamModules.length > 0 ||
   report.manifestUnknownUpstreamModules.length > 0 ||
   report.oracleInvalidFixtures.length > 0 ||
@@ -1593,6 +1690,12 @@ function renderMarkdownReport(report) {
     `- Dart behavior: ${report.specialDartBehavior.join(', ') || 'none'}`,
     `- limited: ${report.specialLimited.join(', ') || 'none'}`,
     `- status counts: covered ${report.specialCoverageStatusCounts.covered || 0}, limited ${report.specialCoverageStatusCounts.limited || 0}, missing ${report.specialCoverageStatusCounts.missing || 0}`,
+    `- required special modules: ${report.requiredSpecialModules.length}`,
+    `- required missing upstream: ${report.requiredSpecialMissingUpstreamModules.join(', ') || 'none'}`,
+    `- required missing manifest: ${report.requiredSpecialMissingManifestModules.join(', ') || 'none'}`,
+    `- required not marked special: ${report.requiredSpecialNotMarkedSpecial.join(', ') || 'none'}`,
+    `- required missing status: ${report.requiredSpecialMissingStatus.join(', ') || 'none'}`,
+    `- unexpected special modules: ${report.unexpectedSpecialModules.join(', ') || 'none'}`,
     '',
     '| module | status | coverage | oracle fixture | limited reason |',
     '| --- | --- | --- | --- | --- |',
@@ -1656,6 +1759,7 @@ function renderSdkDifferencesDocSection(report) {
     `- 上游 commit：${report.upstreamCommit || 'unknown'}`,
     `- module 覆盖：${report.moduleCount}/${report.upstreamModuleFileCount}`,
     `- special 状态：covered ${report.specialCoverageStatusCounts.covered || 0}，limited ${report.specialCoverageStatusCounts.limited || 0}，missing ${report.specialCoverageStatusCounts.missing || 0}`,
+    `- 目标 special 清单：${report.requiredSpecialModules.length} 个，缺 upstream ${report.requiredSpecialMissingUpstreamModules.length}，缺 manifest ${report.requiredSpecialMissingManifestModules.length}，未标记 special ${report.requiredSpecialNotMarkedSpecial.length}，缺覆盖状态 ${report.requiredSpecialMissingStatus.length}，意外 special ${report.unexpectedSpecialModules.length}`,
     `- runtime option 状态：supported ${report.runtimeOptionStatusCounts.supported || 0}，limited ${report.runtimeOptionStatusCounts.limited || 0}`,
     '',
     '| scope | module | status | reason |',
@@ -1739,6 +1843,13 @@ if (jsonOutput) {
   console.log(`special coverage invalid entries: ${report.specialCoverageInvalidEntries.length}`)
   console.log(`special coverage duplicate entries: ${report.specialCoverageDuplicateEntries.length}`)
   console.log(`special coverage order mismatches: ${report.specialCoverageOrderMismatches.length}`)
+  console.log(`required special modules: ${report.requiredSpecialModules.length}`)
+  console.log(`required special duplicate modules: ${report.requiredSpecialDuplicateModules.length}`)
+  console.log(`required special missing upstream modules: ${report.requiredSpecialMissingUpstreamModules.length}`)
+  console.log(`required special missing manifest modules: ${report.requiredSpecialMissingManifestModules.length}`)
+  console.log(`required special not marked special: ${report.requiredSpecialNotMarkedSpecial.length}`)
+  console.log(`required special missing status: ${report.requiredSpecialMissingStatus.length}`)
+  console.log(`unexpected special modules: ${report.unexpectedSpecialModules.length}`)
   console.log(
     `modules: ${report.moduleCount} (upstream files ${report.upstreamModuleFileCount}, normal ${report.normalModuleCount}, special ${report.specialModuleCount})`,
   )

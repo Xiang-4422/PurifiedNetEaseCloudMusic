@@ -15,6 +15,35 @@ import 'package:netease_music_api/src/generated/api_enhanced_modules.g.dart';
 
 const _encryptedXeApiPublicKeyFixture = 'Ix+68DGNS+G6Oiwlq/g/+pJlf+CLRzLMsVxgAP9Sq82SZX/gi0cyzLFcYAD/UqvNXpKKq45tTezVfnTCJ+SJPc19vHxGXOOCLiTjXypVtRo2werynr5A9/iH1qGdKGF4';
 const _upstreamCheckTokenFixture = '9ca17ae2e6ffcda170e2e6ee8af14fbabdb988f225b3868eb2c15a879b9a83d274a790ac8ff54a97b889d5d42af0feaec3b92af58cff99c470a7eafd88f75e839a9ea7c14e909da883e83fb692a3abdb6b92adee9e';
+const _expectedRequiredSpecialModules = {
+  'api',
+  'audio_match',
+  'avatar_upload',
+  'cloud',
+  'cloud_import',
+  'cloud_upload_complete',
+  'cloud_upload_token',
+  'decrypt',
+  'eapi_decrypt',
+  'inner_version',
+  'login_qr_create',
+  'playlist_cover_update',
+  'playlist_track_all',
+  'playlist_tracks',
+  'register_anonimous',
+  'register_xeapikey',
+  'related_playlist',
+  'scrobble',
+  'scrobble_v1',
+  'song_url_match',
+  'song_url_ncmget',
+  'song_url_v1',
+  'song_url_v1_302',
+  'top_list',
+  'vip_sign_history',
+  'vip_tasks_v1',
+  'voice_upload',
+};
 const _relatedPlaylistHtml = '''
 <div class="cver u-cover u-cover-3">
   <img src="https://p1.music.126.net/cover-a.jpg?param=50y50">
@@ -376,6 +405,13 @@ void main() {
       expect(report['specialLimitedMissingReason'], isEmpty);
       expect(report['specialUnknownStatus'], isEmpty);
       expect(_stringSet(report['specialDartBehavior']), {'song_url_match'});
+      expect(_stringSet(report['requiredSpecialModules']), _expectedRequiredSpecialModules);
+      expect(report['requiredSpecialDuplicateModules'], isEmpty);
+      expect(report['requiredSpecialMissingUpstreamModules'], isEmpty);
+      expect(report['requiredSpecialMissingManifestModules'], isEmpty);
+      expect(report['requiredSpecialNotMarkedSpecial'], isEmpty);
+      expect(report['requiredSpecialMissingStatus'], isEmpty);
+      expect(report['unexpectedSpecialModules'], isEmpty);
       expect(report['specialDispatcherDuplicateCases'], isEmpty);
       expect(report['specialDispatcherMissing'], isEmpty);
       expect(report['specialDispatcherUnknown'], isEmpty);
@@ -514,6 +550,13 @@ void main() {
           'specialModuleCount',
           'nodeOracleScenarioCount',
           'nodeOracleFixtureCount',
+          'requiredSpecialModules',
+          'requiredSpecialDuplicateModules',
+          'requiredSpecialMissingUpstreamModules',
+          'requiredSpecialMissingManifestModules',
+          'requiredSpecialNotMarkedSpecial',
+          'requiredSpecialMissingStatus',
+          'unexpectedSpecialModules',
           'specialCoverageStatusByModule',
           'specialCoverageStatusCounts',
           'runtimeOptionStatusByName',
@@ -545,6 +588,13 @@ void main() {
       );
       expect(report['specialCoverageStatusByModule'], isA<Map<String, dynamic>>());
       expect(report['manifestUpstreamMetadataMismatches'], isA<List<dynamic>>());
+      expect(report['requiredSpecialModules'], isA<List<dynamic>>());
+      expect(report['requiredSpecialDuplicateModules'], isA<List<dynamic>>());
+      expect(report['requiredSpecialMissingUpstreamModules'], isA<List<dynamic>>());
+      expect(report['requiredSpecialMissingManifestModules'], isA<List<dynamic>>());
+      expect(report['requiredSpecialNotMarkedSpecial'], isA<List<dynamic>>());
+      expect(report['requiredSpecialMissingStatus'], isA<List<dynamic>>());
+      expect(report['unexpectedSpecialModules'], isA<List<dynamic>>());
       expect(report['specialCoverageStatusCounts'], isA<Map<String, dynamic>>());
       expect(report['runtimeOptionStatusByName'], isA<Map<String, dynamic>>());
       expect(report['runtimeOptionStatusCounts'], isA<Map<String, dynamic>>());
@@ -647,6 +697,12 @@ void main() {
           '- status counts: covered ${specialCoverageStatusCounts['covered']}, limited ${specialCoverageStatusCounts['limited']}, missing 0',
         ),
       );
+      expect(markdown, contains('- required special modules: ${_expectedRequiredSpecialModules.length}'));
+      expect(markdown, contains('- required missing upstream: none'));
+      expect(markdown, contains('- required missing manifest: none'));
+      expect(markdown, contains('- required not marked special: none'));
+      expect(markdown, contains('- required missing status: none'));
+      expect(markdown, contains('- unexpected special modules: none'));
       expect(markdown, contains('| module | status | coverage | oracle fixture | limited reason |'));
       expect(markdown, contains('- Dart behavior: song_url_match'));
       final runtimeOptionStatusCounts = _jsonMap(report['runtimeOptionStatusCounts']);
@@ -834,17 +890,20 @@ void main() {
       expect(_jsonMapList(report['specialCoverageInvalidEntries']), isNotEmpty);
       expect(_jsonMapList(report['specialCoverageDuplicateEntries']), isNotEmpty);
       expect(report['specialUnknownStatus'], contains('not_a_special_module'));
+      expect(report['requiredSpecialMissingStatus'], contains('audio_match'));
+      expect(report['requiredSpecialMissingStatus'], contains('voice_upload'));
       expect(
         _jsonMapList(report['sdkDifferences']).map((item) => item['status']).toSet(),
         containsAll({
           'invalid_special_coverage',
           'duplicate_special_coverage_entry',
+          'missing_required_special_status',
           'unknown_special_status',
         }),
       );
       expect(
         _jsonMapList(report['sdkDifferences']).map((item) => item['scope']).toSet(),
-        contains('special_coverage_config'),
+        containsAll({'required_special_modules', 'special_coverage_config'}),
       );
     });
 
@@ -949,6 +1008,7 @@ void main() {
       expect(result.exitCode, isNot(0), reason: '${result.stdout}\n${result.stderr}');
       final report = _jsonMap(jsonDecode(result.stdout as String));
       expect(report['specialDispatcherMissing'], contains('album'));
+      expect(report['unexpectedSpecialModules'], contains('album'));
       final albumStatus = _jsonMap(_jsonMap(report['specialCoverageStatusByModule'])['album']);
       expect(albumStatus['status'], 'missing');
       expect(albumStatus['coverage'], isEmpty);
@@ -956,7 +1016,7 @@ void main() {
       final sdkDifferences = _jsonMapList(report['sdkDifferences']);
       expect(
         sdkDifferences.where((item) => item['module'] == 'album').map((item) => item['status']),
-        contains('missing_special_dispatcher'),
+        containsAll({'missing_special_dispatcher', 'unexpected_special_module'}),
       );
       expect(
         sdkDifferences.singleWhere(
@@ -1619,35 +1679,7 @@ void main() {
     test('special modules are marked for manual override', () {
       final specialModules = apiEnhancedModules.where((module) => module.special).map((module) => module.module).toSet();
 
-      expect(specialModules, {
-        'api',
-        'audio_match',
-        'avatar_upload',
-        'cloud',
-        'cloud_import',
-        'cloud_upload_complete',
-        'cloud_upload_token',
-        'decrypt',
-        'eapi_decrypt',
-        'inner_version',
-        'login_qr_create',
-        'playlist_track_all',
-        'playlist_tracks',
-        'playlist_cover_update',
-        'register_anonimous',
-        'register_xeapikey',
-        'related_playlist',
-        'scrobble',
-        'scrobble_v1',
-        'song_url_match',
-        'song_url_ncmget',
-        'song_url_v1',
-        'song_url_v1_302',
-        'top_list',
-        'vip_sign_history',
-        'vip_tasks_v1',
-        'voice_upload',
-      });
+      expect(specialModules, _expectedRequiredSpecialModules);
     });
 
     test('special modules have explicit coverage status', () {

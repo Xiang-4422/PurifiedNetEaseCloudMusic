@@ -11,6 +11,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
+/// 云盘分页列表的预渲染范围。
+@visibleForTesting
+const double cloudDriveListCacheExtent = 480;
+
 /// 云盘歌曲列表页面，支持分页刷新和直接发起播放。
 class CloudDriveView extends StatefulWidget {
   /// 创建云盘歌曲列表页面。
@@ -77,6 +81,7 @@ class _CloudDriveViewState extends State<CloudDriveView> {
                   }
                 },
                 child: ListView.builder(
+                  cacheExtent: cloudDriveListCacheExtent,
                   itemCount: state.items.length,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   physics: const ClampingScrollPhysics(),

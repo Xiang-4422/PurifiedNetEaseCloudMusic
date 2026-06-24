@@ -11,6 +11,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
+/// 电台节目分页列表的预渲染范围。
+@visibleForTesting
+const double radioProgramListCacheExtent = 480;
+
 /// 播客详情页，展示节目列表并支持播放节目队列。
 class RadioDetailsView extends StatefulWidget {
   /// 创建播客详情页。
@@ -82,6 +86,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
               }
             },
             child: ListView.builder(
+              cacheExtent: radioProgramListCacheExtent,
               physics: const ClampingScrollPhysics(),
               itemBuilder: (context, index) {
                 return SongItem(

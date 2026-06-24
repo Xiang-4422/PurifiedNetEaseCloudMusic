@@ -207,18 +207,22 @@ Map<String, dynamic> buildNcblPld(NcblContext ctx, NcblSong song, NcblSource sou
   };
 }
 
-Uint8List encryptNcbl(String meta, String body) {
+Uint8List encryptNcbl(
+  String meta,
+  String body, {
+  NcblEncryptOptions? options,
+}) {
   final metaBytes = Uint8List.fromList(utf8.encode(meta));
   final bodyBytes = Uint8List.fromList(utf8.encode(body));
-  final keyA = _randomBytes(32);
+  final keyA = options?.keyA == null ? _randomBytes(32) : Uint8List.fromList(options!.keyA!);
   if (keyA[0] >= 0xa3) {
     keyA[0] = 0xa2;
   }
   final keyB = _rsaWrap(keyA);
-  final uuid = _randomUuidBytes();
+  final uuid = options?.uuid == null ? _randomUuidBytes() : Uint8List.fromList(options!.uuid!);
   final nonce = Uint8List.sublistView(uuid, 0, 12);
   final counter = _readUint32Le(uuid, 12) >>> 2;
-  final baseSeq = _readUint16Le(_randomBytes(2), 0);
+  final baseSeq = options?.baseSeq ?? _readUint16Le(_randomBytes(2), 0);
   final metaCipher = _chacha20(keyB, counter, nonce, metaBytes);
   final metaBlock = _concatBytes([
     _uint16Le(_metaBlockType),
@@ -229,8 +233,9 @@ Uint8List encryptNcbl(String meta, String body) {
   final compressed = Uint8List.fromList(gzip.encode(bodyBytes));
   final frames = <Uint8List>[];
   var seq = baseSeq;
-  for (var offset = 0; offset < compressed.length || offset == 0; offset += _defaultMaxFrame) {
-    final end = min(offset + _defaultMaxFrame, compressed.length);
+  final maxFrame = options?.maxFrame ?? _defaultMaxFrame;
+  for (var offset = 0; offset < compressed.length || offset == 0; offset += maxFrame) {
+    final end = min(offset + maxFrame, compressed.length);
     final slice = Uint8List.sublistView(compressed, offset, end);
     final cipher = _chacha20(keyA, counter, nonce, slice);
     frames.add(_uint16Le(cipher.length));
@@ -255,21 +260,25 @@ Uint8List encryptNcbl(String meta, String body) {
   return _concatBytes([header, metaBlock, trailing]);
 }
 
-NcblMultipartPayload buildNcblMultipart(Uint8List payload) {
-  final boundary = _randomUuidHex();
-  final fileName = 'op_${_secureRandom.nextInt(90000) + 10000}_0_${_secureRandom.nextInt(0xffffffff) + 1}';
+NcblMultipartPayload buildNcblMultipart(
+  Uint8List payload, {
+  String? boundary,
+  String? fileName,
+}) {
+  final resolvedBoundary = boundary ?? _randomUuidHex();
+  final resolvedFileName = fileName ?? 'op_${_secureRandom.nextInt(90000) + 10000}_0_${_secureRandom.nextInt(0xffffffff) + 1}';
   const crlf = '\r\n';
   final header = [
-    '--$boundary',
-    'Content-Disposition: form-data; name="file"; filename="$fileName"',
+    '--$resolvedBoundary',
+    'Content-Disposition: form-data; name="file"; filename="$resolvedFileName"',
     'Content-Type: multipart/form-data',
     '',
     '',
   ].join(crlf);
-  final footer = '$crlf--$boundary--$crlf';
+  final footer = '$crlf--$resolvedBoundary--$crlf';
   return NcblMultipartPayload(
-    boundary: boundary,
-    fileName: fileName,
+    boundary: resolvedBoundary,
+    fileName: resolvedFileName,
     multipartBody: _concatBytes([
       Uint8List.fromList(utf8.encode(header)),
       payload,
@@ -277,6 +286,20 @@ NcblMultipartPayload buildNcblMultipart(Uint8List payload) {
     ]),
     payload: payload,
   );
+}
+
+class NcblEncryptOptions {
+  const NcblEncryptOptions({
+    this.keyA,
+    this.uuid,
+    this.baseSeq,
+    this.maxFrame,
+  });
+
+  final List<int>? keyA;
+  final List<int>? uuid;
+  final int? baseSeq;
+  final int? maxFrame;
 }
 
 class NcblContext {

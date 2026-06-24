@@ -3,6 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('planNeteaseSongDetailBatches', () {
+    test('normalizes song id lists before request planning', () {
+      expect(
+        normalizeNeteaseSongIds(const ['  1  ', '   ', '  2  ']),
+        ['1', '2'],
+      );
+    });
+
     test('normalizes ids and skips blank ids before planning requests', () {
       final batches = planNeteaseSongDetailBatches(
         ids: const ['  1  ', '   ', '  2  '],

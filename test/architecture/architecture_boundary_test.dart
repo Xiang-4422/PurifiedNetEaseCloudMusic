@@ -570,6 +570,34 @@ void main() {
       );
     });
 
+    test('netease playlist mapper normalizes remote playlist and track ids', () {
+      final mapperFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/netease/mappers/netease_playlist_mapper.dart',
+      );
+      final remoteFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/netease/remote/netease_playlist_remote_data_source.dart',
+      );
+      final mapper = mapperFile.readAsStringSync();
+      final remote = remoteFile.readAsStringSync();
+      final violations = <String>[
+        if (!mapper.contains('final playlistId = _normalizedPlaylistId(playlist.id);')) '${_relativePath(mapperFile)} still maps playlist ids without normalization',
+        if (!mapper.contains('String _normalizedPlaylistId(String id)')) '${_relativePath(mapperFile)} does not define playlist id normalization',
+        if (!mapper.contains('return id.trim();')) '${_relativePath(mapperFile)} does not trim remote playlist ids',
+        if (!mapper.contains('id: _neteasePlaylistEntityId(playlistId)')) '${_relativePath(mapperFile)} can still write raw playlist entity ids',
+        if (!mapper.contains('sourceId: playlistId')) '${_relativePath(mapperFile)} can still write raw playlist source ids',
+        if (!mapper.contains('normalizeNeteaseSongIds((playlist.trackIds ?? const []).map((track) => track.id))')) '${_relativePath(mapperFile)} does not normalize playlist track refs',
+        if (!mapper.contains('trackId: _neteaseSongEntityId(entry.value)')) '${_relativePath(mapperFile)} can still write raw playlist ref track ids',
+        if (!mapper.contains('playlists.where((playlist) => _normalizedPlaylistId(playlist.id).isNotEmpty)')) '${_relativePath(mapperFile)} can still batch-map blank playlist ids',
+        if (!remote.contains('trackIds: normalizeNeteaseSongIds((playlist?.trackIds ?? const []).map((track) => track.id))')) '${_relativePath(remoteFile)} can still return raw playlist index track ids',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '网易云歌单和歌单索引进入领域模型前必须规范化歌单 id 和歌曲 id，空白 id 不能写入歌单索引、trackRefs 或本地缓存。',
+      );
+    });
+
     test('netease song detail remote fetches use request batch planner', () {
       final plannerFile = File(
         '${projectRoot.path}/lib/data/music_data/sources/netease/netease_song_detail_batch_planner.dart',
@@ -585,7 +613,8 @@ void main() {
       final user = userFile.readAsStringSync();
       final violations = <String>[
         if (!planner.contains('List<List<String>> planNeteaseSongDetailBatches')) '${_relativePath(plannerFile)} does not define song detail batch planning',
-        if (!planner.contains('ids.map(normalizeNeteaseSongId).where((id) => id.isNotEmpty)')) '${_relativePath(plannerFile)} does not normalize and filter request ids',
+        if (!planner.contains('List<String> normalizeNeteaseSongIds(Iterable<String> ids)')) '${_relativePath(plannerFile)} does not expose normalized song id list planning',
+        if (!planner.contains('ids.map(normalizeNeteaseSongId).where((id) => id.isNotEmpty).toList()')) '${_relativePath(plannerFile)} does not normalize and filter request ids',
         if (!planner.contains('for (var start = 0; start < resolvedIds.length; start += batchSize)')) '${_relativePath(plannerFile)} does not advance song detail batches by request offset',
         if (!playlist.contains('planNeteaseSongDetailBatches(')) '${_relativePath(playlistFile)} does not use song detail batch planner',
         if (!user.contains('planNeteaseSongDetailBatches(ids: ids)')) '${_relativePath(userFile)} does not use song detail batch planner',

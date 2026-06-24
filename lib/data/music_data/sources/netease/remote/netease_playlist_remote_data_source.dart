@@ -29,7 +29,7 @@ class NeteasePlaylistRemoteDataSource implements PlaylistRemoteDataSource {
     final playlistEntity = playlist == null ? null : NeteasePlaylistMapper.fromPlaylist(playlist);
     return (
       playlist: playlistEntity,
-      trackIds: playlist?.trackIds?.map((track) => track.id).toList() ?? const [],
+      trackIds: normalizeNeteaseSongIds((playlist?.trackIds ?? const []).map((track) => track.id)),
       isSubscribed: playlist?.subscribed ?? false,
       name: playlist?.name ?? '无名歌单',
       creatorUserId: playlist?.creator?.userId,

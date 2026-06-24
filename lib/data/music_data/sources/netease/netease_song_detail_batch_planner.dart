@@ -11,7 +11,7 @@ List<List<String>> planNeteaseSongDetailBatches({
     return const [];
   }
 
-  final normalizedIds = ids.map(normalizeNeteaseSongId).where((id) => id.isNotEmpty).toList();
+  final normalizedIds = normalizeNeteaseSongIds(ids);
   final startOffset = max(0, offset);
   if (startOffset >= normalizedIds.length) {
     return const [];
@@ -32,4 +32,9 @@ List<List<String>> planNeteaseSongDetailBatches({
 /// 规范化网易云原始歌曲 id。
 String normalizeNeteaseSongId(String id) {
   return id.trim();
+}
+
+/// 规范化网易云原始歌曲 id 列表，过滤空白值并保留顺序。
+List<String> normalizeNeteaseSongIds(Iterable<String> ids) {
+  return ids.map(normalizeNeteaseSongId).where((id) => id.isNotEmpty).toList();
 }

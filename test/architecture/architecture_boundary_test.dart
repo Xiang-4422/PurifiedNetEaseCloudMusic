@@ -1988,6 +1988,29 @@ void main() {
       );
     });
 
+    test('cache dao normalizes persisted app cache keys', () {
+      final daoFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/database/dao/cache_dao.dart',
+      );
+      final dao = daoFile.readAsStringSync();
+      final violations = <String>[
+        if (!dao.contains('String _normalizedCacheKey(String cacheKey)')) '${_relativePath(daoFile)} does not normalize cache keys',
+        if (!dao.contains('bool _isBlankCacheKey(String cacheKey)')) '${_relativePath(daoFile)} does not guard blank cache keys',
+        if (!dao.contains('final normalizedCacheKey = _normalizedCacheKey(cacheKey);')) '${_relativePath(daoFile)} can still read, write, or delete raw cache keys',
+        if (!dao.contains('final normalizedCacheKeyPrefix = _normalizedCacheKey(cacheKeyPrefix);')) '${_relativePath(daoFile)} can still delete by raw cache prefixes',
+        if (!dao.contains('cacheKey: drift.Value(normalizedCacheKey)')) '${_relativePath(daoFile)} can still write raw cache keys',
+        if (!dao.contains('tbl.cacheKey.equals(normalizedCacheKey)')) '${_relativePath(daoFile)} can still query or delete raw cache keys',
+        if (!dao.contains(r"tbl.cacheKey.like('$normalizedCacheKeyPrefix%')")) '${_relativePath(daoFile)} can still delete by raw cache prefixes',
+        if (!dao.contains('if (_isBlankCacheKey(normalizedCacheKeyPrefix))')) '${_relativePath(daoFile)} can still delete the whole cache table with a blank prefix',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'app_cache_entries 是搜索、探索和评论的短期本地优先缓存表，DAO 边界必须归一 cacheKey，并拒绝空白 key 或空白 prefix。',
+      );
+    });
+
     test('setting sections receive settings controller boundary', () {
       final pageFile = File(
         '${projectRoot.path}/lib/ui/pages/settings/setting_page.dart',

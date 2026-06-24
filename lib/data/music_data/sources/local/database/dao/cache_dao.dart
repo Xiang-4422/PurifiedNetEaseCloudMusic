@@ -11,7 +11,11 @@ class CacheDao {
 
   /// 加载缓存记录。
   Future<AppCacheRecord?> load(String cacheKey) async {
-    final row = await (_database.select(_database.appCacheEntries)..where((tbl) => tbl.cacheKey.equals(cacheKey))).getSingleOrNull();
+    final normalizedCacheKey = _normalizedCacheKey(cacheKey);
+    if (_isBlankCacheKey(normalizedCacheKey)) {
+      return null;
+    }
+    final row = await (_database.select(_database.appCacheEntries)..where((tbl) => tbl.cacheKey.equals(normalizedCacheKey))).getSingleOrNull();
     if (row == null) {
       return null;
     }
@@ -26,10 +30,14 @@ class CacheDao {
   Future<void> save({
     required String cacheKey,
     required String payloadJson,
-  }) {
-    return _database.into(_database.appCacheEntries).insertOnConflictUpdate(
+  }) async {
+    final normalizedCacheKey = _normalizedCacheKey(cacheKey);
+    if (_isBlankCacheKey(normalizedCacheKey)) {
+      return;
+    }
+    await _database.into(_database.appCacheEntries).insertOnConflictUpdate(
           AppCacheEntriesCompanion(
-            cacheKey: drift.Value(cacheKey),
+            cacheKey: drift.Value(normalizedCacheKey),
             payloadJson: drift.Value(payloadJson),
             updatedAtMs: drift.Value(DateTime.now().millisecondsSinceEpoch),
           ),
@@ -38,11 +46,27 @@ class CacheDao {
 
   /// 删除缓存记录。
   Future<void> delete(String cacheKey) {
-    return (_database.delete(_database.appCacheEntries)..where((tbl) => tbl.cacheKey.equals(cacheKey))).go();
+    final normalizedCacheKey = _normalizedCacheKey(cacheKey);
+    if (_isBlankCacheKey(normalizedCacheKey)) {
+      return Future<void>.value();
+    }
+    return (_database.delete(_database.appCacheEntries)..where((tbl) => tbl.cacheKey.equals(normalizedCacheKey))).go();
   }
 
   /// 删除指定前缀下的缓存记录。
   Future<void> deleteByPrefix(String cacheKeyPrefix) {
-    return (_database.delete(_database.appCacheEntries)..where((tbl) => tbl.cacheKey.like('$cacheKeyPrefix%'))).go();
+    final normalizedCacheKeyPrefix = _normalizedCacheKey(cacheKeyPrefix);
+    if (_isBlankCacheKey(normalizedCacheKeyPrefix)) {
+      return Future<void>.value();
+    }
+    return (_database.delete(_database.appCacheEntries)..where((tbl) => tbl.cacheKey.like('$normalizedCacheKeyPrefix%'))).go();
+  }
+
+  String _normalizedCacheKey(String cacheKey) {
+    return cacheKey.trim();
+  }
+
+  bool _isBlankCacheKey(String cacheKey) {
+    return cacheKey.isEmpty;
   }
 }

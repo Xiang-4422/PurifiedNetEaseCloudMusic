@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui' show SemanticsAction;
 
 import 'package:bujuan/core/entities/playback_media_type.dart';
@@ -71,6 +72,22 @@ void main() {
       );
       expect(image.url, isEmpty);
       expect(find.byIcon(Icons.music_note_rounded), findsOneWidget);
+    });
+
+    test('PlayListItem keeps thumbnail placeholder when cover is missing', () {
+      final source = File(
+        'lib/ui/widgets/playlist/playlist_widgets.dart',
+      ).readAsStringSync();
+
+      expect(
+        source,
+        contains("picUrl: play.coverUrl ?? '',"),
+        reason: '通用歌单列表项需要保留缩略图占位，避免缺封面时标题列横向跳动。',
+      );
+      expect(
+        source,
+        isNot(contains('picUrl: play.coverUrl,\n')),
+      );
     });
 
     testWidgets('SongItem shows index and still triggers playback callback', (tester) async {

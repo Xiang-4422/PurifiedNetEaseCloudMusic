@@ -92,7 +92,7 @@ class PlayListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final router = context.router;
     return UniversalListTile(
-      picUrl: play.coverUrl,
+      picUrl: play.coverUrl ?? '',
       titleString: play.title,
       subTitleString: play.trackCount == null || play.trackCount == 0 ? null : "${play.trackCount}首",
       onTap: () async {

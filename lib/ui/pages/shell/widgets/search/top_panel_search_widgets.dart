@@ -142,7 +142,7 @@ class PlaylistSearchItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return UniversalListTile(
-      picUrl: playlist.coverUrl,
+      picUrl: playlist.coverUrl ?? '',
       titleString: playlist.title,
       subTitleString: playlist.trackCount == null ? null : '${playlist.trackCount}首',
       onTap: onTap,

@@ -153,6 +153,22 @@ void main() {
     expect(resultsSource, contains('prototypeItem: const UniversalListTile('));
   });
 
+  test('search playlist result keeps thumbnail placeholder when cover is missing', () {
+    final widgetsSource = File(
+      'lib/ui/pages/shell/widgets/search/top_panel_search_widgets.dart',
+    ).readAsStringSync();
+
+    expect(
+      widgetsSource,
+      contains("picUrl: playlist.coverUrl ?? '',"),
+      reason: '歌单搜索结果需要保留缩略图占位，避免缺封面时标题列横向跳动。',
+    );
+    expect(
+      widgetsSource,
+      isNot(contains('picUrl: playlist.coverUrl,\n')),
+    );
+  });
+
   test('top panel cancels stale search requests across widget lifecycle', () {
     final panelSource = File(
       'lib/ui/pages/shell/widgets/search/top_panel_view.dart',

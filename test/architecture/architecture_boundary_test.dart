@@ -1945,6 +1945,48 @@ void main() {
       );
     });
 
+    test('retained cache file cleanup stays in shared cleaner', () {
+      final cleanerFile = File(
+        '${projectRoot.path}/lib/core/util/retained_file_cleaner.dart',
+      );
+      final settingsFile = File(
+        '${projectRoot.path}/lib/features/settings/cache_analysis_service.dart',
+      );
+      final downloadFile = File(
+        '${projectRoot.path}/lib/features/download/application/download_file_store.dart',
+      );
+      final cleaner = cleanerFile.readAsStringSync();
+      final settings = settingsFile.readAsStringSync();
+      final download = downloadFile.readAsStringSync();
+      const privateCleanupFragments = [
+        'Future<void> _deleteUnretainedDirectoryFiles',
+        'Future<void> _deleteFileUnlessRetained',
+        '_normalizedRetainedPaths(',
+        '_deleteFileUnlessNormalizedRetained(',
+      ];
+      final violations = <String>[
+        if (!cleaner.contains('class RetainedFileCleaner')) '${_relativePath(cleanerFile)} does not define shared cleaner',
+        if (!cleaner.contains('LocalFilePathNormalizer.normalize')) '${_relativePath(cleanerFile)} does not normalize retained paths',
+        if (!cleaner.contains('static Future<void> clearDirectory(')) '${_relativePath(cleanerFile)} does not expose directory cleanup',
+        if (!cleaner.contains('static Future<void> deleteFileUnlessRetained(')) '${_relativePath(cleanerFile)} does not expose single-file cleanup',
+        if (!cleaner.contains('static Future<void> deleteUnretainedDirectoryFiles(')) '${_relativePath(cleanerFile)} does not expose orphan directory cleanup',
+        if (!settings.contains("import 'package:bujuan/core/util/retained_file_cleaner.dart';")) '${_relativePath(settingsFile)} does not import shared cleaner',
+        if (!download.contains("import 'package:bujuan/core/util/retained_file_cleaner.dart';")) '${_relativePath(downloadFile)} does not import shared cleaner',
+        if (!settings.contains('RetainedFileCleaner.clearDirectory(')) '${_relativePath(settingsFile)} does not clear cache directories through shared cleaner',
+        if (!settings.contains('RetainedFileCleaner.deleteFileUnlessRetained(')) '${_relativePath(settingsFile)} does not clean indexed files through shared cleaner',
+        if (!settings.contains('RetainedFileCleaner.deleteUnretainedDirectoryFiles(')) '${_relativePath(settingsFile)} does not clean orphan files through shared cleaner',
+        if (!download.contains('RetainedFileCleaner.clearDirectory(')) '${_relativePath(downloadFile)} does not clear playback cache files through shared cleaner',
+        if (privateCleanupFragments.any(settings.contains)) '${_relativePath(settingsFile)} defines private retained-file cleanup logic',
+        if (privateCleanupFragments.any(download.contains)) '${_relativePath(downloadFile)} defines private retained-file cleanup logic',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '设置页和下载页的保留路径缓存清理必须复用 RetainedFileCleaner，避免本地路径归一、孤儿文件和空目录处理再次分叉。',
+      );
+    });
+
     test('coverflow debug page receives playback boundary from settings page', () {
       final pageFile = File(
         '${projectRoot.path}/lib/ui/pages/settings/setting_page.dart',

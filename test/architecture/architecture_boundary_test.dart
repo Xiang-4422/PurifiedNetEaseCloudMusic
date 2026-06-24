@@ -1693,6 +1693,32 @@ void main() {
       );
     });
 
+    test('playback control commands normalize ids before resume decisions', () {
+      final commandServiceFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_ui_command_service.dart',
+      );
+      final stateSyncFile = File(
+        '${projectRoot.path}/lib/features/playback/player_state_sync.dart',
+      );
+      final commandService = commandServiceFile.readAsStringSync();
+      final stateSync = stateSyncFile.readAsStringSync();
+      final violations = <String>[
+        if (!commandService.contains('bool _hasDifferentSelection(')) '${_relativePath(commandServiceFile)} does not isolate selected/confirmed id comparison',
+        if (!commandService.contains('final selectedItemId = _normalizedQueueItemId(selection.selectedItem.id);')) '${_relativePath(commandServiceFile)} can still compare raw selected item id before play',
+        if (!commandService.contains('final confirmedItemId = _normalizedQueueItemId(confirmedItem.id);')) '${_relativePath(commandServiceFile)} can still compare raw confirmed item id before play',
+        if (commandService.contains('selection.selectedItem.id != confirmedItem.id')) '${_relativePath(commandServiceFile)} still resumes playback through raw id comparison',
+        if (!stateSync.contains('final currentSongId = _normalizedPlaybackQueueItemId(')) '${_relativePath(stateSyncFile)} does not normalize current song id before index backfill',
+        if (!stateSync.contains('(element) => _normalizedPlaybackQueueItemId(element.id) == currentSongId')) '${_relativePath(stateSyncFile)} can still backfill current queue index by raw id',
+        if (!stateSync.contains("details: 'id=\$currentSongId index=\$currentIndex")) '${_relativePath(stateSyncFile)} can still log raw current song id for index backfill',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '播放/暂停和当前索引回填是 mini player 的关键反馈路径，selection、confirmed 和 runtime queue id 必须先规范化再判断。',
+      );
+    });
+
     test('playback like control stays behind player controller boundary', () {
       final controlsFile = File(
         '${projectRoot.path}/lib/ui/pages/shell/widgets/playback/bottom_panel_playback_controls.dart',

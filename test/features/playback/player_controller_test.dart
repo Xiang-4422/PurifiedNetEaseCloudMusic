@@ -131,6 +131,22 @@ void main() {
       expect(controller.runtimeState.value.queue.single.isLiked, isTrue);
     });
 
+    test('normalizes current song id before updating current queue index', () async {
+      final rawItem = _queueItem(' 1 ', sourceId: '1');
+      final currentItem = _queueItem('1', sourceId: '1');
+      final controller = _playerController();
+      controller.runtimeState.value = PlaybackRuntimeState(
+        queue: [rawItem],
+        currentSong: currentItem,
+        currentIndex: -1,
+      );
+
+      await controller.updateCurPlayIndex();
+
+      expect(controller.runtimeState.value.currentIndex, 0);
+      expect(controller.currentQueueIndex.value, 0);
+    });
+
     test('coalesces like toggles with normalized playback item ids', () async {
       final rawItem = _queueItem(' 1 ', sourceId: '1');
       final normalizedItem = _queueItem('1', sourceId: '1');

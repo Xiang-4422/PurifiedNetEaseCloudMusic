@@ -60,13 +60,29 @@ class PlaybackUiCommandService {
     if (selection.sourceStatus == PlaybackSelectionSourceStatus.loading) {
       return;
     }
-    if (!_playbackService.hasAudioSource || selection.sourceStatus == PlaybackSelectionSourceStatus.error || (selection.hasSelection && selection.selectedItem.id != confirmedItem.id)) {
+    if (!_playbackService.hasAudioSource || selection.sourceStatus == PlaybackSelectionSourceStatus.error || _hasDifferentSelection(selection, confirmedItem)) {
       await _selectionService.submitCurrent(
         trigger: PlaybackSwitchTrigger.userSelect,
       );
       return;
     }
     await _playbackService.play();
+  }
+
+  bool _hasDifferentSelection(
+    PlaybackSelectionState selection,
+    PlaybackQueueItem confirmedItem,
+  ) {
+    if (!selection.hasSelection) {
+      return false;
+    }
+    final selectedItemId = _normalizedQueueItemId(selection.selectedItem.id);
+    final confirmedItemId = _normalizedQueueItemId(confirmedItem.id);
+    return selectedItemId.isNotEmpty && selectedItemId != confirmedItemId;
+  }
+
+  String _normalizedQueueItemId(String id) {
+    return id.trim();
   }
 
   /// 播放指定队列，并在必要时退出 FM 或心动模式。

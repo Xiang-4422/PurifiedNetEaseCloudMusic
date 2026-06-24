@@ -167,14 +167,17 @@ extension PlayerStateSync on PlayerController {
   Future<void> updateCurPlayIndex({bool currentItemUpdated = true}) async {
     final stopwatch = PlaybackPerformanceLogger.start();
     final currentRuntimeState = runtimeState.value;
+    final currentSongId = _normalizedPlaybackQueueItemId(
+      currentRuntimeState.currentSong.id,
+    );
     final currentIndex = currentRuntimeState.queue.indexWhere(
-      (element) => element.id == currentRuntimeState.currentSong.id,
+      (element) => _normalizedPlaybackQueueItemId(element.id) == currentSongId,
     );
     syncRuntimeState(currentIndex: currentIndex);
     PlaybackPerformanceLogger.elapsed(
       'controller.updateCurPlayIndex',
       stopwatch,
-      details: 'id=${currentRuntimeState.currentSong.id} index=$currentIndex queue=${currentRuntimeState.queue.length} currentItemUpdated=$currentItemUpdated',
+      details: 'id=$currentSongId index=$currentIndex queue=${currentRuntimeState.queue.length} currentItemUpdated=$currentItemUpdated',
       warnAfterMs: 1,
     );
   }

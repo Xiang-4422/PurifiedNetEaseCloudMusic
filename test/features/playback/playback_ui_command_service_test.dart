@@ -57,6 +57,38 @@ void main() {
       await Future.wait([first, second]);
     });
 
+    test('resumes playback when selected and confirmed ids differ only by whitespace', () async {
+      final playbackService = _FakePlaybackService(hasAudioSource: true);
+      final selectionService = _FakePlaybackSelectionService(
+        state: PlaybackSelectionState(
+          queue: [_item(' 1 ')],
+          selectedItem: _item(' 1 '),
+          selectedIndex: 0,
+          sourceStatus: PlaybackSelectionSourceStatus.idle,
+        ),
+      );
+      final queueService = _FakePlaybackQueueService(
+        state: PlaybackQueueState(
+          activeQueue: [_item('1')],
+          confirmedIndex: 0,
+        ),
+      );
+      final commandService = _commandService(
+        playbackService: playbackService,
+        queueService: queueService,
+        selectionService: selectionService,
+      );
+
+      final command = commandService.playOrPause(isPlaying: false);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(playbackService.playCount, 1);
+      expect(selectionService.submitCurrentCount, 0);
+
+      playbackService.completePlay();
+      await command;
+    });
+
     test('coalesces concurrent source submit commands', () async {
       final playbackService = _FakePlaybackService(hasAudioSource: false);
       final selectionService = _FakePlaybackSelectionService(
@@ -252,8 +284,12 @@ class _FakePlaybackService implements PlaybackService {
 }
 
 class _FakePlaybackQueueService implements PlaybackQueueService {
+  _FakePlaybackQueueService({
+    this.state = const PlaybackQueueState(),
+  });
+
   @override
-  final PlaybackQueueState state = const PlaybackQueueState();
+  final PlaybackQueueState state;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

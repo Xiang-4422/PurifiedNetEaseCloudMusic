@@ -547,6 +547,59 @@ void main() {
       );
     });
 
+    test('netease track mapper normalizes remote song ids', () {
+      final mapperFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/netease/mappers/netease_track_mapper.dart',
+      );
+      final mapper = mapperFile.readAsStringSync();
+      final violations = <String>[
+        if (!mapper.contains('String _normalizedSongId(String id)')) '${_relativePath(mapperFile)} does not define song id normalization',
+        if (!mapper.contains('return id.trim();')) '${_relativePath(mapperFile)} does not trim remote song ids',
+        if (!mapper.contains('final songId = _normalizedSongId(song.id);')) '${_relativePath(mapperFile)} still maps remote songs without normalized ids',
+        if (!mapper.contains('id: entityId')) '${_relativePath(mapperFile)} can still write raw netease track entity ids',
+        if (!mapper.contains('sourceId: songId')) '${_relativePath(mapperFile)} can still write raw netease source ids',
+        if (!mapper.contains('lyricKey: entityId')) '${_relativePath(mapperFile)} can still write raw netease lyric keys',
+        if (!mapper.contains('songs.where((song) => _normalizedSongId(song.id).isNotEmpty)')) '${_relativePath(mapperFile)} can still batch-map blank remote song ids',
+        if (!mapper.contains('songs.where((song) => _normalizedSongId(song.simpleSong.id).isNotEmpty)')) '${_relativePath(mapperFile)} can still batch-map blank cloud simple song ids',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '网易云远端歌曲进入领域 Track 前必须规范化歌曲 id，并在批量 mapper 边界过滤空白 id，避免脏 API 数据进入播放和缓存链路。',
+      );
+    });
+
+    test('netease song detail remote fetches use request batch planner', () {
+      final plannerFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/netease/netease_song_detail_batch_planner.dart',
+      );
+      final playlistFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/netease/remote/netease_playlist_remote_data_source.dart',
+      );
+      final userFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/netease/remote/netease_user_remote_data_source.dart',
+      );
+      final planner = plannerFile.readAsStringSync();
+      final playlist = playlistFile.readAsStringSync();
+      final user = userFile.readAsStringSync();
+      final violations = <String>[
+        if (!planner.contains('List<List<String>> planNeteaseSongDetailBatches')) '${_relativePath(plannerFile)} does not define song detail batch planning',
+        if (!planner.contains('ids.map(normalizeNeteaseSongId).where((id) => id.isNotEmpty)')) '${_relativePath(plannerFile)} does not normalize and filter request ids',
+        if (!planner.contains('for (var start = 0; start < resolvedIds.length; start += batchSize)')) '${_relativePath(plannerFile)} does not advance song detail batches by request offset',
+        if (!playlist.contains('planNeteaseSongDetailBatches(')) '${_relativePath(playlistFile)} does not use song detail batch planner',
+        if (!user.contains('planNeteaseSongDetailBatches(ids: ids)')) '${_relativePath(userFile)} does not use song detail batch planner',
+        if (playlist.contains('while (tracks.length')) '${_relativePath(playlistFile)} still advances requests by returned track count',
+        if (user.contains('while (tracks.length')) '${_relativePath(userFile)} still advances requests by returned track count',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '歌曲详情远端请求必须按规范化后的请求批次推进，不能依赖返回 track 数量，否则远端少返回或 mapper 过滤异常歌曲时会重复请求或卡住。',
+      );
+    });
+
     test('main app imports netease api package through public facade', () {
       final violations = _dartFiles(libDirectory)
           .where(

@@ -1,10 +1,9 @@
-import 'dart:math';
-
 import 'package:bujuan/core/util/image_url_normalizer.dart';
 import 'package:netease_music_api/netease_music_api.dart';
 import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_playlist_mapper.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_track_mapper.dart';
+import 'package:bujuan/data/music_data/sources/netease/netease_song_detail_batch_planner.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/user_profile_data.dart';
@@ -96,8 +95,8 @@ class NeteaseUserRemoteDataSource implements UserRemoteDataSource {
       return const [];
     }
 
-    final validSongs = (wrap.data ?? []).where((song) => song.songInfo != null && song.songInfo!.id.isNotEmpty).map((song) => song.songInfo!).toList();
-    return NeteaseTrackMapper.fromSong2List(validSongs);
+    final songs = (wrap.data ?? const []).map((song) => song.songInfo).whereType<Song2>().toList();
+    return NeteaseTrackMapper.fromSong2List(songs);
   }
 
   /// 按 id 批量获取歌曲。
@@ -106,10 +105,8 @@ class NeteaseUserRemoteDataSource implements UserRemoteDataSource {
     required List<String> ids,
   }) async {
     final tracks = <Track>[];
-    while (tracks.length != ids.length) {
-      final wrap = await _api.songDetail(
-        ids.sublist(tracks.length, min(tracks.length + 1000, ids.length)),
-      );
+    for (final batch in planNeteaseSongDetailBatches(ids: ids)) {
+      final wrap = await _api.songDetail(batch);
       tracks.addAll(
         NeteaseTrackMapper.fromSong2List(wrap.songs ?? const []),
       );
@@ -120,7 +117,11 @@ class NeteaseUserRemoteDataSource implements UserRemoteDataSource {
   /// 获取歌曲专辑封面地址。
   @override
   Future<String> fetchSongAlbumUrl(String songId) async {
-    final songDetailWrap = await _api.songDetail([songId]);
+    final normalizedSongId = normalizeNeteaseSongId(songId);
+    if (normalizedSongId.isEmpty) {
+      return '';
+    }
+    final songDetailWrap = await _api.songDetail([normalizedSongId]);
     final songs = songDetailWrap.songs ?? [];
     if (songs.isEmpty) {
       return '';

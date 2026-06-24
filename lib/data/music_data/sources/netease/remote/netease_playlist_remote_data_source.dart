@@ -1,9 +1,8 @@
-import 'dart:math';
-
 import 'package:netease_music_api/netease_music_api.dart';
 import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_playlist_mapper.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_track_mapper.dart';
+import 'package:bujuan/data/music_data/sources/netease/netease_song_detail_batch_planner.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/core/entities/track.dart';
 
@@ -45,27 +44,15 @@ class NeteasePlaylistRemoteDataSource implements PlaylistRemoteDataSource {
     required int offset,
     required int limit,
   }) async {
-    if (offset >= songIds.length) {
-      return const [];
-    }
-
-    final targetIds = songIds.sublist(offset);
-    final fetchCount = limit == -1 || targetIds.length < limit ? targetIds.length : limit;
-    final resolvedIds = targetIds.take(fetchCount).toList();
-
     final tracks = <Track>[];
-    while (tracks.length < resolvedIds.length) {
-      final wrap = await _api.songDetail(
-        resolvedIds.sublist(
-          tracks.length,
-          min(tracks.length + 1000, resolvedIds.length),
-        ),
-      );
-      final fetchedTracks = NeteaseTrackMapper.fromSong2List(wrap.songs ?? const []);
-      if (fetchedTracks.isEmpty) {
-        break;
-      }
-      tracks.addAll(fetchedTracks);
+    final batches = planNeteaseSongDetailBatches(
+      ids: songIds,
+      offset: offset,
+      limit: limit,
+    );
+    for (final batch in batches) {
+      final wrap = await _api.songDetail(batch);
+      tracks.addAll(NeteaseTrackMapper.fromSong2List(wrap.songs ?? const []));
     }
 
     return tracks;

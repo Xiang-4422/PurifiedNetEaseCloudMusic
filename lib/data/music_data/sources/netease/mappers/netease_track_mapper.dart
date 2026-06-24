@@ -9,10 +9,12 @@ class NeteaseTrackMapper {
 
   /// 将网易云 `Song` 转换为领域曲目。
   static Track fromSong(Song song) {
+    final songId = _normalizedSongId(song.id);
+    final entityId = _neteaseEntityId(songId);
     return Track(
-      id: 'netease:${song.id}',
+      id: entityId,
       sourceType: SourceType.netease,
-      sourceId: song.id,
+      sourceId: songId,
       title: song.name ?? '',
       artistNames: (song.artists ?? []).map((artist) => artist.name ?? '').toList(),
       albumTitle: song.album?.name,
@@ -20,7 +22,7 @@ class NeteaseTrackMapper {
       artistIds: (song.artists ?? []).map((artist) => _stringOrNull(artist.id)).whereType<String>().toList(),
       durationMs: song.duration,
       artworkUrl: song.album?.picUrl,
-      lyricKey: 'netease:${song.id}',
+      lyricKey: entityId,
       availability: TrackAvailability.playable,
       metadata: {
         'mv': song.mvid,
@@ -31,10 +33,12 @@ class NeteaseTrackMapper {
 
   /// 将网易云 `Song2` 转换为领域曲目。
   static Track fromSong2(Song2 song) {
+    final songId = _normalizedSongId(song.id);
+    final entityId = _neteaseEntityId(songId);
     return Track(
-      id: 'netease:${song.id}',
+      id: entityId,
       sourceType: SourceType.netease,
-      sourceId: song.id,
+      sourceId: songId,
       title: song.name ?? '',
       artistNames: (song.ar ?? []).map((artist) => artist.name ?? '').toList(),
       albumTitle: song.al?.name,
@@ -42,7 +46,7 @@ class NeteaseTrackMapper {
       artistIds: (song.ar ?? []).map((artist) => _stringOrNull(artist.id)).whereType<String>().toList(),
       durationMs: song.dt,
       artworkUrl: song.al?.picUrl,
-      lyricKey: 'netease:${song.id}',
+      lyricKey: entityId,
       availability: (song.available ?? true) ? TrackAvailability.playable : TrackAvailability.unavailable,
       metadata: {
         'mv': song.mv,
@@ -54,12 +58,12 @@ class NeteaseTrackMapper {
 
   /// 将网易云 `Song2` 列表转换为领域曲目列表。
   static List<Track> fromSong2List(List<Song2> songs) {
-    return songs.map(fromSong2).toList();
+    return songs.where((song) => _normalizedSongId(song.id).isNotEmpty).map(fromSong2).toList();
   }
 
   /// 将网易云 `Song` 列表转换为领域曲目列表。
   static List<Track> fromSongList(List<Song> songs) {
-    return songs.map(fromSong).toList();
+    return songs.where((song) => _normalizedSongId(song.id).isNotEmpty).map(fromSong).toList();
   }
 
   /// 将网易云云盘歌曲转换为领域曲目。
@@ -77,7 +81,15 @@ class NeteaseTrackMapper {
 
   /// 将网易云云盘歌曲列表转换为领域曲目列表。
   static List<Track> fromCloudSongList(List<CloudSongItem> songs) {
-    return songs.map(fromCloudSong).toList();
+    return songs.where((song) => _normalizedSongId(song.simpleSong.id).isNotEmpty).map(fromCloudSong).toList();
+  }
+
+  static String _neteaseEntityId(String songId) {
+    return songId.isEmpty ? '' : 'netease:$songId';
+  }
+
+  static String _normalizedSongId(String id) {
+    return id.trim();
   }
 
   static String? _stringOrNull(Object? value) {

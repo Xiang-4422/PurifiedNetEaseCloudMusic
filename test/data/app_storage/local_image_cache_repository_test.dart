@@ -235,6 +235,45 @@ void main() {
       expect(File(retryPath).existsSync(), isTrue);
       expect(retryDownloader.downloadCount, 1);
     });
+
+    test('removes stale temporary files before retrying remote image download', () async {
+      final cacheDirectory = await Directory.systemTemp.createTemp(
+        'local-image-cache-test-',
+      );
+      final firstDownloader = _FakeImageDownloader();
+      final repository = LocalImageCacheRepository(
+        downloader: firstDownloader.download,
+        cacheDirectoryProvider: () async => cacheDirectory,
+      );
+      addTearDown(() async {
+        if (cacheDirectory.existsSync()) {
+          await cacheDirectory.delete(recursive: true);
+        }
+      });
+
+      const imageUrl = 'https://example.com/stale-temp.jpg';
+      final firstPath = await repository.resolveImagePath(imageUrl);
+      await File(firstPath).delete();
+      await File('$firstPath.download').writeAsBytes(<int>[4, 5, 6]);
+      await File('$firstPath.download.legacy').writeAsBytes(<int>[7, 8, 9]);
+
+      final retryDownloader = _FakeImageDownloader();
+      final retryRepository = LocalImageCacheRepository(
+        downloader: retryDownloader.download,
+        cacheDirectoryProvider: () async => cacheDirectory,
+      );
+
+      final retryPath = await retryRepository.resolveImagePath(imageUrl);
+
+      expect(retryPath, firstPath);
+      expect(File(retryPath).existsSync(), isTrue);
+      expect(retryDownloader.downloadCount, 1);
+      expect(
+        _temporaryDownloadFiles(cacheDirectory),
+        isEmpty,
+        reason: '成功重试后不能继续保留历史 .download 临时文件。',
+      );
+    });
   });
 }
 

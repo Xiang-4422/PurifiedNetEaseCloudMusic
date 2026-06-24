@@ -85,11 +85,8 @@ class LocalImageCacheRepository {
 
     final temporaryPath = '$outputPath.download';
     final uniqueTemporaryPath = '$temporaryPath.${DateTime.now().microsecondsSinceEpoch}';
-    final temporaryFile = File(temporaryPath);
     final uniqueTemporaryFile = File(uniqueTemporaryPath);
-    if (temporaryFile.existsSync()) {
-      await _deleteFileIfExists(temporaryPath);
-    }
+    await _deleteTemporaryFilesFor(outputPath);
 
     final options = Options(
       responseType: ResponseType.bytes,
@@ -105,7 +102,7 @@ class LocalImageCacheRepository {
         }
       });
     } catch (_) {
-      await _deleteFileIfExists(uniqueTemporaryPath);
+      await _deleteTemporaryFilesFor(outputPath);
       rethrow;
     }
 
@@ -118,17 +115,22 @@ class LocalImageCacheRepository {
     } else if (!outputFile.existsSync()) {
       throw PathNotFoundException(uniqueTemporaryPath, const OSError());
     }
+    await _deleteTemporaryFilesFor(outputPath);
     _rememberResolvedPath(imageUrl, outputPath);
     return outputPath;
   }
 
-  Future<void> _deleteFileIfExists(String path) async {
-    if (path.isEmpty) {
+  Future<void> _deleteTemporaryFilesFor(String outputPath) async {
+    final temporaryPrefix = '$outputPath.download';
+    final parent = File(outputPath).parent;
+    if (!parent.existsSync()) {
       return;
     }
-    final file = File(path);
-    if (file.existsSync()) {
-      await file.delete();
+    await for (final entity in parent.list()) {
+      final path = entity.path;
+      if (entity is File && (path == temporaryPrefix || path.startsWith('$temporaryPrefix.'))) {
+        await entity.delete();
+      }
     }
   }
 

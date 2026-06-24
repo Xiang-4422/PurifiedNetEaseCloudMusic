@@ -93,7 +93,7 @@ class RecommendationLibraryAccess {
   final String Function() randomLikedSongAlbumUrl;
 }
 
-/// 持有首页推荐和日推歌曲状态。
+/// 持有首页轻量推荐和日推歌曲状态。
 class RecommendationController extends GetxController {
   static const Duration _startupDataTtl = Duration(minutes: 10);
   static const String _startupSyncMarker = 'startup_home';
@@ -126,9 +126,6 @@ class RecommendationController extends GetxController {
   /// 首页推荐数据是否已经完成首轮加载。
   final RxBool dateLoaded = false.obs;
 
-  /// 推荐歌单列表。
-  final RxList<PlaylistSummaryData> recoPlayLists = <PlaylistSummaryData>[].obs;
-
   /// 每日推荐歌曲队列。
   final RxList<PlaybackQueueItem> todayRecommendSongs = <PlaybackQueueItem>[].obs;
 
@@ -138,9 +135,6 @@ class RecommendationController extends GetxController {
   String _activeLocalDataUserId = '';
   int _localDataGeneration = 0;
   int _homeRefreshGeneration = 0;
-  int _recoPlaylistGeneration = 0;
-  int? _recoPlaylistRefreshGeneration;
-  int? _recoPlaylistLoadMoreGeneration;
   bool _hasLocalData = false;
   bool _disposed = false;
 
@@ -277,56 +271,6 @@ class RecommendationController extends GetxController {
       dateLoaded.value = true;
       refreshController.refreshFailed();
       refreshController.resetNoData();
-    }
-  }
-
-  /// 刷新推荐歌单，`getMore` 为 true 时追加下一页。
-  Future<void> updateRecoPlayLists({bool getMore = false}) async {
-    if (_disposed) {
-      return;
-    }
-    final userId = _currentUserId();
-    if (!_isSignedInUserId(userId)) {
-      if (!getMore) {
-        recoPlayLists.clear();
-      }
-      refreshController.loadComplete();
-      return;
-    }
-
-    if (getMore && (_recoPlaylistRefreshGeneration != null || _recoPlaylistLoadMoreGeneration != null)) {
-      refreshController.loadComplete();
-      return;
-    }
-
-    final generation = getMore ? _recoPlaylistGeneration : ++_recoPlaylistGeneration;
-    if (getMore) {
-      _recoPlaylistLoadMoreGeneration = generation;
-    } else {
-      _recoPlaylistRefreshGeneration = generation;
-    }
-
-    try {
-      final data = await _repository.fetchRecommendedPlaylists(
-        userId: userId,
-        offset: getMore ? recoPlayLists.length : 0,
-      );
-      if (!_isCurrentRecoPlaylistLoad(userId, generation)) {
-        return;
-      }
-      if (!getMore) {
-        recoPlayLists.clear();
-      }
-      recoPlayLists.addAll(data);
-      refreshController.loadComplete();
-    } finally {
-      if (getMore) {
-        if (_recoPlaylistLoadMoreGeneration == generation) {
-          _recoPlaylistLoadMoreGeneration = null;
-        }
-      } else if (_recoPlaylistRefreshGeneration == generation) {
-        _recoPlaylistRefreshGeneration = null;
-      }
     }
   }
 
@@ -482,10 +426,6 @@ class RecommendationController extends GetxController {
     return !_disposed && generation == _localDataGeneration && _activeLocalDataUserId == userId && _currentUserId() == userId;
   }
 
-  bool _isCurrentRecoPlaylistLoad(String userId, int generation) {
-    return !_disposed && generation == _recoPlaylistGeneration && _isActiveSession(userId);
-  }
-
   bool _isCurrentHomeRefresh(String userId, int generation) {
     return !_disposed && generation == _homeRefreshGeneration && _isActiveSession(userId);
   }
@@ -516,7 +456,6 @@ class RecommendationController extends GetxController {
   }
 
   void _clearHomeState() {
-    recoPlayLists.clear();
     todayRecommendSongs.clear();
   }
 
@@ -528,9 +467,6 @@ class RecommendationController extends GetxController {
     _disposed = true;
     _localDataGeneration++;
     _homeRefreshGeneration++;
-    _recoPlaylistGeneration++;
-    _recoPlaylistRefreshGeneration = null;
-    _recoPlaylistLoadMoreGeneration = null;
     _homeImageColorPrewarmTimer?.cancel();
     _cancelSessionWatch?.call();
     _cancelSessionWatch = null;

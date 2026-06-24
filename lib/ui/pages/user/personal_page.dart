@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 
 import 'package:get/get.dart';
 
-/// 个人首页，展示快速播放、推荐歌单和用户歌单入口。
+/// 个人首页，展示快速播放、最近播放和资料库入口。
 class PersonalPageView extends StatelessWidget {
   /// 创建个人首页。
   const PersonalPageView({

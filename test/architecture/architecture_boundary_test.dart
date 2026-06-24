@@ -3537,6 +3537,9 @@ void main() {
       final standardHomeFile = File(
         '${projectRoot.path}/lib/ui/pages/user/widgets/standard_personal_home_page.dart',
       );
+      final recommendationControllerFile = File(
+        '${projectRoot.path}/lib/features/user/recommendation_controller.dart',
+      );
       final recommendedPageFile = File(
         '${projectRoot.path}/lib/ui/pages/user/recommended_playlists_page.dart',
       );
@@ -3546,6 +3549,7 @@ void main() {
       final shell = shellFile.readAsStringSync();
       final appBody = appBodyFile.readAsStringSync();
       final standardHome = standardHomeFile.readAsStringSync();
+      final recommendationController = recommendationControllerFile.readAsStringSync();
       final violations = <String>[
         if (recommendedPageFile.existsSync()) '${_relativePath(recommendedPageFile)} still exposes a dedicated recommendation page',
         if (recommendedSliversFile.existsSync()) '${_relativePath(recommendedSliversFile)} still exposes recommendation feed slivers',
@@ -3556,12 +3560,16 @@ void main() {
         if (standardHome.contains('RecommendedPlaylist')) '${_relativePath(standardHomeFile)} renders recommendation feed widgets',
         if (standardHome.contains('updateRecoPlayLists(getMore: true)')) '${_relativePath(standardHomeFile)} keeps recommendation feed pagination',
         if (standardHome.contains('enablePullUp: true')) '${_relativePath(standardHomeFile)} keeps home feed pull-up loading',
+        if (recommendationController.contains('recoPlayLists')) '${_relativePath(recommendationControllerFile)} keeps recommendation feed state',
+        if (recommendationController.contains('updateRecoPlayLists')) '${_relativePath(recommendationControllerFile)} keeps recommendation feed refresh API',
+        if (recommendationController.contains('_recoPlaylist')) '${_relativePath(recommendationControllerFile)} keeps recommendation feed generation state',
+        if (recommendationController.contains('fetchRecommendedPlaylists(')) '${_relativePath(recommendationControllerFile)} fetches recommendation feed data',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: '自用播放器首页主路径只能保留继续播放、每日推荐、最近播放、常用歌单和资料库入口，不能重新暴露推荐歌单信息流。',
+        reason: '自用播放器首页主路径只能保留继续播放、每日推荐、最近播放、常用歌单和资料库入口，首页控制器不能重新持有推荐歌单信息流。',
       );
     });
 

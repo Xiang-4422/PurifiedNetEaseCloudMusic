@@ -30,16 +30,12 @@ void main() {
         libraryAccess: _libraryAccess(libraryController),
       );
       addTearDown(controller.onClose);
-      controller.recoPlayLists.add(
-        const PlaylistSummaryData(id: 'playlist-1', title: 'Playlist 1'),
-      );
       controller.todayRecommendSongs.add(_song('today-1'));
 
       await controller.updateData();
 
       expect(controller.dateLoaded.value, isTrue);
       expect(controller.hasLocalData, isTrue);
-      expect(controller.recoPlayLists.map((playlist) => playlist.id), ['playlist-1']);
       expect(controller.todayRecommendSongs.map((song) => song.id), ['today-1']);
     });
 
@@ -60,7 +56,6 @@ void main() {
       controller.onInit();
       await controller.ensureCacheLoaded();
 
-      expect(controller.recoPlayLists, isEmpty);
       expect(controller.todayRecommendSongs.map((song) => song.id), ['cached-today']);
       expect(controller.hasLocalData, isTrue);
       expect(repository.loadCachedPlaylistListUserIds, isEmpty);
@@ -105,7 +100,6 @@ void main() {
       controller.onInit();
       await controller.ensureCacheLoaded();
 
-      expect(controller.recoPlayLists, isEmpty);
       expect(controller.todayRecommendSongs, isEmpty);
       expect(controller.hasLocalData, isFalse);
       expect(repository.loadCachedPlaylistListUserIds, isEmpty);
@@ -159,82 +153,6 @@ void main() {
       expect(libraryController.scopedLocalDataLoads, ['user-2']);
     });
 
-    test('ignores stale recommended playlist load more after refresh completes', () async {
-      final sessionController = _buildSessionController('user-1');
-      final libraryController = _FakeUserLibraryController();
-      final loadMore = Completer<List<PlaylistSummaryData>>();
-      final refresh = Completer<List<PlaylistSummaryData>>();
-      final repository = _FakeUserRepository(
-        fetchRecommendedPlaylistsWithArgs: ({required userId, required offset, required limit}) {
-          if (offset == 0) {
-            return refresh.future;
-          }
-          return loadMore.future;
-        },
-      );
-      final controller = RecommendationController(
-        repository: repository,
-        playlistRepository: _FakePlaylistRepository(),
-        sessionAccess: _sessionAccess(sessionController),
-        libraryAccess: _libraryAccess(libraryController),
-      );
-      addTearDown(controller.onClose);
-      controller.recoPlayLists.add(const PlaylistSummaryData(id: 'old-first', title: 'Old first'));
-
-      final loadMoreFuture = controller.updateRecoPlayLists(getMore: true);
-      await Future<void>.delayed(Duration.zero);
-
-      final refreshFuture = controller.updateRecoPlayLists();
-      await Future<void>.delayed(Duration.zero);
-      refresh.complete([
-        const PlaylistSummaryData(id: 'fresh-first', title: 'Fresh first'),
-      ]);
-      await refreshFuture;
-
-      expect(controller.recoPlayLists.map((playlist) => playlist.id), ['fresh-first']);
-
-      loadMore.complete([
-        const PlaylistSummaryData(id: 'stale-more', title: 'Stale more'),
-      ]);
-      await loadMoreFuture;
-
-      expect(controller.recoPlayLists.map((playlist) => playlist.id), ['fresh-first']);
-    });
-
-    test('does not start recommended playlist load more while refresh is running', () async {
-      final sessionController = _buildSessionController('user-1');
-      final libraryController = _FakeUserLibraryController();
-      final refresh = Completer<List<PlaylistSummaryData>>();
-      final requestedOffsets = <int>[];
-      final repository = _FakeUserRepository(
-        fetchRecommendedPlaylistsWithArgs: ({required userId, required offset, required limit}) {
-          requestedOffsets.add(offset);
-          return refresh.future;
-        },
-      );
-      final controller = RecommendationController(
-        repository: repository,
-        playlistRepository: _FakePlaylistRepository(),
-        sessionAccess: _sessionAccess(sessionController),
-        libraryAccess: _libraryAccess(libraryController),
-      );
-      addTearDown(controller.onClose);
-      controller.recoPlayLists.add(const PlaylistSummaryData(id: 'old-first', title: 'Old first'));
-
-      final refreshFuture = controller.updateRecoPlayLists();
-      await Future<void>.delayed(Duration.zero);
-      await controller.updateRecoPlayLists(getMore: true);
-
-      expect(requestedOffsets, [0]);
-
-      refresh.complete([
-        const PlaylistSummaryData(id: 'fresh-first', title: 'Fresh first'),
-      ]);
-      await refreshFuture;
-
-      expect(controller.recoPlayLists.map((playlist) => playlist.id), ['fresh-first']);
-    });
-
     test('ignores stale quick start data after newer refresh completes', () async {
       final sessionController = _buildSessionController('user-1');
       final libraryController = _FakeUserLibraryController();
@@ -282,16 +200,12 @@ void main() {
         libraryAccess: _libraryAccess(libraryController),
       );
       addTearDown(controller.onClose);
-      controller.recoPlayLists.add(
-        const PlaylistSummaryData(id: 'old-playlist', title: 'Old Playlist'),
-      );
       controller.todayRecommendSongs.add(_song('old-today'));
 
       await controller.updateData();
 
       expect(controller.dateLoaded.value, isTrue);
       expect(controller.hasLocalData, isFalse);
-      expect(controller.recoPlayLists, isEmpty);
       expect(controller.todayRecommendSongs, isEmpty);
       expect(libraryController.refreshCalls, 0);
       expect(repository.fetchRecommendedPlaylistsUserIds, isEmpty);
@@ -372,7 +286,6 @@ void main() {
         sessionAccess: _sessionAccess(sessionController),
         libraryAccess: _libraryAccess(libraryController),
       );
-      controller.recoPlayLists.add(const PlaylistSummaryData(id: 'visible-playlist', title: 'Visible'));
       controller.todayRecommendSongs.add(_song('visible-today'));
 
       final refresh = controller.updateData();
@@ -382,7 +295,6 @@ void main() {
       todaySongs.complete([_song('late-today')]);
 
       await expectLater(refresh, completes);
-      expect(controller.recoPlayLists.map((playlist) => playlist.id), ['visible-playlist']);
       expect(controller.todayRecommendSongs.map((song) => song.id), ['visible-today']);
     });
 
@@ -559,18 +471,12 @@ class _FakeUserRepository implements UserRepository {
     this.cachedDailyRecommendSongs = const [],
     this.loadCachedDailyRecommendSongsError,
     this.isSyncMarkerFreshError,
-    this.fetchRecommendedPlaylistsWithArgs,
     this.fetchTodayRecommendSongsWithArgs,
   });
 
   final List<PlaybackQueueItem> cachedDailyRecommendSongs;
   final Object? loadCachedDailyRecommendSongsError;
   final Object? isSyncMarkerFreshError;
-  final Future<List<PlaylistSummaryData>> Function({
-    required String userId,
-    required int offset,
-    required int limit,
-  })? fetchRecommendedPlaylistsWithArgs;
   final Future<List<PlaybackQueueItem>> Function({
     required String userId,
     required List<int> likedSongIds,
@@ -645,14 +551,6 @@ class _FakeUserRepository implements UserRepository {
     int limit = 10,
   }) {
     fetchRecommendedPlaylistsUserIds.add(userId);
-    final fetchWithArgs = fetchRecommendedPlaylistsWithArgs;
-    if (fetchWithArgs != null) {
-      return fetchWithArgs(
-        userId: userId,
-        offset: offset,
-        limit: limit,
-      );
-    }
     return Future.value(const []);
   }
 

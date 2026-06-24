@@ -14,6 +14,8 @@ validateArgs(process.argv.slice(2), {
     '--public-api=',
     '--public-facade=',
     '--special-coverage=',
+    '--write-differences-doc=',
+    '--check-differences-doc=',
   ],
 })
 
@@ -46,9 +48,19 @@ const specialCoverageArg = process.argv.find((arg) => arg.startsWith('--special-
 const specialCoveragePath = specialCoverageArg
   ? path.resolve(repoRoot, specialCoverageArg.slice('--special-coverage='.length))
   : path.join(repoRoot, 'packages/netease_music_api/tool/api_enhanced_special_coverage.json')
+const writeDifferencesDocArg = process.argv.find((arg) => arg.startsWith('--write-differences-doc='))
+const writeDifferencesDocPath = writeDifferencesDocArg
+  ? path.resolve(repoRoot, writeDifferencesDocArg.slice('--write-differences-doc='.length))
+  : null
+const checkDifferencesDocArg = process.argv.find((arg) => arg.startsWith('--check-differences-doc='))
+const checkDifferencesDocPath = checkDifferencesDocArg
+  ? path.resolve(repoRoot, checkDifferencesDocArg.slice('--check-differences-doc='.length))
+  : null
 const jsonOutput = process.argv.includes('--json')
 const markdownOutput = process.argv.includes('--markdown')
 const coverageReportSchemaVersion = 1
+const sdkDifferencesDocStart = '<!-- SDK_DIFFERENCES_START -->'
+const sdkDifferencesDocEnd = '<!-- SDK_DIFFERENCES_END -->'
 const generatedManifestSupportedCrypto = new Set(['weapi', 'eapi', 'linuxapi', 'api', 'xeapi'])
 const upstreamManifestSupportedCrypto = new Set(['', 'weapi', 'eapi', 'linuxapi', 'api', 'query', 'xeapi'])
 const generatedManifestSupportedHttpMethods = new Set(['GET', 'POST'])
@@ -1633,6 +1645,72 @@ function renderMarkdownReport(report) {
   return lines.join('\n')
 }
 
+function renderSdkDifferencesDocSection(report) {
+  const lines = [
+    sdkDifferencesDocStart,
+    '',
+    '当前 SDK 差异清单由 `api_enhanced_coverage_report.js` 从同一份覆盖报告生成。',
+    '',
+    `- schemaVersion：${report.schemaVersion}`,
+    `- 上游版本：${report.upstreamVersion}`,
+    `- 上游 commit：${report.upstreamCommit || 'unknown'}`,
+    `- module 覆盖：${report.moduleCount}/${report.upstreamModuleFileCount}`,
+    `- special 状态：covered ${report.specialCoverageStatusCounts.covered || 0}，limited ${report.specialCoverageStatusCounts.limited || 0}，missing ${report.specialCoverageStatusCounts.missing || 0}`,
+    `- runtime option 状态：supported ${report.runtimeOptionStatusCounts.supported || 0}，limited ${report.runtimeOptionStatusCounts.limited || 0}`,
+    '',
+    '| scope | module | status | reason |',
+    '| --- | --- | --- | --- |',
+  ]
+  if (report.sdkDifferences.length === 0) {
+    lines.push('| none | none | covered | 当前没有已知 SDK 差异。 |')
+  } else {
+    for (const difference of report.sdkDifferences) {
+      lines.push(
+        `| ${escapeMarkdownTableCell(difference.scope)} | ${escapeMarkdownTableCell(difference.module)} | ${escapeMarkdownTableCell(difference.status)} | ${escapeMarkdownTableCell(difference.reason)} |`,
+      )
+    }
+  }
+  lines.push('', sdkDifferencesDocEnd)
+  return lines.join('\n')
+}
+
+function replaceSdkDifferencesDocSection(markdown, replacement, filePath) {
+  const start = markdown.indexOf(sdkDifferencesDocStart)
+  const end = markdown.indexOf(sdkDifferencesDocEnd)
+  if (start === -1 || end === -1 || end < start) {
+    throw new Error(`Cannot find SDK differences markers in ${path.relative(repoRoot, filePath)}`)
+  }
+  return `${markdown.slice(0, start)}${replacement}${markdown.slice(end + sdkDifferencesDocEnd.length)}`
+}
+
+function syncSdkDifferencesDoc(filePath, { check }) {
+  const current = fs.readFileSync(filePath, 'utf8')
+  const next = replaceSdkDifferencesDocSection(current, renderSdkDifferencesDocSection(report), filePath)
+  if (next === current) {
+    return true
+  }
+  if (check) {
+    console.error(`SDK differences doc is stale: ${path.relative(repoRoot, filePath)}`)
+    console.error(`Run: node packages/netease_music_api/tool/api_enhanced_coverage_report.js --write-differences-doc=${path.relative(repoRoot, filePath).replace(/\\/g, '/')}`)
+    return false
+  }
+  fs.writeFileSync(filePath, next)
+  return true
+}
+
+let differencesDocStale = false
+try {
+  if (writeDifferencesDocPath) {
+    syncSdkDifferencesDoc(writeDifferencesDocPath, { check: false })
+  }
+  if (checkDifferencesDocPath) {
+    differencesDocStale = !syncSdkDifferencesDoc(checkDifferencesDocPath, { check: true })
+  }
+} catch (error) {
+  differencesDocStale = true
+  console.error(error instanceof Error ? error.message : String(error))
+}
+
 if (jsonOutput) {
   console.log(JSON.stringify(report, null, 2))
 } else if (markdownOutput) {
@@ -1730,4 +1808,4 @@ if (jsonOutput) {
   }
 }
 
-process.exitCode = hasFailure ? 1 : 0
+process.exitCode = hasFailure || differencesDocStale ? 1 : 0

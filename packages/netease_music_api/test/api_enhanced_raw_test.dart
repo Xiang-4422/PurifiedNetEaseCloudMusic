@@ -130,6 +130,20 @@ void main() {
         emptySpecialCoverage.stderr,
         contains('Option --special-coverage requires a non-empty path.'),
       );
+
+      final emptyDifferencesDoc = await Process.run(
+        'node',
+        [
+          reportPath,
+          '--check-differences-doc=',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+      expect(emptyDifferencesDoc.exitCode, isNot(0));
+      expect(
+        emptyDifferencesDoc.stderr,
+        contains('Option --check-differences-doc requires a non-empty path.'),
+      );
     });
 
     test('generator check mode reports stale isolated outputs without rewriting', () async {
@@ -668,6 +682,74 @@ void main() {
         expect(markdown, contains(tableRow), reason: difference['module'].toString());
       }
       expect(markdown, contains('unblockmusic-utils'));
+    });
+
+    test('coverage report keeps Chinese SDK differences doc in sync', () async {
+      final repoRoot = _findRepoRoot();
+      final reportPath = '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js';
+      final docPath = '${repoRoot.path}/docs/网易云接口开发包.md';
+
+      final currentDocCheck = await Process.run(
+        'node',
+        [
+          reportPath,
+          '--check-differences-doc=$docPath',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+      expect(
+        currentDocCheck.exitCode,
+        0,
+        reason: '${currentDocCheck.stdout}\n${currentDocCheck.stderr}',
+      );
+
+      final tempDir = Directory.systemTemp.createTempSync('api_enhanced_differences_doc_');
+      addTearDown(() {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      });
+      final tempDoc = File('${tempDir.path}/网易云接口开发包.md')
+        ..writeAsStringSync(
+          File(docPath).readAsStringSync().replaceFirst(
+                RegExp(r'module 覆盖：\d+/\d+'),
+                'module 覆盖：0/0',
+              ),
+        );
+
+      final staleCheck = await Process.run(
+        'node',
+        [
+          reportPath,
+          '--check-differences-doc=${tempDoc.path}',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+      expect(staleCheck.exitCode, isNot(0), reason: '${staleCheck.stdout}\n${staleCheck.stderr}');
+      expect(staleCheck.stderr, contains('SDK differences doc is stale'));
+      expect(tempDoc.readAsStringSync(), contains('module 覆盖：0/0'));
+
+      final writeResult = await Process.run(
+        'node',
+        [
+          reportPath,
+          '--write-differences-doc=${tempDoc.path}',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+      expect(writeResult.exitCode, 0, reason: '${writeResult.stdout}\n${writeResult.stderr}');
+      expect(tempDoc.readAsStringSync(), isNot(contains('module 覆盖：0/0')));
+      expect(tempDoc.readAsStringSync(), contains('| scope | module | status | reason |'));
+
+      final repairedCheck = await Process.run(
+        'node',
+        [
+          reportPath,
+          '--check-differences-doc=${tempDoc.path}',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+      expect(repairedCheck.exitCode, 0, reason: '${repairedCheck.stdout}\n${repairedCheck.stderr}');
     });
 
     test('coverage report detects stale upstream module metadata in manifest', () async {
@@ -5962,15 +6044,21 @@ Set<String> _stringSet(dynamic value) {
 }
 
 Map<String, String> _documentedSdkDifferences(String docs) {
-  final start = docs.indexOf('当前 SDK 差异清单：');
-  final end = docs.indexOf('当前 `sdkDifferences`', start);
+  const startMarker = '<!-- SDK_DIFFERENCES_START -->';
+  const endMarker = '<!-- SDK_DIFFERENCES_END -->';
+  final start = docs.indexOf(startMarker);
+  final end = docs.indexOf(endMarker, start);
   if (start == -1 || end == -1 || end <= start) {
     return {};
   }
   final section = docs.substring(start, end);
   return Map.fromEntries(
-    RegExp(r'^- `([^`]+)`：(.+)$', multiLine: true).allMatches(section).map(
-          (match) => MapEntry(match.group(1)!, match.group(2)!.trim()),
+    RegExp(r'^\| ([^|]+) \| ([^|]+) \| ([^|]+) \| (.*) \|$', multiLine: true)
+        .allMatches(section)
+        .where((match) => match.group(1) != 'scope' && match.group(2) != 'module')
+        .where((match) => match.group(1) != '---' && match.group(2) != '---')
+        .map(
+          (match) => MapEntry(match.group(2)!.trim(), match.group(4)!.trim()),
         ),
   );
 }

@@ -37,6 +37,8 @@ node packages/netease_music_api/tool/generate_api_enhanced_modules.js --check
 node packages/netease_music_api/tool/api_enhanced_coverage_report.js
 node packages/netease_music_api/tool/api_enhanced_coverage_report.js --json
 node packages/netease_music_api/tool/api_enhanced_coverage_report.js --markdown
+node packages/netease_music_api/tool/api_enhanced_coverage_report.js --check-differences-doc=docs/网易云接口开发包.md
+node packages/netease_music_api/tool/api_enhanced_coverage_report.js --write-differences-doc=docs/网易云接口开发包.md
 ```
 
 The generator formats generated Dart files before writing them back and records
@@ -55,10 +57,10 @@ raw convenience methods that are shadowed by typed facade methods and verifies
 that every module also has a collision-safe `rawXxx` alias. Runtime option
 limitations, such as unsupported PAC proxy URLs, are also included in
 `sdkDifferences`. Use `--json` when an automation or follow-up goal needs the
-full machine-readable report, and `--markdown` when reviewing the current
-baseline, public facade status, raw convenience method collisions,
-collision-safe aliases, per-special-module coverage status, and SDK differences
-by hand.
+full machine-readable report, `--markdown` when reviewing the current baseline,
+and `--write-differences-doc=docs/网易云接口开发包.md` or
+`--check-differences-doc=docs/网易云接口开发包.md` to keep the Chinese SDK
+differences section synchronized with the report.
 
 Upstream protocol reference is tracked in the repository submodule:
 

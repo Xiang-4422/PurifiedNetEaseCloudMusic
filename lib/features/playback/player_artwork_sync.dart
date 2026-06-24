@@ -35,7 +35,8 @@ extension PlayerArtworkSync on PlayerController {
   /// 同步底部封面分页使用的轻量展示队列。
   void syncArtworkPageItems(List<PlaybackQueueItem> queue) {
     final stopwatch = PlaybackPerformanceLogger.start();
-    final nextItems = queue.map(PlaybackArtworkPageItem.fromQueueItem).toList(growable: false);
+    final normalizedQueue = queue.map(_normalizedQueueItem).toList(growable: false);
+    final nextItems = normalizedQueue.map(PlaybackArtworkPageItem.fromQueueItem).toList(growable: false);
     if (artworkPageItems.length != nextItems.length) {
       artworkPageItems.assignAll(nextItems);
       PlaybackPerformanceLogger.elapsed(
@@ -64,27 +65,28 @@ extension PlayerArtworkSync on PlayerController {
   /// 同步播放队列展示项。
   void syncQueueStateItems(List<PlaybackQueueItem> queue) {
     final stopwatch = PlaybackPerformanceLogger.start();
-    if (queueState.length != queue.length) {
-      queueState.assignAll(queue);
+    final normalizedQueue = queue.map(_normalizedQueueItem).toList(growable: false);
+    if (queueState.length != normalizedQueue.length) {
+      queueState.assignAll(normalizedQueue);
       PlaybackPerformanceLogger.elapsed(
         'controller.syncQueueStateItems.assignAll',
         stopwatch,
-        details: 'count=${queue.length}',
+        details: 'count=${normalizedQueue.length}',
         warnAfterMs: 2,
       );
       return;
     }
     var changedCount = 0;
-    for (var index = 0; index < queue.length; index++) {
-      if (!hasSameQueueItem(queueState[index], queue[index])) {
-        queueState[index] = queue[index];
+    for (var index = 0; index < normalizedQueue.length; index++) {
+      if (!hasSameQueueItem(queueState[index], normalizedQueue[index])) {
+        queueState[index] = normalizedQueue[index];
         changedCount++;
       }
     }
     PlaybackPerformanceLogger.elapsed(
       'controller.syncQueueStateItems.incremental',
       stopwatch,
-      details: 'count=${queue.length} changed=$changedCount',
+      details: 'count=${normalizedQueue.length} changed=$changedCount',
       warnAfterMs: 2,
     );
   }
@@ -94,7 +96,7 @@ extension PlayerArtworkSync on PlayerController {
     PlaybackQueueItem current,
     PlaybackQueueItem next,
   ) {
-    return current.id == next.id &&
+    return _normalizedQueueItemId(current.id) == _normalizedQueueItemId(next.id) &&
         current.title == next.title &&
         current.artist == next.artist &&
         current.artworkUrl == next.artworkUrl &&

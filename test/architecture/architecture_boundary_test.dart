@@ -1728,7 +1728,11 @@ void main() {
       final artworkSyncFile = File(
         '${projectRoot.path}/lib/features/playback/player_artwork_sync.dart',
       );
+      final artworkPageItemFile = File(
+        '${projectRoot.path}/lib/features/playback/playback_artwork_page_item.dart',
+      );
       final artworkSync = artworkSyncFile.readAsStringSync();
+      final artworkPageItem = artworkPageItemFile.readAsStringSync();
       final violations = <String>[
         if (!artworkSync.contains('String _normalizedQueueItemId(String id)')) '${_relativePath(artworkSyncFile)} does not define queue item id normalization',
         if (!artworkSync.contains('final itemId = _normalizedQueueItemId(item.id);')) '${_relativePath(artworkSyncFile)} can still start artwork writeback from raw item id',
@@ -1737,6 +1741,11 @@ void main() {
         if (!artworkSync.contains('_normalizedQueueItemId(runtimeState.value.currentSong.id) != itemId')) '${_relativePath(artworkSyncFile)} can still drop async artwork results through raw current song comparison',
         if (!artworkSync.contains('await syncCurrentQueueItem(_normalizedQueueItem(updatedItem));')) '${_relativePath(artworkSyncFile)} can still write back raw artwork queue item ids',
         if (!artworkSync.contains('_normalizedQueueItemId(item.id) == itemId ? normalizedItem : item')) '${_relativePath(artworkSyncFile)} can still replace queue artwork by raw item id',
+        if (!artworkSync.contains('final normalizedQueue = queue.map(_normalizedQueueItem).toList(growable: false);')) '${_relativePath(artworkSyncFile)} can still sync UI display queues from raw item ids',
+        if (!artworkSync.contains('queueState.assignAll(normalizedQueue);')) '${_relativePath(artworkSyncFile)} can still assign raw queue display ids',
+        if (!artworkSync.contains('_normalizedQueueItemId(current.id) == _normalizedQueueItemId(next.id)')) '${_relativePath(artworkSyncFile)} can still compare display queue item ids raw',
+        if (!artworkPageItem.contains('id: item.id.trim()')) '${_relativePath(artworkPageItemFile)} can still build artwork page ids from raw queue item ids',
+        if (!artworkPageItem.contains('id.trim() == other.id.trim()')) '${_relativePath(artworkPageItemFile)} can still compare artwork page ids raw',
       ];
 
       expect(

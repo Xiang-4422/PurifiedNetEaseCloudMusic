@@ -15,7 +15,7 @@ class PlaybackArtworkPageItem {
   /// 从播放队列项提取封面分页字段。
   factory PlaybackArtworkPageItem.fromQueueItem(PlaybackQueueItem item) {
     return PlaybackArtworkPageItem(
-      id: item.id,
+      id: item.id.trim(),
       artworkUrl: item.artworkUrl,
       localArtworkPath: item.localArtworkPath,
     );
@@ -32,6 +32,6 @@ class PlaybackArtworkPageItem {
 
   /// 当前展示字段是否与另一个封面项一致。
   bool hasSameArtwork(PlaybackArtworkPageItem other) {
-    return id == other.id && artworkUrl == other.artworkUrl && localArtworkPath == other.localArtworkPath;
+    return id.trim() == other.id.trim() && artworkUrl == other.artworkUrl && localArtworkPath == other.localArtworkPath;
   }
 }

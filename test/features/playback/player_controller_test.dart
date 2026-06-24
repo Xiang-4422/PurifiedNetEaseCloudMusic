@@ -278,6 +278,24 @@ void main() {
       expect(controller.runtimeState.value.queue.single.localArtworkPath, '/tmp/cover.jpg');
     });
 
+    test('normalizes display queue ids before syncing UI queue state', () {
+      final rawItem = _queueItem(' 1 ', sourceId: '1');
+      final controller = _playerController();
+
+      controller.syncQueueStateItems([rawItem]);
+      controller.syncArtworkPageItems([rawItem]);
+
+      expect(controller.queueState.map((item) => item.id), ['1']);
+      expect(controller.artworkPageItems.map((item) => item.id), ['1']);
+      expect(
+        controller.hasSameQueueItem(
+          rawItem,
+          rawItem.copyWith(id: '1'),
+        ),
+        isTrue,
+      );
+    });
+
     test('builds mini player feedback metric details for success', () {
       expect(
         miniPlayerFeedbackMetricDetails(

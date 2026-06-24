@@ -18,9 +18,18 @@ import 'package:bujuan/ui/widgets/shell/custom_zoom_drawer/flutter_zoom_drawer.d
 
 /// 统一承接首页壳层、抽屉、顶部搜索面板和底部播放面板的 UI 协调。
 class ShellController extends SuperController with GetTickerProviderStateMixin, WidgetsBindingObserver {
-  HomeShellController get _homeShellController => Get.find<HomeShellController>();
-  PlayerController get _playerController => Get.find<PlayerController>();
-  UserSessionController get _userSessionController => Get.find<UserSessionController>();
+  /// 创建应用壳层协调器。
+  ShellController({
+    required HomeShellController homeShellController,
+    required PlayerController playerController,
+    required UserSessionController userSessionController,
+  })  : _homeShellController = homeShellController,
+        _playerController = playerController,
+        _userSessionController = userSessionController;
+
+  final HomeShellController _homeShellController;
+  final PlayerController _playerController;
+  final UserSessionController _userSessionController;
 
   /// 壳层当前构建上下文，用于响应系统窗口和主题变化。
   late BuildContext buildContext;
@@ -225,10 +234,6 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
   @override
   Future<void> onInit() async {
     super.onInit();
-    _homeShellController;
-    _playerController;
-    _userSessionController;
-
     _ensureUiControllersInitialized();
     WidgetsBinding.instance.addObserver(this);
 

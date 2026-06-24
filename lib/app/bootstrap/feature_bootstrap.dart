@@ -218,7 +218,14 @@ void registerFeatureControllers() {
     ),
     fenix: true,
   );
-  Get.lazyPut(() => ShellController(), fenix: true);
+  Get.lazyPut(
+    () => ShellController(
+      homeShellController: Get.find<HomeShellController>(),
+      playerController: Get.find<PlayerController>(),
+      userSessionController: Get.find<UserSessionController>(),
+    ),
+    fenix: true,
+  );
   Get.put<PersonalHomeControllerBundle>(
     PersonalHomeControllerBundle(
       playerController: Get.find<PlayerController>(),

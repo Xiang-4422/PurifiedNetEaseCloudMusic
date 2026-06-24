@@ -3483,9 +3483,13 @@ void main() {
     });
 
     test('core controllers do not expose global to accessors', () {
+      final shellControllerFile = File('${projectRoot.path}/lib/features/shell/shell_controller.dart');
+      final bootstrapFile = File('${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart');
+      final shellController = shellControllerFile.readAsStringSync();
+      final bootstrap = bootstrapFile.readAsStringSync();
       final controllerFiles = [
         File('${projectRoot.path}/lib/features/shell/home_shell_controller.dart'),
-        File('${projectRoot.path}/lib/features/shell/shell_controller.dart'),
+        shellControllerFile,
         File('${projectRoot.path}/lib/features/playback/player_controller.dart'),
         File('${projectRoot.path}/lib/features/playback/recent_playback_controller.dart'),
         File('${projectRoot.path}/lib/features/settings/settings_controller.dart'),
@@ -3496,12 +3500,20 @@ void main() {
       final violations = <String>[
         for (final file in controllerFiles)
           if (file.readAsStringSync().contains('get to => Get.find')) _relativePath(file),
+        if (shellController.contains('Get.find<')) '${_relativePath(shellControllerFile)} resolves dependencies from Get container',
+        if (!shellController.contains('ShellController({')) '${_relativePath(shellControllerFile)} does not expose constructor injection',
+        if (!shellController.contains('required HomeShellController homeShellController')) '${_relativePath(shellControllerFile)} does not receive home shell controller through constructor',
+        if (!shellController.contains('required PlayerController playerController')) '${_relativePath(shellControllerFile)} does not receive playback controller through constructor',
+        if (!shellController.contains('required UserSessionController userSessionController')) '${_relativePath(shellControllerFile)} does not receive user session controller through constructor',
+        if (!bootstrap.contains('homeShellController: Get.find<HomeShellController>()')) 'feature bootstrap does not inject home shell controller into shell controller',
+        if (!bootstrap.contains('playerController: Get.find<PlayerController>()')) 'feature bootstrap does not inject playback controller into shell controller',
+        if (!bootstrap.contains('userSessionController: Get.find<UserSessionController>()')) 'feature bootstrap does not inject user session controller into shell controller',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: '核心控制器必须通过 bootstrap、bundle 或页面边界注入，不能重新提供 Controller.to 这类全局快捷入口。',
+        reason: '核心控制器必须通过 bootstrap、bundle 或页面边界注入，不能重新提供 Controller.to 这类全局快捷入口；ShellController 自身也不能再作为服务定位器读取其它核心控制器。',
       );
     });
 

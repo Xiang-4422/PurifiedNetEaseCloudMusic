@@ -264,30 +264,6 @@ class HomeContentController extends GetxController {
     }
   }
 
-  /// 拉取每日推荐歌曲队列。
-  Future<List<PlaybackQueueItem>> getTodayRecommendSongs() async {
-    final userId = _currentUserId();
-    if (!_isSignedInUserId(userId)) {
-      return const [];
-    }
-    return _repository.fetchTodayRecommendSongs(
-      userId: userId,
-      likedSongIds: _likedSongIdsSnapshot(),
-    );
-  }
-
-  /// 拉取私人 FM 候选歌曲队列。
-  Future<List<PlaybackQueueItem>> getFmSongs() async {
-    final userId = _currentUserId();
-    if (!_isSignedInUserId(userId)) {
-      return const [];
-    }
-    return _repository.fetchFmSongs(
-      userId: userId,
-      likedSongIds: _likedSongIdsSnapshot(),
-    );
-  }
-
   /// 将首页常用歌单摘要解析为播放队列计划。
   Future<UserHomePlaylistPlaybackPlan> resolveFrequentPlaylistPlayback(
     PlaylistSummaryData playlist,

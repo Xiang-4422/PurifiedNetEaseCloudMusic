@@ -3483,6 +3483,8 @@ void main() {
         if (controller.contains("package:bujuan/features/user/user_session_controller.dart")) 'home content controller imports user session controller',
         if (controller.contains('UserSessionController')) 'home content controller names user session controller directly',
         if (!controller.contains('Future<UserHomePlaylistPlaybackPlan> resolveFrequentPlaylistPlayback')) 'home content controller does not expose frequent playlist playback resolution',
+        if (controller.contains('getFmSongs')) 'home content controller exposes FM playback loading',
+        if (controller.contains('getTodayRecommendSongs')) 'home content controller exposes explicit daily playback loading',
         if (!controller.contains('required PlaylistRepository playlistRepository')) 'home content controller does not receive playlist repository explicitly',
         if (!controller.contains('required HomeContentLibraryAccess libraryAccess')) 'home content controller does not receive library access boundary',
         if (!controller.contains('required HomeContentSessionAccess sessionAccess')) 'home content controller does not receive session access boundary',
@@ -3504,6 +3506,33 @@ void main() {
         violations,
         isEmpty,
         reason: '常用歌单 Widget 只发起播放意图，歌单摘要到播放队列的解析必须留在 HomeContentController，避免 UI 直接读喜欢列表和 PlaylistRepository。',
+      );
+    });
+
+    test('playback FM loading stays behind playback user content port', () {
+      final playbackBootstrapFile = File(
+        '${projectRoot.path}/lib/app/bootstrap/playback_bootstrap.dart',
+      );
+      final homeContentControllerFile = File(
+        '${projectRoot.path}/lib/features/user/home_content_controller.dart',
+      );
+      final playbackBootstrap = playbackBootstrapFile.readAsStringSync();
+      final homeContentController = homeContentControllerFile.readAsStringSync();
+      final violations = <String>[
+        if (playbackBootstrap.contains('home_content_controller.dart')) '${_relativePath(playbackBootstrapFile)} imports home content controller for playback content',
+        if (playbackBootstrap.contains('Get.find<HomeContentController>')) '${_relativePath(playbackBootstrapFile)} reads home content controller for playback content',
+        if (!playbackBootstrap.contains('loadFmSongs: _loadFmSongs')) '${_relativePath(playbackBootstrapFile)} does not route FM through playback content port helper',
+        if (!playbackBootstrap.contains('Future<List<PlaybackQueueItem>> _loadFmSongs()')) '${_relativePath(playbackBootstrapFile)} does not define FM loading helper',
+        if (!playbackBootstrap.contains('Get.find<UserRepository>().fetchFmSongs(')) '${_relativePath(playbackBootstrapFile)} does not load FM through user repository',
+        if (!playbackBootstrap.contains('Get.find<UserSessionController>().userInfo.value.userId')) '${_relativePath(playbackBootstrapFile)} does not read current account for FM loading',
+        if (!playbackBootstrap.contains('bool _isSignedInUserId(String userId)')) '${_relativePath(playbackBootstrapFile)} does not guard FM loading with signed-in account check',
+        if (homeContentController.contains('getFmSongs')) '${_relativePath(homeContentControllerFile)} still exposes FM loading',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'FM 漫游属于播放模式内容加载，不能通过首页内容控制器绕行；播放端口负责读取当前账号、喜欢歌曲快照并调用用户仓库。',
       );
     });
 

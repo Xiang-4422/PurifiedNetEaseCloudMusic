@@ -237,7 +237,7 @@ void main() {
       expect(controller.hasLocalData, isTrue);
     });
 
-    test('normalizes liked song ids before home cache and remote requests', () async {
+    test('normalizes liked song ids before home cache and home refresh requests', () async {
       final sessionController = _buildSessionController('user-1');
       final libraryController = _FakeUserLibraryController()..likedSongIds.addAll([202, 101, 202]);
       final repository = _FakeUserRepository();
@@ -255,8 +255,6 @@ void main() {
       libraryController.likedSongIds
         ..clear()
         ..addAll([303, 202, 303]);
-      await controller.getTodayRecommendSongs();
-      await controller.getFmSongs();
       await controller.updateData();
 
       expect(repository.loadCachedTrackListLikedSongRequests, [
@@ -264,11 +262,8 @@ void main() {
       ]);
       expect(repository.fetchTodayRecommendSongsLikedRequests, [
         [202, 303],
-        [202, 303],
       ]);
-      expect(repository.fetchFmSongsLikedRequests, [
-        [202, 303],
-      ]);
+      expect(repository.fetchFmSongsLikedRequests, isEmpty);
     });
 
     test('ignores home refresh completion after close', () async {

@@ -1,5 +1,6 @@
 import 'dart:developer' as developer;
 
+import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/download/download_repository.dart';
 import 'package:bujuan/features/playback/application/confirmed_playback_effect_coordinator.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
@@ -21,8 +22,9 @@ import 'package:bujuan/features/playback/application/playback_user_content_port.
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
-import 'package:bujuan/features/user/home_content_controller.dart';
 import 'package:bujuan/features/user/user_library_controller.dart';
+import 'package:bujuan/features/user/user_repository.dart';
+import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:get/get.dart';
 
 /// Registers playback services and ports that form the runtime playback graph.
@@ -54,7 +56,7 @@ void registerPlaybackDependencies() {
       likedSongIds: _likedSongIdsSnapshot,
       ensureLikedSongsLoaded: () => Get.find<UserLibraryController>().ensureLikedSongsLoaded(),
       likedSongs: () => Get.find<UserLibraryController>().likedSongs.toList(),
-      loadFmSongs: () => Get.find<HomeContentController>().getFmSongs(),
+      loadFmSongs: _loadFmSongs,
       loadHeartBeatSongs: (startSongId, randomLikedSongId, fromPlayAll) => Get.find<UserLibraryController>().getHeartBeatSongs(
         startSongId,
         randomLikedSongId,
@@ -158,6 +160,30 @@ void registerPlaybackDependencies() {
 
 List<int> _likedSongIdsSnapshot() {
   return Get.find<UserLibraryController>().likedSongIdSnapshot;
+}
+
+Future<List<PlaybackQueueItem>> _loadFmSongs() {
+  final userId = _currentUserId();
+  if (!_isSignedInUserId(userId)) {
+    return Future.value(const <PlaybackQueueItem>[]);
+  }
+  return Get.find<UserRepository>().fetchFmSongs(
+    userId: userId,
+    likedSongIds: _likedSongIdsSnapshot(),
+  );
+}
+
+String _currentUserId() {
+  return _normalizedUserId(Get.find<UserSessionController>().userInfo.value.userId);
+}
+
+String _normalizedUserId(String userId) {
+  return userId.trim();
+}
+
+bool _isSignedInUserId(String userId) {
+  final normalizedUserId = _normalizedUserId(userId);
+  return normalizedUserId.isNotEmpty && normalizedUserId != '-1';
 }
 
 void _reportPlaybackSideEffectError(

@@ -84,9 +84,12 @@ void main() {
     ).readAsStringSync();
 
     expect(source, contains('class ExploreRankingSongListSliver'));
+    expect(source, contains('SliverPrototypeExtentList('));
+    expect(source, contains('prototypeItem: SongItem('));
     expect(source, contains('SliverChildBuilderDelegate('));
     expect(source, contains('SongItem('));
     expect(source, contains('showIndex: true'));
     expect(source, contains('addAutomaticKeepAlives: false'));
+    expect(source, isNot(contains('return SliverList(')));
   });
 }

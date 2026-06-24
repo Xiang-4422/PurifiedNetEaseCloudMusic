@@ -30,7 +30,13 @@ class ExploreRankingSongListSliver extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SliverList(
+    return SliverPrototypeExtentList(
+      prototypeItem: SongItem(
+        item: songs.isEmpty ? const PlaybackQueueItem.empty() : songs.first,
+        index: 0,
+        playListName: playlistName,
+        showIndex: true,
+      ).paddingSymmetric(horizontal: AppDimensions.paddingSmall),
       delegate: SliverChildBuilderDelegate(
         (context, index) => SongItem(
           index: index,

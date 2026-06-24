@@ -2,7 +2,7 @@ import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/ui/layout/adaptive_layout_metrics.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
-import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/music_detail/music_detail_controller_bundle.dart';
 import 'package:bujuan/features/user/home_content_controller.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:bujuan/ui/widgets/common/music/music_list_tile.dart';
@@ -19,7 +19,7 @@ class TodayPageView extends GetView<HomeContentController> {
 
   @override
   Widget build(BuildContext context) {
-    final playerController = Get.find<PlayerController>();
+    final playbackActions = Get.find<MusicDetailControllerBundle>().playbackActions;
     final songs = controller.todayRecommendSongs;
     final albumUrl = songs.isEmpty
         ? ''
@@ -103,7 +103,7 @@ class TodayPageView extends GetView<HomeContentController> {
                         ),
                       ),
                       onPressed: canPlayDailyRecommendations
-                          ? () => playerController.playPlaylist(
+                          ? () => playbackActions.playPlaylist(
                                 songs,
                                 0,
                                 playListName: "每日推荐",
@@ -134,7 +134,7 @@ class TodayPageView extends GetView<HomeContentController> {
           ).paddingSymmetric(horizontal: AppDimensions.paddingMedium),
           delegate: SliverChildBuilderDelegate(
             (BuildContext context, int index) {
-              return SongItem(playlist: songs, index: index, playListName: "今日推荐", stringColor: Colors.black, showIndex: true, onPlay: playerController.playPlaylist).paddingSymmetric(horizontal: AppDimensions.paddingMedium);
+              return SongItem(playlist: songs, index: index, playListName: "今日推荐", stringColor: Colors.black, showIndex: true, onPlay: playbackActions.playPlaylist).paddingSymmetric(horizontal: AppDimensions.paddingMedium);
             },
             childCount: songs.length,
             addAutomaticKeepAlives: false,

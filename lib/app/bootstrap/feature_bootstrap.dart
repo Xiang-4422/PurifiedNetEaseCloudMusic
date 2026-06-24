@@ -19,6 +19,8 @@ import 'package:bujuan/features/download/local_song_list_controller_factory.dart
 import 'package:bujuan/features/local_media/local_media_repository.dart';
 import 'package:bujuan/features/local_media/local_media_scan_controller.dart';
 import 'package:bujuan/features/local_media/local_media_scan_repository.dart';
+import 'package:bujuan/features/music_detail/music_detail_controller_bundle.dart';
+import 'package:bujuan/features/music_detail/music_page_playback_actions.dart';
 import 'package:bujuan/features/playback/application/confirmed_playback_effect_coordinator.dart';
 import 'package:bujuan/features/playback/application/current_track_download_use_case.dart';
 import 'package:bujuan/features/playback/application/playback_lyric_ui_state_controller.dart';
@@ -214,6 +216,7 @@ void registerFeatureControllers() {
     ),
     fenix: true,
   );
+  Get.lazyPut(() => ShellController(), fenix: true);
   Get.put<PersonalHomeControllerBundle>(
     PersonalHomeControllerBundle(
       playerController: Get.find<PlayerController>(),
@@ -305,6 +308,24 @@ void registerFeatureControllers() {
     ),
     fenix: true,
   );
+  Get.put<MusicPagePlaybackActions>(
+    MusicPagePlaybackActions(
+      playerController: Get.find<PlayerController>(),
+      openPlaybackPanel: _openPlaybackPanel,
+    ),
+    permanent: true,
+  );
+  Get.put<MusicDetailControllerBundle>(
+    MusicDetailControllerBundle(
+      albumControllerFactory: Get.find<AlbumPageControllerFactory>(),
+      artistControllerFactory: Get.find<ArtistPageControllerFactory>(),
+      cloudControllerFactory: Get.find<CloudPageControllerFactory>(),
+      playbackActions: Get.find<MusicPagePlaybackActions>(),
+      playlistControllerFactory: Get.find<PlaylistPageControllerFactory>(),
+      radioControllerFactory: Get.find<RadioControllerFactory>(),
+    ),
+    permanent: true,
+  );
   Get.put<SettingsPageControllerBundle>(
     SettingsPageControllerBundle(
       localMediaScanController: Get.find<LocalMediaScanController>(),
@@ -323,7 +344,12 @@ void registerFeatureControllers() {
     ),
     permanent: true,
   );
-  Get.lazyPut(() => ShellController(), fenix: true);
+}
+
+void _openPlaybackPanel() {
+  final shellController = Get.find<ShellController>();
+  shellController.jumpBottomPanelToPage(0);
+  shellController.openBottomPanel();
 }
 
 void _reportPlaybackBackgroundError(

@@ -10,8 +10,7 @@ import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/artist_entity.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/artist/artist_page_controller.dart';
-import 'package:bujuan/features/artist/artist_page_controller_factory.dart';
-import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/music_detail/music_detail_controller_bundle.dart';
 import 'package:bujuan/app/routing/router.gr.dart' as gr;
 import 'package:bujuan/ui/pages/music_detail/local_first_detail_page_mixin.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
@@ -71,8 +70,8 @@ class ArtistPageView extends StatefulWidget {
 }
 
 class _ArtistPageViewState extends State<ArtistPageView> with LocalFirstDetailPageMixin<ArtistPageView> {
-  final ArtistPageController _controller = Get.find<ArtistPageControllerFactory>().create();
-  final PlayerController _playerController = Get.find<PlayerController>();
+  late final MusicDetailControllerBundle _controllers = Get.find<MusicDetailControllerBundle>();
+  late final ArtistPageController _controller = _controllers.artistControllerFactory.create();
   late String artistId;
   late ArtistEntity artist;
 
@@ -188,7 +187,7 @@ class _ArtistPageViewState extends State<ArtistPageView> with LocalFirstDetailPa
                           disabledColor: Colors.white.withValues(alpha: 0.45),
                           icon: const Icon(TablerIcons.player_play_filled),
                           onPressed: canPlayArtist
-                              ? () => _playerController.playPlaylist(
+                              ? () => _controllers.playbackActions.playPlaylist(
                                     topSongs,
                                     0,
                                     playListName: artist.name,
@@ -319,7 +318,7 @@ class _ArtistPageViewState extends State<ArtistPageView> with LocalFirstDetailPa
               ).paddingSymmetric(horizontal: AppDimensions.paddingMedium),
               delegate: SliverChildBuilderDelegate(
                 (BuildContext context, int index) {
-                  return SongItem(playlist: topSongs, index: index, playListName: artist.name, playListHeader: "歌手", stringColor: onAlbumColor, showIndex: true, onPlay: _playerController.playPlaylist)
+                  return SongItem(playlist: topSongs, index: index, playListName: artist.name, playListHeader: "歌手", stringColor: onAlbumColor, showIndex: true, onPlay: _controllers.playbackActions.playPlaylist)
                       .paddingSymmetric(horizontal: AppDimensions.paddingMedium);
                 },
                 childCount: topSongs.length,

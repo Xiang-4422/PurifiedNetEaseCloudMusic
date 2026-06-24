@@ -4,7 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/radio_data.dart';
-import 'package:bujuan/features/radio/radio_controller_factory.dart';
+import 'package:bujuan/features/music_detail/music_detail_controller_bundle.dart';
 import 'package:bujuan/features/radio/radio_list_controller.dart';
 import 'package:bujuan/app/routing/router.gr.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
@@ -41,13 +41,14 @@ class MyRadioView extends StatefulWidget {
 }
 
 class _MyRadioViewState extends State<MyRadioView> {
+  late final MusicDetailControllerBundle _controllers = Get.find<MusicDetailControllerBundle>();
   late final RadioListController _controller;
   final RefreshController _refreshController = RefreshController();
 
   @override
   void initState() {
     super.initState();
-    _controller = Get.find<RadioControllerFactory>().createList()..loadInitial();
+    _controller = _controllers.radioControllerFactory.createList()..loadInitial();
   }
 
   @override

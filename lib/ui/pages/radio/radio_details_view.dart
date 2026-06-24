@@ -4,8 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/radio_data.dart';
-import 'package:bujuan/features/playback/player_controller.dart';
-import 'package:bujuan/features/radio/radio_controller_factory.dart';
+import 'package:bujuan/features/music_detail/music_detail_controller_bundle.dart';
 import 'package:bujuan/features/radio/radio_detail_controller.dart';
 import 'package:bujuan/ui/widgets/common/refresh/app_smart_refresher.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
@@ -28,10 +27,10 @@ class RadioDetailsView extends StatefulWidget {
 }
 
 class _RadioDetailsViewState extends State<RadioDetailsView> {
+  late final MusicDetailControllerBundle _controllers = Get.find<MusicDetailControllerBundle>();
   late final String _radioId;
   late final String _radioName;
   late final RadioDetailController _controller;
-  final PlayerController _playerController = Get.find<PlayerController>();
   final RefreshController _refreshController = RefreshController();
 
   @override
@@ -39,7 +38,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
     super.initState();
     _radioId = context.routeData.queryParams.get('radioId');
     _radioName = context.routeData.queryParams.get('radioName');
-    _controller = Get.find<RadioControllerFactory>().createDetail(radioId: _radioId)..loadInitial();
+    _controller = _controllers.radioControllerFactory.createDetail(radioId: _radioId)..loadInitial();
   }
 
   @override
@@ -103,7 +102,7 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
                   index: index,
                   playlist: queueItems,
                   playListName: _radioName,
-                  onPlay: _playerController.playPlaylist,
+                  onPlay: _controllers.playbackActions.playPlaylist,
                 );
               },
               itemCount: state.items.length,

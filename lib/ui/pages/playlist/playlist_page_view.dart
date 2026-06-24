@@ -1,20 +1,15 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:bujuan/core/diagnostics/performance_metric.dart';
 import 'package:bujuan/ui/services/toast_service.dart';
 import 'package:bujuan/ui/services/image_color_service.dart';
 import 'package:bujuan/core/util/extensions.dart';
 import 'package:bujuan/features/playlist/playlist_performance_logger.dart';
-import 'package:bujuan/core/entities/playback_order_mode.dart';
-import 'package:bujuan/core/entities/playback_repeat_mode.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
-import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/music_detail/music_detail_controller_bundle.dart';
 import 'package:bujuan/features/playlist/playlist_detail_data.dart';
 import 'package:bujuan/features/playlist/playlist_page_controller.dart';
-import 'package:bujuan/features/playlist/playlist_page_controller_factory.dart';
 import 'package:bujuan/features/playlist/playlist_artwork_color_service.dart';
-import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/ui/pages/playlist/playlist_page_state.dart';
 import 'package:bujuan/ui/pages/playlist/widgets/playlist_content_scroll_view.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
@@ -50,10 +45,8 @@ class PlayListPageView extends StatefulWidget {
 }
 
 class _PlayListPageViewState extends State<PlayListPageView> {
+  late final MusicDetailControllerBundle _controllers = Get.find<MusicDetailControllerBundle>();
   late final PlaylistPageController _controller;
-  final PlayerController _playerController = Get.find<PlayerController>();
-  final ShellController _shellController = Get.find<ShellController>();
-  final Random _random = Random();
   late final PlaylistArtworkColorService _artworkColorService;
 
   late PlaylistPageStateModel _playlistState;
@@ -66,7 +59,7 @@ class _PlayListPageViewState extends State<PlayListPageView> {
   @override
   void initState() {
     super.initState();
-    final controllerFactory = Get.find<PlaylistPageControllerFactory>();
+    final controllerFactory = _controllers.playlistControllerFactory;
     _controller = controllerFactory.create();
     _artworkColorService = controllerFactory.createArtworkColorService();
     _playlistState = PlaylistPageStateModel.initial(
@@ -432,41 +425,28 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     if (!_canPlayLoadedPlaylist) {
       return;
     }
-    _openPlaybackPanel();
     if (shuffle) {
-      await _playerController.setOrderMode(PlaybackOrderMode.shuffle);
-      await _playerController.setRepeatMode(PlaybackRepeatMode.all);
-      await _playerController.playPlaylist(
+      await _controllers.playbackActions.playShuffledPlaylist(
         _playlistState.songs,
-        _random.nextInt(_playlistState.songs.length),
         playListName: _playlistState.playlistName,
         playListNameHeader: "歌单",
       );
       return;
     }
-    await _playerController.setOrderMode(PlaybackOrderMode.sequential);
-    await _playerController.setRepeatMode(PlaybackRepeatMode.all);
-    await _playerController.playPlaylist(
+    await _controllers.playbackActions.playSequentialPlaylist(
       _playlistState.songs,
-      0,
       playListName: _playlistState.playlistName,
       playListNameHeader: "歌单",
     );
   }
 
   Future<void> _playSongAt(int index) async {
-    _openPlaybackPanel();
-    await _playerController.playPlaylist(
+    await _controllers.playbackActions.playPlaylistAndOpenPanel(
       _playlistState.songs,
       index,
       playListName: _playlistState.playlistName,
       playListNameHeader: '歌单',
     );
-  }
-
-  void _openPlaybackPanel() {
-    _shellController.jumpBottomPanelToPage(0);
-    _shellController.openBottomPanel();
   }
 
   Future<void> _subscribePlayList() async {

@@ -2322,6 +2322,9 @@ void main() {
       final bootstrapFile = File(
         '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
       );
+      final musicDetailBundleFile = File(
+        '${projectRoot.path}/lib/features/music_detail/music_detail_controller_bundle.dart',
+      );
       final cloudView = cloudViewFile.readAsStringSync();
       final cloudController = cloudControllerFile.readAsStringSync();
       final cloudFactory = cloudFactoryFile.readAsStringSync();
@@ -2332,12 +2335,16 @@ void main() {
       final radioMapper = radioMapperFile.readAsStringSync();
       final radioFactory = radioFactoryFile.readAsStringSync();
       final bootstrap = bootstrapFile.readAsStringSync();
+      final musicDetailBundle = musicDetailBundleFile.readAsStringSync();
       final violations = <String>[
         if (cloudView.contains('UserLibraryController')) '${_relativePath(cloudViewFile)} reads user library directly',
         if (cloudView.contains('CloudRepository')) '${_relativePath(cloudViewFile)} names cloud repository directly',
         if (cloudView.contains('UserSessionController')) '${_relativePath(cloudViewFile)} reads current user directly',
         if (cloudView.contains('likedSongIds:')) '${_relativePath(cloudViewFile)} passes liked ids from UI',
-        if (!cloudView.contains('Get.find<CloudPageControllerFactory>().create()')) '${_relativePath(cloudViewFile)} does not create controller through feature factory',
+        if (cloudView.contains('Get.find<CloudPageControllerFactory>')) '${_relativePath(cloudViewFile)} reads cloud factory directly',
+        if (!cloudView.contains('Get.find<MusicDetailControllerBundle>()')) '${_relativePath(cloudViewFile)} does not resolve music detail bundle at page boundary',
+        if (!cloudView.contains('_controllers.cloudControllerFactory.create()')) '${_relativePath(cloudViewFile)} does not create controller through music detail bundle',
+        if (cloudView.contains('Get.find<PlayerController>')) '${_relativePath(cloudViewFile)} reads playback controller directly',
         if (cloudView.contains('shrinkWrap: true')) '${_relativePath(cloudViewFile)} enables shrinkWrap on paged song list',
         if (!cloudView.contains('cacheExtent: cloudDriveListCacheExtent')) '${_relativePath(cloudViewFile)} does not bound cloud paged list cache extent',
         if (cloudController.contains('UserLibraryController')) '${_relativePath(cloudControllerFile)} reads user library directly',
@@ -2354,7 +2361,9 @@ void main() {
         if (!cloudFactory.contains('likedSongIds: _likedSongIds')) 'cloud controller factory does not inject liked ids provider',
         if (radioListView.contains('RadioRepository')) '${_relativePath(radioListViewFile)} names radio repository directly',
         if (radioListView.contains('UserSessionController')) '${_relativePath(radioListViewFile)} reads current user directly',
-        if (!radioListView.contains('Get.find<RadioControllerFactory>().createList()')) '${_relativePath(radioListViewFile)} does not create list controller through feature factory',
+        if (radioListView.contains('Get.find<RadioControllerFactory>')) '${_relativePath(radioListViewFile)} reads radio factory directly',
+        if (!radioListView.contains('Get.find<MusicDetailControllerBundle>()')) '${_relativePath(radioListViewFile)} does not resolve music detail bundle at page boundary',
+        if (!radioListView.contains('_controllers.radioControllerFactory.createList()')) '${_relativePath(radioListViewFile)} does not create list controller through music detail bundle',
         if (radioListView.contains('shrinkWrap: true')) '${_relativePath(radioListViewFile)} enables shrinkWrap on paged radio list',
         if (!radioListView.contains('itemExtent: myRadioListItemExtent')) '${_relativePath(radioListViewFile)} does not fix radio list item extent',
         if (!radioListView.contains('height: myRadioListItemExtent')) '${_relativePath(radioListViewFile)} does not share radio row height with item extent',
@@ -2364,7 +2373,10 @@ void main() {
         if (radioView.contains('UserLibraryController')) '${_relativePath(radioViewFile)} reads user library directly',
         if (radioView.contains('RadioRepository')) '${_relativePath(radioViewFile)} names radio repository directly',
         if (radioView.contains('UserSessionController')) '${_relativePath(radioViewFile)} reads current user directly',
-        if (!radioView.contains('Get.find<RadioControllerFactory>().createDetail(radioId: _radioId)')) '${_relativePath(radioViewFile)} does not create detail controller through feature factory',
+        if (radioView.contains('Get.find<RadioControllerFactory>')) '${_relativePath(radioViewFile)} reads radio factory directly',
+        if (!radioView.contains('Get.find<MusicDetailControllerBundle>()')) '${_relativePath(radioViewFile)} does not resolve music detail bundle at page boundary',
+        if (!radioView.contains('_controllers.radioControllerFactory.createDetail(radioId: _radioId)')) '${_relativePath(radioViewFile)} does not create detail controller through music detail bundle',
+        if (radioView.contains('Get.find<PlayerController>')) '${_relativePath(radioViewFile)} reads playback controller directly',
         if (radioView.contains('shrinkWrap: true')) '${_relativePath(radioViewFile)} enables shrinkWrap on paged radio program list',
         if (!radioView.contains('cacheExtent: radioProgramListCacheExtent')) '${_relativePath(radioViewFile)} does not bound radio program list cache extent',
         if (radioView.contains('RadioPlaybackQueueItemMapper.fromPrograms')) '${_relativePath(radioViewFile)} maps radio queue items in UI',
@@ -2386,6 +2398,12 @@ void main() {
         if (!radioFactory.contains('likedSongIds: _likedSongIds')) 'radio controller factory does not inject liked ids provider',
         if (!bootstrap.contains('CloudPageControllerFactory(')) 'feature bootstrap does not register cloud controller factory',
         if (!bootstrap.contains('RadioControllerFactory(')) 'feature bootstrap does not register radio controller factory',
+        if (!bootstrap.contains('Get.put<MusicDetailControllerBundle>')) 'feature bootstrap does not register music detail controller bundle',
+        if (!bootstrap.contains('cloudControllerFactory: Get.find<CloudPageControllerFactory>()')) 'feature bootstrap does not inject cloud factory into music detail bundle',
+        if (!bootstrap.contains('radioControllerFactory: Get.find<RadioControllerFactory>()')) 'feature bootstrap does not inject radio factory into music detail bundle',
+        if (!musicDetailBundle.contains('final CloudPageControllerFactory cloudControllerFactory')) 'music detail bundle does not expose cloud controller factory',
+        if (!musicDetailBundle.contains('final RadioControllerFactory radioControllerFactory')) 'music detail bundle does not expose radio controller factory',
+        if (!musicDetailBundle.contains('final MusicPagePlaybackActions playbackActions')) 'music detail bundle does not expose playback actions',
       ];
 
       expect(
@@ -2995,9 +3013,17 @@ void main() {
         if (page.contains('likedSongIds:')) '${_relativePath(pageFile)} passes liked ids from UI',
         if (page.contains('currentUserId:')) '${_relativePath(pageFile)} passes current user from UI',
         if (page.contains('PlaylistArtworkColorService()')) '${_relativePath(pageFile)} creates artwork color service directly',
-        if (!page.contains('final controllerFactory = Get.find<PlaylistPageControllerFactory>()')) '${_relativePath(pageFile)} does not resolve playlist factory at page boundary',
+        if (page.contains('Get.find<PlaylistPageControllerFactory>')) '${_relativePath(pageFile)} reads playlist factory directly',
+        if (page.contains('Get.find<PlayerController>')) '${_relativePath(pageFile)} reads playback controller directly',
+        if (page.contains('Get.find<ShellController>')) '${_relativePath(pageFile)} reads shell controller directly',
+        if (page.contains('final Random _random')) '${_relativePath(pageFile)} keeps playback shuffle selection in UI',
+        if (!page.contains('Get.find<MusicDetailControllerBundle>()')) '${_relativePath(pageFile)} does not resolve music detail bundle at page boundary',
+        if (!page.contains('final controllerFactory = _controllers.playlistControllerFactory')) '${_relativePath(pageFile)} does not resolve playlist factory through music detail bundle',
         if (!page.contains('_controller = controllerFactory.create()')) '${_relativePath(pageFile)} does not create playlist controller through feature factory',
         if (!page.contains('_artworkColorService = controllerFactory.createArtworkColorService()')) '${_relativePath(pageFile)} does not receive artwork color service through feature factory',
+        if (!page.contains('playShuffledPlaylist(')) '${_relativePath(pageFile)} does not route shuffle playback through music page playback actions',
+        if (!page.contains('playSequentialPlaylist(')) '${_relativePath(pageFile)} does not route sequential playback through music page playback actions',
+        if (!page.contains('playPlaylistAndOpenPanel(')) '${_relativePath(pageFile)} does not route song playback through music page playback actions',
         if (!factory.contains('PlaylistPageController create()')) 'playlist page controller factory does not create page controllers',
         if (!factory.contains('PlaylistArtworkColorService createArtworkColorService()')) 'playlist page controller factory does not expose artwork color service',
         if (!factory.contains('required PlaylistArtworkColorService artworkColorService')) 'playlist page controller factory does not receive artwork color service',
@@ -3014,6 +3040,8 @@ void main() {
         if (controller.contains('currentUserId: _currentUserId()')) 'playlist page controller still passes raw current user ids to repository',
         if (!bootstrap.contains('Get.put<PlaylistArtworkColorService>')) 'feature bootstrap does not register playlist artwork color service',
         if (!bootstrap.contains('PlaylistPageControllerFactory(')) 'feature bootstrap does not register playlist page controller factory',
+        if (!bootstrap.contains('playlistControllerFactory: Get.find<PlaylistPageControllerFactory>()')) 'feature bootstrap does not inject playlist factory into music detail bundle',
+        if (!bootstrap.contains('playbackActions: Get.find<MusicPagePlaybackActions>()')) 'feature bootstrap does not inject playback actions into music detail bundle',
       ];
 
       expect(
@@ -3086,23 +3114,34 @@ void main() {
       );
     });
 
-    test('playlist page opens playback panel through shell boundary', () {
+    test('playlist page opens playback panel through music playback actions', () {
       final pageFile = File(
         '${projectRoot.path}/lib/ui/pages/playlist/playlist_page_view.dart',
       );
+      final actionsFile = File(
+        '${projectRoot.path}/lib/features/music_detail/music_page_playback_actions.dart',
+      );
+      final bootstrapFile = File(
+        '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
+      );
       final page = pageFile.readAsStringSync();
+      final actions = actionsFile.readAsStringSync();
+      final bootstrap = bootstrapFile.readAsStringSync();
       final violations = <String>[
-        if (!page.contains('final ShellController _shellController = Get.find<ShellController>()')) '${_relativePath(pageFile)} does not resolve shell controller at page boundary',
-        if (!page.contains('void _openPlaybackPanel()')) '${_relativePath(pageFile)} does not centralize playback panel opening',
-        if (!page.contains('_shellController.jumpBottomPanelToPage(0)')) '${_relativePath(pageFile)} does not jump bottom panel through injected shell controller',
-        if (!page.contains('_shellController.openBottomPanel()')) '${_relativePath(pageFile)} does not open bottom panel through injected shell controller',
+        if (page.contains('Get.find<ShellController>')) '${_relativePath(pageFile)} reads shell controller directly',
         if (page.contains('ShellController.to')) '${_relativePath(pageFile)} reads shell controller globally',
+        if (!page.contains('playPlaylistAndOpenPanel(')) '${_relativePath(pageFile)} does not open panel through playback action boundary',
+        if (!actions.contains('typedef PlaybackPanelOpener = void Function();')) '${_relativePath(actionsFile)} does not define a shell-independent panel opener boundary',
+        if (!actions.contains('_openPlaybackPanel();')) '${_relativePath(actionsFile)} does not centralize playback panel opening before playlist playback',
+        if (!bootstrap.contains('openPlaybackPanel: _openPlaybackPanel')) 'feature bootstrap does not inject playback panel opener into music page playback actions',
+        if (!bootstrap.contains('shellController.jumpBottomPanelToPage(0)')) 'feature bootstrap panel opener does not jump bottom panel before opening',
+        if (!bootstrap.contains('shellController.openBottomPanel()')) 'feature bootstrap panel opener does not open bottom panel',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: '歌单页可以在播放歌曲时打开底部播放面板，但 shell 面板操作必须从页面边界注入，不能在播放动作里读取全局 shell。',
+        reason: '歌单页可以在播放歌曲时打开底部播放面板，但 shell 面板操作必须由音乐详情播放动作边界注入，不能让页面直接读取全局 shell。',
       );
     });
 
@@ -3568,8 +3607,10 @@ void main() {
         if (page.contains('HomeContentController.to')) '${_relativePath(pageFile)} reads home content controller globally',
         if (page.contains('PlaylistRepository')) '${_relativePath(pageFile)} names playlist repository directly',
         if (page.contains('UserLibraryController')) '${_relativePath(pageFile)} reads user library directly',
+        if (page.contains('Get.find<PlayerController>')) '${_relativePath(pageFile)} reads playback controller directly',
         if (!page.contains('class TodayPageView extends GetView<HomeContentController>')) '${_relativePath(pageFile)} does not use page controller boundary',
         if (!page.contains('final songs = controller.todayRecommendSongs')) '${_relativePath(pageFile)} does not read songs through page controller boundary',
+        if (!page.contains('Get.find<MusicDetailControllerBundle>().playbackActions')) '${_relativePath(pageFile)} does not submit playback through music detail action boundary',
       ];
 
       expect(
@@ -3729,8 +3770,14 @@ void main() {
         if (artistPage.contains('ArtistRepository')) '${_relativePath(artistPageFile)} names artist repository directly',
         if (albumPage.contains('Get.find<AlbumPageController>()')) '${_relativePath(albumPageFile)} reads album controller singleton directly',
         if (artistPage.contains('Get.find<ArtistPageController>()')) '${_relativePath(artistPageFile)} reads artist controller singleton directly',
-        if (!albumPage.contains('Get.find<AlbumPageControllerFactory>().create()')) '${_relativePath(albumPageFile)} does not create album page controller through feature factory',
-        if (!artistPage.contains('Get.find<ArtistPageControllerFactory>().create()')) '${_relativePath(artistPageFile)} does not create artist page controller through feature factory',
+        if (albumPage.contains('Get.find<AlbumPageControllerFactory>')) '${_relativePath(albumPageFile)} reads album factory directly',
+        if (artistPage.contains('Get.find<ArtistPageControllerFactory>')) '${_relativePath(artistPageFile)} reads artist factory directly',
+        if (albumPage.contains('Get.find<PlayerController>')) '${_relativePath(albumPageFile)} reads playback controller directly',
+        if (artistPage.contains('Get.find<PlayerController>')) '${_relativePath(artistPageFile)} reads playback controller directly',
+        if (!albumPage.contains('Get.find<MusicDetailControllerBundle>()')) '${_relativePath(albumPageFile)} does not resolve music detail bundle at page boundary',
+        if (!artistPage.contains('Get.find<MusicDetailControllerBundle>()')) '${_relativePath(artistPageFile)} does not resolve music detail bundle at page boundary',
+        if (!albumPage.contains('_controllers.albumControllerFactory.create()')) '${_relativePath(albumPageFile)} does not create album page controller through music detail bundle',
+        if (!artistPage.contains('_controllers.artistControllerFactory.create()')) '${_relativePath(artistPageFile)} does not create artist page controller through music detail bundle',
         if (albumPage.contains('_controller.loadLocalDetail(')) '${_relativePath(albumPageFile)} directly runs album local detail loading',
         if (artistPage.contains('_controller.loadLocalDetail(')) '${_relativePath(artistPageFile)} directly runs artist local detail loading',
         if (!albumPage.contains('_controller.loadInitialDetail(albumId)')) '${_relativePath(albumPageFile)} does not load album initial detail through controller boundary',
@@ -3764,6 +3811,8 @@ void main() {
         if (!artistFactory.contains('likedSongIds: _likedSongIds')) 'artist page controller factory does not inject liked ids provider',
         if (!bootstrap.contains('AlbumPageControllerFactory(')) 'feature bootstrap does not register album page controller factory',
         if (!bootstrap.contains('ArtistPageControllerFactory(')) 'feature bootstrap does not register artist page controller factory',
+        if (!bootstrap.contains('albumControllerFactory: Get.find<AlbumPageControllerFactory>()')) 'feature bootstrap does not inject album factory into music detail bundle',
+        if (!bootstrap.contains('artistControllerFactory: Get.find<ArtistPageControllerFactory>()')) 'feature bootstrap does not inject artist factory into music detail bundle',
       ];
 
       expect(
@@ -5092,7 +5141,7 @@ void main() {
       expect(
         existing,
         isEmpty,
-        reason: '不要恢复只有转发价值的 service/usecase/port/factory；普通页面应直接走 controller/repository/PlayerController。',
+        reason: '不要恢复只有转发价值的 service/usecase/port/factory；页面应走 controller/repository、播放壳层 PlayerController 或明确的页面动作边界。',
       );
     });
 

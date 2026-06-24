@@ -4,8 +4,7 @@ import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/cloud/cloud_page_controller.dart';
-import 'package:bujuan/features/cloud/cloud_page_controller_factory.dart';
-import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/music_detail/music_detail_controller_bundle.dart';
 import 'package:bujuan/ui/widgets/common/feedback/status_views.dart';
 import 'package:bujuan/ui/widgets/common/refresh/app_smart_refresher.dart';
 import 'package:bujuan/ui/widgets/common/music/music_list_tile.dart';
@@ -27,14 +26,14 @@ class CloudDriveView extends StatefulWidget {
 }
 
 class _CloudDriveViewState extends State<CloudDriveView> {
+  late final MusicDetailControllerBundle _controllers = Get.find<MusicDetailControllerBundle>();
   late final CloudPageController _controller;
-  final PlayerController _playerController = Get.find<PlayerController>();
   final RefreshController _refreshController = RefreshController();
 
   @override
   void initState() {
     super.initState();
-    _controller = Get.find<CloudPageControllerFactory>().create()..loadInitial();
+    _controller = _controllers.cloudControllerFactory.create()..loadInitial();
   }
 
   @override
@@ -99,7 +98,7 @@ class _CloudDriveViewState extends State<CloudDriveView> {
                       index: index,
                       playlist: state.items,
                       playListName: "云盘音乐",
-                      onPlay: _playerController.playPlaylist,
+                      onPlay: _controllers.playbackActions.playPlaylist,
                     );
                   },
                 ),

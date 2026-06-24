@@ -5,6 +5,7 @@ import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:bujuan/ui/widgets/common/feedback/load_state_view.dart';
 import 'package:bujuan/ui/widgets/common/image/simple_extended_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
 import 'package:get/get.dart';
 
@@ -49,6 +50,7 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
                 final cardTopMargin = constraints.maxWidth < 360 ? 150.0 : 200.0;
                 final avatarSize = constraints.maxWidth < 360 ? 180.0 : 240.0;
                 final minContentHeight = (constraints.maxHeight - topPadding - bottomPadding).clamp(0.0, double.infinity);
+                final logoutLabel = userProfileLogoutControlLabel();
 
                 return SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -127,27 +129,34 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
                                 ),
                               ),
                               const SizedBox(height: 40),
-                              GestureDetector(
-                                child: Container(
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppDimensions.paddingMedium,
+                                ),
+                                child: SizedBox(
                                   height: 56,
-                                  alignment: Alignment.center,
-                                  width: context.width,
-                                  margin: const EdgeInsets.symmetric(
-                                    horizontal: AppDimensions.paddingMedium,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context).primaryColor,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: const Text(
-                                    '注销登录',
-                                    style: TextStyle(fontSize: 18, color: Colors.white),
+                                  width: double.infinity,
+                                  child: Tooltip(
+                                    message: logoutLabel,
+                                    excludeFromSemantics: true,
+                                    child: FilledButton.icon(
+                                      onPressed: () async {
+                                        await _controller.logoutCurrentUser();
+                                      },
+                                      icon: const Icon(TablerIcons.logout),
+                                      label: Text(logoutLabel),
+                                      style: FilledButton.styleFrom(
+                                        backgroundColor: Theme.of(context).primaryColor,
+                                        foregroundColor: Colors.white,
+                                        textStyle: const TextStyle(fontSize: 18),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(20),
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                onTap: () async {
-                                  await _controller.logoutCurrentUser();
-                                },
-                              )
+                              ),
                             ],
                           ),
                         ),
@@ -169,6 +178,12 @@ class _UserProfilePageViewState extends State<UserProfilePageView> {
       ),
     );
   }
+}
+
+/// 生成用户资料页注销按钮的稳定标签。
+@visibleForTesting
+String userProfileLogoutControlLabel() {
+  return '注销登录';
 }
 
 class _ProfileCountText extends StatelessWidget {

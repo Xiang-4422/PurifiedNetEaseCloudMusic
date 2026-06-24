@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bujuan/ui/pages/user/user_setting_view.dart';
 import 'package:bujuan/ui/pages/user/widgets/quick_start_card_rail.dart';
 import 'package:bujuan/ui/pages/user/widgets/recent_playback_strip.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -54,6 +55,20 @@ void main() {
       ),
       '播放最近播放：未知歌曲 - 未知艺人',
     );
+  });
+
+  test('user profile logout uses a stable standard button', () {
+    expect(userProfileLogoutControlLabel(), '注销登录');
+
+    final source = File('lib/ui/pages/user/user_setting_view.dart').readAsStringSync();
+
+    expect(source, contains('userProfileLogoutControlLabel('));
+    expect(source, contains('FilledButton.icon('));
+    expect(source, contains('TablerIcons.logout'));
+    expect(source, contains('Tooltip('));
+    expect(source, contains('excludeFromSemantics: true'));
+    expect(source, contains('_controller.logoutCurrentUser()'));
+    expect(source, isNot(contains('GestureDetector(')));
   });
 
   test('personal page keeps continue playback as the first quick start action', () {

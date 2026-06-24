@@ -24,6 +24,10 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
 import 'package:get/get.dart';
 
+/// 歌手页热门专辑横向列表的预渲染范围。
+@visibleForTesting
+const double artistHotAlbumCacheExtent = 360;
+
 /// 歌手详情页面，展示热门歌曲和专辑。
 class ArtistPageView extends StatefulWidget {
   /// 创建歌手详情页面。
@@ -204,6 +208,7 @@ class _ArtistPageViewState extends State<ArtistPageView> {
               height: albumWidth * 1.35,
               child: ListView.builder(
                 addAutomaticKeepAlives: true,
+                cacheExtent: artistHotAlbumCacheExtent,
                 itemCount: hotAlbums.length,
                 scrollDirection: Axis.horizontal,
                 physics: SnappingScrollPhysics(itemExtent: albumWidth + AppDimensions.paddingMedium),

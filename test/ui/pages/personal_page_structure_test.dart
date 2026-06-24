@@ -201,6 +201,11 @@ void main() {
     expect(quickStartSource, contains("title: '每日推荐'"));
     expect(quickStartSource, contains("title: '漫游模式'"));
     expect(quickStartSource, contains("title: '心动模式'"));
+    expect(quickStartSource, contains('ListView.builder('));
+    expect(quickStartSource, contains('itemCount: _quickStartCardCount'));
+    expect(quickStartSource, contains('itemExtent: width + AppDimensions.paddingSmall'));
+    expect(quickStartSource, contains('cacheExtent: quickStartCardRailCacheExtent'));
+    expect(quickStartSource, contains('itemBuilder: (context, index) => _buildQuickStartCard(index)'));
     expect(quickStartSource, contains('quickStartCardSemanticsLabel('));
     expect(quickStartSource, contains('Semantics('));
     expect(quickStartSource, contains('button: true'));

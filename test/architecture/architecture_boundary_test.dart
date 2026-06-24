@@ -3332,6 +3332,27 @@ void main() {
       );
     });
 
+    test('quick start rail keeps stable horizontal list bounds', () {
+      final quickStartFile = File(
+        '${projectRoot.path}/lib/ui/pages/user/widgets/quick_start_card_rail.dart',
+      );
+      final quickStart = quickStartFile.readAsStringSync();
+      final violations = <String>[
+        if (!quickStart.contains('ListView.builder(')) '${_relativePath(quickStartFile)} does not build quick start cards lazily',
+        if (!quickStart.contains('itemCount: _quickStartCardCount')) '${_relativePath(quickStartFile)} does not keep quick start item count explicit',
+        if (!quickStart.contains('itemExtent: width + AppDimensions.paddingSmall')) '${_relativePath(quickStartFile)} does not fix quick start item extent',
+        if (!quickStart.contains('cacheExtent: quickStartCardRailCacheExtent')) '${_relativePath(quickStartFile)} does not bound quick start cache extent',
+        if (!quickStart.contains('itemBuilder: (context, index) => _buildQuickStartCard(index)')) '${_relativePath(quickStartFile)} does not route quick start item construction through builder boundary',
+        if (quickStart.contains('() => ListView(')) '${_relativePath(quickStartFile)} still builds quick start cards with eager ListView children',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '马上开始横向入口必须保持惰性构建、固定 itemExtent 和有界预缓存，避免首页入口扩展后一次性构建所有卡片。',
+      );
+    });
+
     test('explore page keeps playlist playback resolution behind controller', () {
       final pageFile = File(
         '${projectRoot.path}/lib/ui/pages/explore/explore_page.dart',

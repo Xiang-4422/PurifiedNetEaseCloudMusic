@@ -20,6 +20,11 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 
+/// 快速入口横向列表的预缓存边界。
+const double quickStartCardRailCacheExtent = 360;
+
+const int _quickStartCardCount = 4;
+
 /// 个人首页顶部的快速播放入口列表。
 class QuickStartCardRail extends StatelessWidget {
   /// 创建快速播放入口列表。
@@ -54,40 +59,59 @@ class QuickStartCardRail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx(
-      () => ListView(
+      () => ListView.builder(
+        padding: const EdgeInsets.only(left: AppDimensions.paddingSmall),
         scrollDirection: Axis.horizontal,
+        cacheExtent: quickStartCardRailCacheExtent,
+        itemExtent: width + AppDimensions.paddingSmall,
+        itemCount: _quickStartCardCount,
         physics: SnappingScrollPhysics(
           itemExtent: width + AppDimensions.paddingSmall,
         ),
-        children: [
-          _ContinuePlaybackQuickStartCard(
-            width: width,
-            height: height,
-            playbackAction: playbackAction,
-            shellController: shellController,
-          ).marginSymmetric(horizontal: AppDimensions.paddingSmall),
-          _DailyRecommendQuickStartCard(
-            width: width,
-            height: height,
-            recommendationController: recommendationController,
-            playbackAction: playbackAction,
-          ).marginOnly(right: AppDimensions.paddingSmall),
-          _FmQuickStartCard(
-            width: width,
-            height: height,
-            recommendationController: recommendationController,
-            playbackAction: playbackAction,
-            shellController: shellController,
-          ).marginOnly(right: AppDimensions.paddingSmall),
-          _HeartBeatQuickStartCard(
-            width: width,
-            height: height,
-            libraryController: libraryController,
-            playbackAction: playbackAction,
-            shellController: shellController,
-          ).marginOnly(right: AppDimensions.paddingSmall),
-        ],
+        itemBuilder: (context, index) => _buildQuickStartCard(index),
       ),
+    );
+  }
+
+  Widget _buildQuickStartCard(int index) {
+    late final Widget card;
+    switch (index) {
+      case 0:
+        card = _ContinuePlaybackQuickStartCard(
+          width: width,
+          height: height,
+          playbackAction: playbackAction,
+          shellController: shellController,
+        );
+      case 1:
+        card = _DailyRecommendQuickStartCard(
+          width: width,
+          height: height,
+          recommendationController: recommendationController,
+          playbackAction: playbackAction,
+        );
+      case 2:
+        card = _FmQuickStartCard(
+          width: width,
+          height: height,
+          recommendationController: recommendationController,
+          playbackAction: playbackAction,
+          shellController: shellController,
+        );
+      case 3:
+        card = _HeartBeatQuickStartCard(
+          width: width,
+          height: height,
+          libraryController: libraryController,
+          playbackAction: playbackAction,
+          shellController: shellController,
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+    return Padding(
+      padding: const EdgeInsets.only(right: AppDimensions.paddingSmall),
+      child: card,
     );
   }
 }

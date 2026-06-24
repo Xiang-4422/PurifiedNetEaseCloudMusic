@@ -179,19 +179,21 @@ class AudioServiceHandler extends BaseAudioHandler with SeekHandler, QueueHandle
       if (_pendingRestorePosition > Duration.zero) {
         final restorePosition = _pendingRestorePosition;
         final restoreMediaItemId = _pendingRestoreMediaItemId;
+        final normalizedRestoreMediaItemId = _normalizedMediaItemId(restoreMediaItemId ?? '');
+        final normalizedMediaItemToPlayId = _normalizedMediaItemId(mediaItemToPlay.id);
         _pendingRestorePosition = Duration.zero;
         _pendingRestoreMediaItemId = null;
-        if (restoreMediaItemId == null || restoreMediaItemId == mediaItemToPlay.id) {
+        if (restoreMediaItemId == null || normalizedRestoreMediaItemId == normalizedMediaItemToPlayId) {
           final seekStopwatch = PlaybackPerformanceLogger.start();
           await _engine.seek(restorePosition);
           PlaybackPerformanceLogger.elapsed(
             'audio.replaceSource.restoreSeek',
             seekStopwatch,
-            details: 'id=${mediaItemToPlay.id} position=${restorePosition.inMilliseconds}',
+            details: 'id=$normalizedMediaItemToPlayId position=${restorePosition.inMilliseconds}',
           );
         } else {
           PlaybackPerformanceLogger.log(
-            'audio.replaceSource.restoreSeek.skip id=${mediaItemToPlay.id} pendingId=$restoreMediaItemId position=${restorePosition.inMilliseconds}',
+            'audio.replaceSource.restoreSeek.skip id=$normalizedMediaItemToPlayId pendingId=$normalizedRestoreMediaItemId position=${restorePosition.inMilliseconds}',
           );
         }
       }
@@ -335,6 +337,11 @@ class AudioServiceHandler extends BaseAudioHandler with SeekHandler, QueueHandle
 
   @override
   Future<void> setRepeatMode(AudioServiceRepeatMode repeatMode) async {}
+
+  String _normalizedMediaItemId(String id) {
+    return id.trim();
+  }
+
   @override
   Future<void> onTaskRemoved() async {
     await stop();

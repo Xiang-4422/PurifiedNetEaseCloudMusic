@@ -123,6 +123,29 @@ void main() {
       expect(engine.seekPositions, isEmpty);
     });
 
+    test('replaceSource applies restore seek when restored item id only differs by whitespace', () async {
+      final engine = _FakePlaybackEngine();
+      final handler = AudioServiceHandler(engineAdapter: engine);
+      await handler.updateQueue([_mediaItem(' restored ')]);
+      await handler.setPendingRestorePosition(
+        const Duration(seconds: 200),
+        mediaItemId: 'restored',
+      );
+
+      final success = await handler.replaceSource(
+        audioSourceIndex: 0,
+        mediaItemToPlay: _mediaItem(' restored '),
+        source: const PlaybackResolvedSource(
+          kind: PlaybackResolvedSourceKind.url,
+          url: 'url-restored',
+        ),
+        playNow: true,
+      );
+
+      expect(success, isTrue);
+      expect(engine.seekPositions, [const Duration(seconds: 200)]);
+    });
+
     test('play without a prepared source is ignored', () async {
       final engine = _FakePlaybackEngine();
       final handler = AudioServiceHandler(engineAdapter: engine);

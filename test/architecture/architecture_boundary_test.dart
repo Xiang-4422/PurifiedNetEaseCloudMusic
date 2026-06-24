@@ -3158,6 +3158,26 @@ void main() {
       );
     });
 
+    test('audio service handler normalizes pending restore media item ids', () {
+      final handlerFile = File(
+        '${projectRoot.path}/lib/features/playback/application/audio_service_handler.dart',
+      );
+      final handler = handlerFile.readAsStringSync();
+      final violations = <String>[
+        if (!handler.contains('String _normalizedMediaItemId(String id)')) '${_relativePath(handlerFile)} does not define media item id normalization',
+        if (!handler.contains('final normalizedRestoreMediaItemId = _normalizedMediaItemId(restoreMediaItemId ?? \'\');')) '${_relativePath(handlerFile)} can still compare raw pending restore media item id',
+        if (!handler.contains('final normalizedMediaItemToPlayId = _normalizedMediaItemId(mediaItemToPlay.id);')) '${_relativePath(handlerFile)} can still compare raw media item id before restore seek',
+        if (!handler.contains('restoreMediaItemId == null || normalizedRestoreMediaItemId == normalizedMediaItemToPlayId')) '${_relativePath(handlerFile)} can still skip restore seek through raw id comparison',
+        if (handler.contains('restoreMediaItemId == mediaItemToPlay.id')) '${_relativePath(handlerFile)} still applies restore seek through raw id comparison',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '待恢复进度属于指定媒体项，AudioServiceHandler 应按规范化 media item id 判断是否应用 seek，避免空格差异跳过恢复进度。',
+      );
+    });
+
     test('audio service transport controls route back to selection command', () {
       final handlerFile = File(
         '${projectRoot.path}/lib/features/playback/application/audio_service_handler.dart',

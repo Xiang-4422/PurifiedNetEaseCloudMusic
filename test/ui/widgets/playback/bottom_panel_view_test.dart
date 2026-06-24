@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_artwork_widgets.dart';
+import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_header.dart';
 import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_mini_player.dart';
 import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_now_playing_metadata.dart';
 import 'package:flutter/material.dart';
@@ -164,6 +166,29 @@ void main() {
         ),
         56,
       );
+    });
+  });
+
+  group('bottom panel artwork helpers', () {
+    test('builds header artwork control label', () {
+      expect(
+        bottomPanelHeaderArtworkControlLabel(
+          title: ' Song ',
+          fullScreenLyricOpen: false,
+        ),
+        '放大封面：Song',
+      );
+      expect(
+        bottomPanelHeaderArtworkControlLabel(
+          title: ' ',
+          fullScreenLyricOpen: true,
+        ),
+        '退出全屏歌词：当前歌曲',
+      );
+    });
+
+    test('builds page card collapse label', () {
+      expect(bottomPanelArtworkPageCardControlLabel(), '收起封面');
     });
   });
 
@@ -351,6 +376,11 @@ void main() {
     expect(artworkWidgetsSource, contains('class BottomPanelArtworkPageViewport'));
     expect(artworkWidgetsSource, contains('class BottomPanelArtworkPageCard'));
     expect(artworkWidgetsSource, contains('required this.playerController'));
+    expect(artworkWidgetsSource, contains('bottomPanelArtworkPageCardControlLabel('));
+    expect(artworkWidgetsSource, contains('Tooltip('));
+    expect(artworkWidgetsSource, contains('Semantics('));
+    expect(artworkWidgetsSource, contains('ExcludeSemantics('));
+    expect(artworkWidgetsSource, contains('behavior: HitTestBehavior.opaque'));
     expect(artworkWidgetsSource, contains('SimpleExtendedImage('));
     expect(artworkWidgetsSource, contains('PageView.builder('));
     expect(artworkWidgetsSource, contains('PerformanceLogger.elapsed'));
@@ -365,6 +395,11 @@ void main() {
 
     expect(headerSource, contains('ArtworkPathResolver.resolvePlaybackArtwork'));
     expect(headerSource, contains('localArtworkPath: currentSong.localArtworkPath'));
+    expect(headerSource, contains('bottomPanelHeaderArtworkControlLabel('));
+    expect(headerSource, contains('Tooltip('));
+    expect(headerSource, contains('Semantics('));
+    expect(headerSource, contains('ExcludeSemantics('));
+    expect(headerSource, contains('behavior: HitTestBehavior.opaque'));
     expect(headerSource, contains('required this.playerController'));
     expect(headerSource, contains('required this.settingsController'));
     expect(headerSource, isNot(contains('PlayerController.to')));

@@ -8,6 +8,12 @@ import 'package:bujuan/ui/widgets/common/image/simple_extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// 大封面卡片点击入口的辅助语义标签。
+@visibleForTesting
+String bottomPanelArtworkPageCardControlLabel() {
+  return '收起封面';
+}
+
 /// 底部播放面板过渡层中的当前歌曲封面。
 class BottomPanelCurrentArtworkImage extends StatelessWidget {
   /// 使用 [size] 固定封面尺寸，避免过渡动画期间布局抖动。
@@ -135,6 +141,7 @@ class BottomPanelArtworkPageCard extends StatelessWidget {
         localArtworkPath: item.localArtworkPath,
       ),
     );
+    final collapseLabel = bottomPanelArtworkPageCardControlLabel();
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 220),
       transitionBuilder: (child, animation) {
@@ -156,11 +163,21 @@ class BottomPanelArtworkPageCard extends StatelessWidget {
             ),
           ],
         ),
-        child: GestureDetector(
-          onTap: onTap,
-          child: SimpleExtendedImage(
-            artworkPath,
-            key: ValueKey(artworkPath),
+        child: Tooltip(
+          message: collapseLabel,
+          child: Semantics(
+            button: true,
+            label: collapseLabel,
+            child: ExcludeSemantics(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onTap,
+                child: SimpleExtendedImage(
+                  artworkPath,
+                  key: ValueKey(artworkPath),
+                ),
+              ),
+            ),
           ),
         ),
       ),

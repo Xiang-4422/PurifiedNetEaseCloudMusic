@@ -69,6 +69,7 @@ class StandardPersonalHomePage extends StatelessWidget {
               itemCountInScreen: userItemCountInScreen,
               homeContentController: homeContentController,
               playbackAction: playbackAction,
+              recentPlaybackController: recentPlaybackController,
               shellController: shellController,
             ),
           ),

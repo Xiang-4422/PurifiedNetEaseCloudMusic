@@ -196,12 +196,18 @@ void main() {
     expect(quickStartSectionSource, contains('class QuickStartSection'));
     expect(quickStartSectionSource, contains('class SquareQuickStartPage'));
     expect(quickStartSectionSource, contains('QuickStartCardRail('));
+    expect(quickStartSectionSource, contains('required this.recentPlaybackController'));
+    expect(quickStartSectionSource, contains('recentPlaybackController: recentPlaybackController'));
     expect(quickStartSectionSource, contains('squareQuickCardSize('));
     expect(quickStartSectionSource, contains("'开始听'"));
     expect(quickStartSectionSource, isNot(contains('UserLibraryController')));
     expect(quickStartSectionSource, isNot(contains('libraryController')));
     expect(quickStartSource, contains("title: '继续播放'"));
     expect(quickStartSource, contains("title: '每日推荐'"));
+    expect(quickStartSource, contains('required this.recentPlaybackController'));
+    expect(quickStartSource, contains('final fallbackIndex = hasCurrentSong ? -1 : _firstPlayableRecentIndex(recentTracks);'));
+    expect(quickStartSource, contains("playListName: '最近播放'"));
+    expect(quickStartSource, contains("return '播放最近播放';"));
     expect(quickStartSource, isNot(contains("title: '漫游模式'")));
     expect(quickStartSource, isNot(contains("title: '心动模式'")));
     expect(quickStartSource, contains('ListView.builder('));

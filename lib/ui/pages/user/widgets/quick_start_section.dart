@@ -1,4 +1,5 @@
 import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playback/recent_playback_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/user/home_content_controller.dart';
 import 'package:bujuan/ui/pages/user/widgets/quick_start_card_rail.dart';
@@ -16,6 +17,7 @@ class QuickStartSection extends StatelessWidget {
     required this.itemCountInScreen,
     required this.homeContentController,
     required this.playbackAction,
+    required this.recentPlaybackController,
     required this.shellController,
   });
 
@@ -27,6 +29,9 @@ class QuickStartSection extends StatelessWidget {
 
   /// 播放控制器。
   final PlayerController playbackAction;
+
+  /// 最近播放控制器。
+  final RecentPlaybackController recentPlaybackController;
 
   /// Shell 控制器。
   final ShellController shellController;
@@ -52,6 +57,7 @@ class QuickStartSection extends StatelessWidget {
                 height: cardHeight,
                 homeContentController: homeContentController,
                 playbackAction: playbackAction,
+                recentPlaybackController: recentPlaybackController,
                 shellController: shellController,
               ),
             );
@@ -70,6 +76,7 @@ class SquareQuickStartPage extends StatelessWidget {
     required this.metrics,
     required this.homeContentController,
     required this.playbackAction,
+    required this.recentPlaybackController,
     required this.shellController,
   });
 
@@ -81,6 +88,9 @@ class SquareQuickStartPage extends StatelessWidget {
 
   /// 播放控制器。
   final PlayerController playbackAction;
+
+  /// 最近播放控制器。
+  final RecentPlaybackController recentPlaybackController;
 
   /// Shell 控制器。
   final ShellController shellController;
@@ -113,6 +123,7 @@ class SquareQuickStartPage extends StatelessWidget {
                       height: cardSize.height,
                       homeContentController: homeContentController,
                       playbackAction: playbackAction,
+                      recentPlaybackController: recentPlaybackController,
                       shellController: shellController,
                     ),
                   ),

@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:bujuan/app/routing/router.gr.dart' as gr;
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
+import 'package:bujuan/features/playback/recent_playback_controller.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/features/user/home_content_controller.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
@@ -31,6 +32,7 @@ class QuickStartCardRail extends StatelessWidget {
     required this.height,
     required this.homeContentController,
     required this.playbackAction,
+    required this.recentPlaybackController,
     required this.shellController,
   });
 
@@ -45,6 +47,9 @@ class QuickStartCardRail extends StatelessWidget {
 
   /// 播放控制器。
   final PlayerController playbackAction;
+
+  /// 最近播放控制器，用于当前播放为空时提供本地优先的继续播放候选。
+  final RecentPlaybackController recentPlaybackController;
 
   /// Shell 控制器，用于打开底部播放页。
   final ShellController shellController;
@@ -74,6 +79,7 @@ class QuickStartCardRail extends StatelessWidget {
           width: width,
           height: height,
           playbackAction: playbackAction,
+          recentPlaybackController: recentPlaybackController,
           shellController: shellController,
         );
       case 1:
@@ -147,45 +153,81 @@ class _ContinuePlaybackQuickStartCard extends StatelessWidget {
     required this.width,
     required this.height,
     required this.playbackAction,
+    required this.recentPlaybackController,
     required this.shellController,
   });
 
   final double width;
   final double height;
   final PlayerController playbackAction;
+  final RecentPlaybackController recentPlaybackController;
   final ShellController shellController;
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
       final currentSong = playbackAction.currentSongState.value;
-      final hasCurrentSong = currentSong.id.isNotEmpty;
-      final subtitle = hasCurrentSong ? _quickStartSongSubtitle(currentSong) : '等待播放队列';
+      final recentTracks = recentPlaybackController.recentTracks.toList(
+        growable: false,
+      );
+      final currentSongId = currentSong.id.trim();
+      final hasCurrentSong = currentSongId.isNotEmpty;
+      final fallbackIndex = hasCurrentSong ? -1 : _firstPlayableRecentIndex(recentTracks);
+      final fallbackSong = fallbackIndex >= 0 ? recentTracks[fallbackIndex] : const PlaybackQueueItem.empty();
+      final displaySong = hasCurrentSong ? currentSong : fallbackSong;
+      final hasPlayableSong = displaySong.id.trim().isNotEmpty;
+      final subtitle = hasPlayableSong
+          ? _continuePlaybackSubtitle(
+              displaySong,
+              isCurrentSong: hasCurrentSong,
+            )
+          : '最近播放为空';
       return QuickStartCard(
         width: width,
         height: height,
-        albumUrl: _playbackArtworkPath(currentSong),
+        albumUrl: _playbackArtworkPath(displaySong),
         icon: TablerIcons.player_play,
         title: '继续播放',
         subtitle: subtitle,
-        onTap: hasCurrentSong
+        onTap: hasPlayableSong
             ? () async {
-                shellController.jumpBottomPanelToPage(1);
-                shellController.openBottomPanel();
-                if (!playbackAction.isPlaying.value) {
-                  await playbackAction.playOrPause();
+                if (hasCurrentSong) {
+                  shellController.jumpBottomPanelToPage(1);
+                  shellController.openBottomPanel();
+                  if (!playbackAction.isPlaying.value) {
+                    await playbackAction.playOrPause();
+                  }
+                  return;
                 }
+                await playbackAction.playPlaylist(
+                  recentTracks,
+                  fallbackIndex,
+                  playListName: '最近播放',
+                  playListNameHeader: '最近播放',
+                );
               }
             : null,
         trailing: _QuickStartPlayButton(
-          isPlaying: playbackAction.isPlaying.value,
-          isEnabled: hasCurrentSong,
-          tooltip: playbackAction.isPlaying.value ? '暂停当前歌曲' : '继续播放当前歌曲',
+          isPlaying: hasCurrentSong && playbackAction.isPlaying.value,
+          isEnabled: hasPlayableSong,
+          tooltip: _continuePlaybackControlLabel(
+            isPlaying: playbackAction.isPlaying.value && hasCurrentSong,
+            isCurrentSong: hasCurrentSong,
+          ),
           onPressed: () async {
-            if (!hasCurrentSong) {
+            if (!hasPlayableSong) {
               return;
             }
-            await playbackAction.playOrPause();
+            if (hasCurrentSong) {
+              await playbackAction.playOrPause();
+              return;
+            }
+            await playbackAction.playPlaylist(
+              recentTracks,
+              fallbackIndex,
+              playListName: '最近播放',
+              playListNameHeader: '最近播放',
+            );
           },
         ),
       );
@@ -430,6 +472,28 @@ String _quickStartSongSubtitle(PlaybackQueueItem item) {
     return artist;
   }
   return '$title - $artist';
+}
+
+int _firstPlayableRecentIndex(List<PlaybackQueueItem> recentTracks) {
+  return recentTracks.indexWhere((item) => item.id.trim().isNotEmpty);
+}
+
+String _continuePlaybackSubtitle(
+  PlaybackQueueItem item, {
+  required bool isCurrentSong,
+}) {
+  final prefix = isCurrentSong ? '当前播放' : '最近播放';
+  return '$prefix · ${_quickStartSongSubtitle(item)}';
+}
+
+String _continuePlaybackControlLabel({
+  required bool isPlaying,
+  required bool isCurrentSong,
+}) {
+  if (isCurrentSong) {
+    return isPlaying ? '暂停当前歌曲' : '继续播放当前歌曲';
+  }
+  return '播放最近播放';
 }
 
 /// 生成快速入口卡片的辅助语义标签。

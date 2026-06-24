@@ -7,9 +7,6 @@ import 'package:get/get.dart';
 
 /// 持有账号 session 与本地登录快照。
 class UserSessionController extends GetxController {
-  /// 当前用户 session 控制器实例。
-  static UserSessionController get to => Get.find();
-
   /// 创建用户 session 控制器。
   UserSessionController({
     required UserRepository repository,

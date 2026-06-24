@@ -9,9 +9,6 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 /// 首页壳层控制器，管理抽屉、首页分页和顶部搜索面板。
 class HomeShellController extends GetxController with GetTickerProviderStateMixin {
-  /// 当前首页壳层控制器实例。
-  static HomeShellController get to => Get.find();
-
   /// 首页抽屉控制器。
   late ZoomDrawerController zoomDrawerController;
   bool _zoomDrawerListenerInitialized = false;

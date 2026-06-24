@@ -33,9 +33,6 @@ class UserLibrarySessionAccess {
 class UserLibraryController extends GetxController {
   static const int _homeFrequentPlaylistLimit = 8;
 
-  /// 当前用户资料库控制器实例。
-  static UserLibraryController get to => Get.find();
-
   /// 创建用户资料库控制器。
   UserLibraryController({
     required UserRepository repository,

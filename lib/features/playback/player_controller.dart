@@ -48,9 +48,6 @@ part 'player_controller_helpers.dart';
 /// 底层播放细节仍由 `PlaybackService -> AudioServiceHandler` 承接，这里主要负责把
 /// 音频服务、歌词状态、全屏歌词状态和用户侧模式切换组织成可绑定的 UI 状态。
 class PlayerController extends GetxController {
-  /// 当前播放控制器实例。
-  static PlayerController get to => Get.find();
-
   /// 创建播放控制器。
   PlayerController({
     required PlaybackService playbackService,

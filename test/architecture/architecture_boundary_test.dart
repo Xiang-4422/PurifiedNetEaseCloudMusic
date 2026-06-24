@@ -3380,6 +3380,29 @@ void main() {
       );
     });
 
+    test('core controllers do not expose global to accessors', () {
+      final controllerFiles = [
+        File('${projectRoot.path}/lib/features/shell/home_shell_controller.dart'),
+        File('${projectRoot.path}/lib/features/shell/shell_controller.dart'),
+        File('${projectRoot.path}/lib/features/playback/player_controller.dart'),
+        File('${projectRoot.path}/lib/features/playback/recent_playback_controller.dart'),
+        File('${projectRoot.path}/lib/features/settings/settings_controller.dart'),
+        File('${projectRoot.path}/lib/features/user/home_content_controller.dart'),
+        File('${projectRoot.path}/lib/features/user/user_library_controller.dart'),
+        File('${projectRoot.path}/lib/features/user/user_session_controller.dart'),
+      ];
+      final violations = <String>[
+        for (final file in controllerFiles)
+          if (file.readAsStringSync().contains('get to => Get.find')) _relativePath(file),
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '核心控制器必须通过 bootstrap、bundle 或页面边界注入，不能重新提供 Controller.to 这类全局快捷入口。',
+      );
+    });
+
     test('quick start rail keeps stable horizontal list bounds', () {
       final quickStartFile = File(
         '${projectRoot.path}/lib/ui/pages/user/widgets/quick_start_card_rail.dart',

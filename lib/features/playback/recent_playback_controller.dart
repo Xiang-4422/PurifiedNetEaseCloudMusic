@@ -8,9 +8,6 @@ import 'package:get/get.dart';
 
 /// 管理首页最近播放的本地优先展示状态。
 class RecentPlaybackController extends GetxController {
-  /// 当前最近播放控制器实例。
-  static RecentPlaybackController get to => Get.find();
-
   /// 创建最近播放控制器。
   RecentPlaybackController({
     required PlaybackRepository repository,

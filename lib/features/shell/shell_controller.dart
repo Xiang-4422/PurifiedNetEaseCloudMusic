@@ -18,8 +18,6 @@ import 'package:bujuan/ui/widgets/shell/custom_zoom_drawer/flutter_zoom_drawer.d
 
 /// 统一承接首页壳层、抽屉、顶部搜索面板和底部播放面板的 UI 协调。
 class ShellController extends SuperController with GetTickerProviderStateMixin, WidgetsBindingObserver {
-  /// 当前壳层控制器实例。
-  static ShellController get to => Get.find();
   HomeShellController get _homeShellController => Get.find<HomeShellController>();
   PlayerController get _playerController => Get.find<PlayerController>();
   UserSessionController get _userSessionController => Get.find<UserSessionController>();

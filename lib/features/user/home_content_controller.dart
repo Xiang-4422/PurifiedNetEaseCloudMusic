@@ -97,9 +97,6 @@ class HomeContentController extends GetxController {
   static const Duration _startupDataTtl = Duration(minutes: 10);
   static const String _startupSyncMarker = 'startup_home';
 
-  /// 当前首页内容控制器实例。
-  static HomeContentController get to => Get.find();
-
   /// 创建首页内容控制器。
   HomeContentController({
     required UserRepository repository,

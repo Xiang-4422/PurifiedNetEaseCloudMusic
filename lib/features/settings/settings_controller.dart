@@ -4,9 +4,6 @@ import 'package:get/get.dart';
 
 /// 管理应用设置和轻量 UI 偏好状态。
 class SettingsController extends GetxController {
-  /// 当前设置控制器实例。
-  static SettingsController get to => Get.find();
-
   /// 创建设置控制器。
   SettingsController({required SettingsRepository repository}) : _repository = repository;
 

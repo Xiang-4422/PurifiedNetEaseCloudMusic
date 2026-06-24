@@ -205,7 +205,9 @@ void main() {
 
     test('falls back to remote url when downloaded local file is missing', () async {
       final playbackService = _FakePlaybackService();
-      final repository = _RemoteUrlPlaybackRepository('remote-url-1');
+      final repository = _RemoteUrlPlaybackRepository(
+        'https://example.com/remote-url-1.mp3',
+      );
       final queueService = _queueService(playbackService);
       final coordinator = PlaybackSwitchCoordinator(
         playbackService: playbackService,
@@ -233,7 +235,10 @@ void main() {
 
       expect(result.success, isTrue);
       expect(playbackService.replaceCalls.single.source.kind, PlaybackResolvedSourceKind.url);
-      expect(playbackService.replaceCalls.single.source.url, 'remote-url-1');
+      expect(
+        playbackService.replaceCalls.single.source.url,
+        'https://example.com/remote-url-1.mp3',
+      );
       expect(repository.trackIds, ['1']);
       expect(repository.forceRefreshValues, [false]);
     });

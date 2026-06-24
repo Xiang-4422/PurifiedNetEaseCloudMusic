@@ -66,11 +66,21 @@ class PlaybackSourceResolver {
     }
 
     final localPath = LocalFilePathNormalizer.normalize(url);
-    if (localPath.isNotEmpty && File(localPath).existsSync()) {
+    if (localPath.isNotEmpty) {
+      if (!File(localPath).existsSync()) {
+        return const PlaybackResolvedSource(
+          kind: PlaybackResolvedSourceKind.empty,
+        );
+      }
       return PlaybackResolvedSource(
         kind: PlaybackResolvedSourceKind.filePath,
         url: localPath,
         markAsCached: true,
+      );
+    }
+    if (_isFileUri(url)) {
+      return const PlaybackResolvedSource(
+        kind: PlaybackResolvedSourceKind.empty,
       );
     }
     return PlaybackResolvedSource(
@@ -81,6 +91,10 @@ class PlaybackSourceResolver {
 
   bool _isEncryptedNeteaseCache(String url) {
     return url.endsWith('.uc!');
+  }
+
+  bool _isFileUri(String url) {
+    return Uri.tryParse(url)?.scheme.toLowerCase() == 'file';
   }
 
   PlaybackResolvedSource _resolveLocalFileSource(PlaybackQueueItem item) {

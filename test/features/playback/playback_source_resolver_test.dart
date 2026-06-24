@@ -287,6 +287,48 @@ void main() {
       expect(source.markAsCached, isTrue);
     });
 
+    test('treats missing local playback url from repository as empty source', () async {
+      final resolver = PlaybackSourceResolver(
+        repository: _FakePlaybackRepository(
+          playbackUrl: '/missing/audio/repository-cache.mp3',
+        ),
+      );
+
+      final source = await resolver.resolveRemote(
+        _mediaItem(
+          type: MediaType.playlist,
+          url: '',
+        ),
+        preferHighQuality: false,
+      );
+
+      expect(source.kind, PlaybackResolvedSourceKind.empty);
+      expect(source.isEmpty, isTrue);
+    });
+
+    test('treats unsafe file uri playback url from repository as empty source', () async {
+      final resolver = PlaybackSourceResolver(
+        repository: _FakePlaybackRepository(
+          playbackUrl: Uri(
+            scheme: 'file',
+            host: 'media-server',
+            path: '/shared/song.mp3',
+          ).toString(),
+        ),
+      );
+
+      final source = await resolver.resolveRemote(
+        _mediaItem(
+          type: MediaType.playlist,
+          url: '',
+        ),
+        preferHighQuality: false,
+      );
+
+      expect(source.kind, PlaybackResolvedSourceKind.empty);
+      expect(source.isEmpty, isTrue);
+    });
+
     test('forwards force refresh when resolving remote playback url', () async {
       final repository = _FakePlaybackRepository();
       final resolver = PlaybackSourceResolver(repository: repository);

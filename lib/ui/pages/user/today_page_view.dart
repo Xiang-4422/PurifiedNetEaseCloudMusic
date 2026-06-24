@@ -29,6 +29,10 @@ class TodayPageView extends GetView<RecommendationController> {
             '';
     final localAlbumPath = ArtworkPathResolver.resolveDisplayPath(albumUrl);
     final layoutMetrics = AdaptiveLayoutMetrics.of(context);
+    final canPlayDailyRecommendations = songs.isNotEmpty;
+    final playAllLabel = todayPlayAllControlLabel(
+      hasSongs: canPlayDailyRecommendations,
+    );
 
     return Container(
       color: Colors.white,
@@ -86,17 +90,25 @@ class TodayPageView extends GetView<RecommendationController> {
                   BlurryContainer(
                     padding: EdgeInsets.zero,
                     borderRadius: BorderRadius.circular(9999),
-                    color: Colors.red,
+                    color: Colors.red.withValues(
+                      alpha: canPlayDailyRecommendations ? 1 : 0.45,
+                    ),
                     child: IconButton(
-                        icon: const Icon(
-                          TablerIcons.player_play_filled,
-                          color: Colors.white,
+                      tooltip: playAllLabel,
+                      icon: Icon(
+                        TablerIcons.player_play_filled,
+                        color: Colors.white.withValues(
+                          alpha: canPlayDailyRecommendations ? 1 : 0.6,
                         ),
-                        onPressed: () => playerController.playPlaylist(
-                              songs,
-                              0,
-                              playListName: "每日推荐",
-                            )),
+                      ),
+                      onPressed: canPlayDailyRecommendations
+                          ? () => playerController.playPlaylist(
+                                songs,
+                                0,
+                                playListName: "每日推荐",
+                              )
+                          : null,
+                    ),
                   )
                 ],
               ),
@@ -127,4 +139,10 @@ class TodayPageView extends GetView<RecommendationController> {
       ]),
     );
   }
+}
+
+/// 生成每日推荐头部播放按钮的稳定标签。
+@visibleForTesting
+String todayPlayAllControlLabel({required bool hasSongs}) {
+  return hasSongs ? '播放每日推荐' : '每日推荐暂无歌曲';
 }

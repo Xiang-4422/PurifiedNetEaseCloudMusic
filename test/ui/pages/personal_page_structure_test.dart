@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bujuan/ui/pages/user/today_page_view.dart';
 import 'package:bujuan/ui/pages/user/user_setting_view.dart';
 import 'package:bujuan/ui/pages/user/widgets/quick_start_card_rail.dart';
 import 'package:bujuan/ui/pages/user/widgets/recent_playback_strip.dart';
@@ -69,6 +70,11 @@ void main() {
     expect(source, contains('excludeFromSemantics: true'));
     expect(source, contains('_controller.logoutCurrentUser()'));
     expect(source, isNot(contains('GestureDetector(')));
+  });
+
+  test('today page play all button exposes stable labels', () {
+    expect(todayPlayAllControlLabel(hasSongs: true), '播放每日推荐');
+    expect(todayPlayAllControlLabel(hasSongs: false), '每日推荐暂无歌曲');
   });
 
   test('personal page keeps continue playback as the first quick start action', () {
@@ -361,6 +367,10 @@ void main() {
     expect(recentPlaybackSource, isNot(contains('artworkPath.isEmpty')));
     expect(todayPageSource, contains('class TodayPageView extends GetView<RecommendationController>'));
     expect(todayPageSource, contains('final songs = controller.todayRecommendSongs'));
+    expect(todayPageSource, contains('todayPlayAllControlLabel('));
+    expect(todayPageSource, contains('final canPlayDailyRecommendations = songs.isNotEmpty'));
+    expect(todayPageSource, contains('tooltip: playAllLabel'));
+    expect(todayPageSource, contains('onPressed: canPlayDailyRecommendations'));
     expect(todayPageSource, isNot(contains('RecommendationController.to')));
     expect(todayPageSource, contains('ArtworkPathResolver.resolvePlaybackArtwork'));
 

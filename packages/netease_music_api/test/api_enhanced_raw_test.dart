@@ -4400,6 +4400,49 @@ void main() {
       expect(proxy.requests[2].data, containsPair('artist', 'FLAC Album Artist'));
     });
 
+    test('cloud special module reads Ogg Vorbis comments before filename fallback', () async {
+      final proxy = _QueuedPostDioProxy([
+        {
+          'needUpload': false,
+          'songId': 456,
+        },
+        {
+          'result': {
+            'objectKey': 'cloud/object-key',
+            'token': 'cloud-token',
+            'resourceId': 'resource-1',
+          },
+        },
+        {
+          'code': 200,
+          'songId': 789,
+        },
+        {
+          'code': 200,
+          'published': true,
+        },
+      ]);
+      Https.setDioProxyForTesting(proxy);
+
+      await api.cloud({
+        'songFile': {
+          'name': 'Fallback.ogg',
+          'mimetype': 'audio/ogg',
+          'size': 12345,
+          'md5': 'abc',
+          'data': _oggVorbisComment(
+            title: 'Ogg Title',
+            album: 'Ogg Album',
+            albumArtist: 'Ogg Album Artist',
+          ),
+        },
+      });
+
+      expect(proxy.requests[2].data, containsPair('song', 'Ogg Title'));
+      expect(proxy.requests[2].data, containsPair('album', 'Ogg Album'));
+      expect(proxy.requests[2].data, containsPair('artist', 'Ogg Album Artist'));
+    });
+
     test('cloud special module reads MP4 ilst tags before filename fallback', () async {
       final proxy = _QueuedPostDioProxy([
         {
@@ -5270,22 +5313,12 @@ Uint8List _flacVorbisComment({
   String? artist,
   String? albumArtist,
 }) {
-  final vendor = utf8.encode('test');
-  final comments = [
-    'TITLE=$title',
-    'ALBUM=$album',
-    if (artist != null) 'ARTIST=$artist',
-    if (albumArtist != null) 'ALBUMARTIST=$albumArtist',
-  ].map(utf8.encode).toList();
-  final block = <int>[
-    ..._uint32LEBytes(vendor.length),
-    ...vendor,
-    ..._uint32LEBytes(comments.length),
-    for (final comment in comments) ...[
-      ..._uint32LEBytes(comment.length),
-      ...comment,
-    ],
-  ];
+  final block = _vorbisCommentBlock(
+    title: title,
+    album: album,
+    artist: artist,
+    albumArtist: albumArtist,
+  );
   return Uint8List.fromList([
     ...'fLaC'.codeUnits,
     0x84,
@@ -5294,6 +5327,86 @@ Uint8List _flacVorbisComment({
     block.length & 0xFF,
     ...block,
   ]);
+}
+
+Uint8List _oggVorbisComment({
+  required String title,
+  required String album,
+  String? artist,
+  String? albumArtist,
+}) {
+  final identificationPacket = <int>[
+    0x01,
+    ...'vorbis'.codeUnits,
+    ...List.filled(23, 0),
+  ];
+  final commentPacket = <int>[
+    0x03,
+    ...'vorbis'.codeUnits,
+    ..._vorbisCommentBlock(
+      title: title,
+      album: album,
+      artist: artist,
+      albumArtist: albumArtist,
+    ),
+  ];
+  return Uint8List.fromList(_oggPage([
+    identificationPacket,
+    commentPacket,
+  ]));
+}
+
+List<int> _vorbisCommentBlock({
+  required String title,
+  required String album,
+  String? artist,
+  String? albumArtist,
+}) {
+  final vendor = utf8.encode('test');
+  final comments = [
+    'TITLE=$title',
+    'ALBUM=$album',
+    if (artist != null) 'ARTIST=$artist',
+    if (albumArtist != null) 'ALBUMARTIST=$albumArtist',
+  ].map(utf8.encode).toList();
+  return [
+    ..._uint32LEBytes(vendor.length),
+    ...vendor,
+    ..._uint32LEBytes(comments.length),
+    for (final comment in comments) ...[
+      ..._uint32LEBytes(comment.length),
+      ...comment,
+    ],
+  ];
+}
+
+List<int> _oggPage(List<List<int>> packets) {
+  final segments = <int>[];
+  final data = <int>[];
+  for (final packet in packets) {
+    var cursor = 0;
+    var remaining = packet.length;
+    while (remaining >= 255) {
+      segments.add(255);
+      data.addAll(packet.sublist(cursor, cursor + 255));
+      cursor += 255;
+      remaining -= 255;
+    }
+    segments.add(remaining);
+    data.addAll(packet.sublist(cursor));
+  }
+  return [
+    ...'OggS'.codeUnits,
+    0,
+    0x02,
+    ...List.filled(8, 0),
+    ..._uint32LEBytes(1),
+    ..._uint32LEBytes(0),
+    ..._uint32LEBytes(0),
+    segments.length,
+    ...segments,
+    ...data,
+  ];
 }
 
 Uint8List _mp4IlstMetadata({

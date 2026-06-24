@@ -4111,7 +4111,7 @@ Future<_CloudMetadataProbe> _readFileMetadataProbe(String path, int prefixLimit)
 }
 
 _CloudAudioMetadata? _parseCloudAudioMetadata(_CloudMetadataProbe probe) {
-  return _parseId3v2Metadata(probe.prefix) ?? _parseFlacVorbisMetadata(probe.prefix) ?? _parseMp4IlstMetadata(probe.prefix) ?? _parseId3v1Metadata(probe.tail ?? probe.prefix);
+  return _parseId3v2Metadata(probe.prefix) ?? _parseFlacVorbisMetadata(probe.prefix) ?? _parseOggVorbisMetadata(probe.prefix) ?? _parseMp4IlstMetadata(probe.prefix) ?? _parseId3v1Metadata(probe.tail ?? probe.prefix);
 }
 
 _CloudAudioMetadata? _parseId3v2Metadata(Uint8List bytes) {
@@ -4309,6 +4309,53 @@ _CloudAudioMetadata? _parseVorbisComment(Uint8List bytes) {
     return null;
   }
   return _CloudAudioMetadata(title: title, album: album, artist: artist);
+}
+
+_CloudAudioMetadata? _parseOggVorbisMetadata(Uint8List bytes) {
+  var offset = 0;
+  var packet = <int>[];
+  while (offset + 27 <= bytes.length) {
+    if (!_asciiEquals(bytes, offset, 'OggS')) {
+      return null;
+    }
+    final pageSegments = bytes[offset + 26];
+    final segmentTableOffset = offset + 27;
+    final dataOffset = segmentTableOffset + pageSegments;
+    if (dataOffset > bytes.length) {
+      return null;
+    }
+    var pageDataLength = 0;
+    for (var index = 0; index < pageSegments; index++) {
+      pageDataLength += bytes[segmentTableOffset + index];
+    }
+    final pageEnd = dataOffset + pageDataLength;
+    if (pageEnd > bytes.length) {
+      return null;
+    }
+
+    var dataCursor = dataOffset;
+    for (var index = 0; index < pageSegments; index++) {
+      final segmentLength = bytes[segmentTableOffset + index];
+      packet.addAll(bytes.sublist(dataCursor, dataCursor + segmentLength));
+      dataCursor += segmentLength;
+      if (segmentLength < 255) {
+        final metadata = _parseOggVorbisCommentPacket(Uint8List.fromList(packet));
+        if (metadata != null) {
+          return metadata;
+        }
+        packet = <int>[];
+      }
+    }
+    offset = pageEnd;
+  }
+  return null;
+}
+
+_CloudAudioMetadata? _parseOggVorbisCommentPacket(Uint8List packet) {
+  if (packet.length < 7 || packet.first != 0x03 || !_asciiEquals(packet, 1, 'vorbis')) {
+    return null;
+  }
+  return _parseVorbisComment(packet.sublist(7));
 }
 
 _CloudAudioMetadata? _parseMp4IlstMetadata(Uint8List bytes) {

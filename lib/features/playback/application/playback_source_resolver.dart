@@ -17,26 +17,34 @@ class PlaybackSourceResolver {
     PlaybackQueueItem item, {
     required bool preferHighQuality,
   }) async {
+    final itemId = _normalizedQueueItemId(item.id);
+    if (itemId.isEmpty) {
+      return const PlaybackResolvedSource(
+        kind: PlaybackResolvedSourceKind.empty,
+      );
+    }
+    final indexedSource = await _resolveIndexedAudioSource(
+      itemId,
+      sourceType: item.sourceType,
+    );
+    if (!indexedSource.isEmpty) {
+      return indexedSource;
+    }
+
     if (item.mediaType == MediaType.local) {
-      final source = _resolveLocalFileSource(item);
-      if (!source.isEmpty) {
-        return source;
-      }
-      await _pruneMissingIndexedAudioResource(item);
       if (item.sourceType == SourceType.local) {
-        return source;
+        return const PlaybackResolvedSource(
+          kind: PlaybackResolvedSourceKind.empty,
+        );
       }
       return resolveRemote(item, preferHighQuality: preferHighQuality);
     }
 
     if (item.mediaType == MediaType.neteaseCache) {
-      final source = _resolveNeteaseCacheSource(item.playbackUrl ?? '');
-      if (!source.isEmpty) {
-        return source;
-      }
-      await _pruneMissingIndexedAudioResource(item);
       if (item.sourceType == SourceType.local) {
-        return source;
+        return const PlaybackResolvedSource(
+          kind: PlaybackResolvedSourceKind.empty,
+        );
       }
       return resolveRemote(item, preferHighQuality: preferHighQuality);
     }
@@ -99,20 +107,6 @@ class PlaybackSourceResolver {
     return url.endsWith('.uc!');
   }
 
-  PlaybackResolvedSource _resolveLocalFileSource(PlaybackQueueItem item) {
-    final localPath = PlaybackSourceReference.existingLocalPath(item.playbackUrl);
-    if (localPath.isEmpty) {
-      return const PlaybackResolvedSource(
-        kind: PlaybackResolvedSourceKind.empty,
-      );
-    }
-    return PlaybackResolvedSource(
-      kind: PlaybackResolvedSourceKind.filePath,
-      url: localPath,
-      markAsCached: item.sourceType != SourceType.local,
-    );
-  }
-
   PlaybackResolvedSource _resolveNeteaseCacheSource(String url) {
     final localPath = PlaybackSourceReference.existingLocalPath(url);
     if (localPath.isEmpty) {
@@ -127,6 +121,45 @@ class PlaybackSourceResolver {
       fileType: isEncryptedCache ? localPath.replaceAll('.uc!', '').split('.').last : '',
       markAsCached: true,
     );
+  }
+
+  Future<PlaybackResolvedSource> _resolveIndexedAudioSource(
+    String itemId, {
+    required SourceType sourceType,
+  }) async {
+    try {
+      final trackWithResources = await _repository.getTrackWithResources(itemId);
+      final audio = trackWithResources?.resources.audio;
+      if (audio == null) {
+        return const PlaybackResolvedSource(
+          kind: PlaybackResolvedSourceKind.empty,
+        );
+      }
+      final cacheSource = _resolveNeteaseCacheSource(audio.path);
+      if (!cacheSource.isEmpty) {
+        return PlaybackResolvedSource(
+          kind: cacheSource.kind,
+          url: cacheSource.url,
+          fileType: cacheSource.fileType,
+          markAsCached: sourceType != SourceType.local,
+        );
+      }
+      final localPath = PlaybackSourceReference.existingLocalPath(audio.path);
+      if (localPath.isEmpty) {
+        return const PlaybackResolvedSource(
+          kind: PlaybackResolvedSourceKind.empty,
+        );
+      }
+      return PlaybackResolvedSource(
+        kind: PlaybackResolvedSourceKind.filePath,
+        url: localPath,
+        markAsCached: sourceType != SourceType.local,
+      );
+    } catch (_) {
+      return const PlaybackResolvedSource(
+        kind: PlaybackResolvedSourceKind.empty,
+      );
+    }
   }
 
   Future<void> _pruneMissingIndexedAudioResource(PlaybackQueueItem item) async {

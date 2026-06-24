@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bujuan/core/entities/local_resource_entry.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_mode.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
@@ -8,6 +9,7 @@ import 'package:bujuan/core/entities/playback_restore_state.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_lyrics.dart';
+import 'package:bujuan/core/entities/track_resource_bundle.dart';
 import 'package:bujuan/core/entities/track_with_resources.dart';
 import 'package:bujuan/features/playback/application/playback_resolved_source.dart';
 import 'package:bujuan/features/playback/application/playback_source_resolver.dart';
@@ -19,7 +21,10 @@ void main() {
     test('treats normal cached audio path as file source', () async {
       final audioFile = await _createTempAudioFile('song.mp3');
       final resolver = PlaybackSourceResolver(
-        repository: _FakePlaybackRepository(),
+        repository: _FakePlaybackRepository(
+          indexedAudioPath: audioFile.path,
+          indexedAudioOrigin: TrackResourceOrigin.playbackCache,
+        ),
       );
 
       final source = await resolver.resolve(
@@ -38,7 +43,10 @@ void main() {
     test('keeps uc cache path on decrypted stream source', () async {
       final audioFile = await _createTempAudioFile('song.mp3.uc!');
       final resolver = PlaybackSourceResolver(
-        repository: _FakePlaybackRepository(),
+        repository: _FakePlaybackRepository(
+          indexedAudioPath: audioFile.path,
+          indexedAudioOrigin: TrackResourceOrigin.playbackCache,
+        ),
       );
 
       final source = await resolver.resolve(
@@ -57,7 +65,10 @@ void main() {
     test('treats local file uri as file source', () async {
       final audioFile = await _createTempAudioFile('song with space.mp3');
       final resolver = PlaybackSourceResolver(
-        repository: _FakePlaybackRepository(),
+        repository: _FakePlaybackRepository(
+          indexedAudioPath: audioFile.path,
+          indexedAudioOrigin: TrackResourceOrigin.localImport,
+        ),
       );
 
       final source = await resolver.resolve(
@@ -77,7 +88,10 @@ void main() {
     test('accepts localhost file uri authority as file source', () async {
       final audioFile = await _createTempAudioFile('song.mp3');
       final resolver = PlaybackSourceResolver(
-        repository: _FakePlaybackRepository(),
+        repository: _FakePlaybackRepository(
+          indexedAudioPath: audioFile.path,
+          indexedAudioOrigin: TrackResourceOrigin.localImport,
+        ),
       );
       final fileUri = Uri(
         scheme: 'file',
@@ -120,6 +134,50 @@ void main() {
       );
 
       expect(source.kind, PlaybackResolvedSourceKind.empty);
+    });
+
+    test('prefers indexed audio over stale queue playback url', () async {
+      final indexedAudioFile = await _createTempAudioFile('indexed.mp3');
+      final resolver = PlaybackSourceResolver(
+        repository: _FakePlaybackRepository(
+          indexedAudioPath: indexedAudioFile.path,
+          indexedAudioOrigin: TrackResourceOrigin.managedDownload,
+          playbackUrl: 'https://example.com/remote.mp3',
+        ),
+      );
+
+      final source = await resolver.resolve(
+        _mediaItem(
+          type: MediaType.playlist,
+          url: 'https://example.com/stale.mp3',
+        ),
+        preferHighQuality: true,
+      );
+
+      expect(source.kind, PlaybackResolvedSourceKind.filePath);
+      expect(source.url, indexedAudioFile.path);
+      expect(source.markAsCached, isTrue);
+    });
+
+    test('does not trust unindexed queue local playback url', () async {
+      final audioFile = await _createTempAudioFile('unindexed.mp3');
+      final repository = _FakePlaybackRepository(
+        playbackUrl: 'https://example.com/fallback.mp3',
+      );
+      final resolver = PlaybackSourceResolver(repository: repository);
+
+      final source = await resolver.resolve(
+        _mediaItem(
+          type: MediaType.local,
+          url: audioFile.path,
+        ),
+        preferHighQuality: false,
+      );
+
+      expect(source.kind, PlaybackResolvedSourceKind.url);
+      expect(source.url, 'https://example.com/fallback.mp3');
+      expect(repository.trackResourceLookups, ['netease:1']);
+      expect(repository.fetchPlaybackUrlTrackIds, ['netease:1']);
     });
 
     test('returns empty source when local import file no longer exists', () async {
@@ -488,9 +546,13 @@ PlaybackQueueItem _mediaItem({
 class _FakePlaybackRepository implements PlaybackRepository {
   _FakePlaybackRepository({
     this.playbackUrl = 'https://example.com/song.mp3',
+    this.indexedAudioPath,
+    this.indexedAudioOrigin = TrackResourceOrigin.managedDownload,
   });
 
   final String playbackUrl;
+  final String? indexedAudioPath;
+  final TrackResourceOrigin indexedAudioOrigin;
   final List<String> fetchPlaybackUrlTrackIds = <String>[];
   final List<bool> forceRefreshValues = <bool>[];
   final List<bool> preferHighQualityValues = <bool>[];
@@ -524,7 +586,30 @@ class _FakePlaybackRepository implements PlaybackRepository {
   @override
   Future<TrackWithResources?> getTrackWithResources(String trackId) async {
     trackResourceLookups.add(trackId);
-    return null;
+    final audioPath = indexedAudioPath;
+    if (audioPath == null) {
+      return null;
+    }
+    final now = DateTime(2026);
+    return TrackWithResources(
+      track: Track(
+        id: trackId,
+        sourceType: SourceType.netease,
+        sourceId: trackId,
+        title: 'Track',
+      ),
+      resources: TrackResourceBundle(
+        audio: LocalResourceEntry(
+          trackId: trackId,
+          kind: LocalResourceKind.audio,
+          path: audioPath,
+          origin: indexedAudioOrigin,
+          sizeBytes: 1,
+          createdAt: now,
+          lastAccessedAt: now,
+        ),
+      ),
+    );
   }
 
   @override

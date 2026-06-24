@@ -105,6 +105,40 @@ void main() {
   });
 
   group('bottom panel metadata helpers', () {
+    test('builds album chip control labels', () {
+      expect(
+        bottomPanelAlbumChipControlLabel(
+          albumTitle: ' Album ',
+          canOpenAlbum: true,
+        ),
+        '打开专辑：Album',
+      );
+      expect(
+        bottomPanelAlbumChipControlLabel(
+          albumTitle: '  ',
+          canOpenAlbum: false,
+        ),
+        '专辑：未知专辑',
+      );
+    });
+
+    test('builds artist chip control labels', () {
+      expect(
+        bottomPanelArtistChipControlLabel(
+          artistName: ' Artist ',
+          canOpenArtist: true,
+        ),
+        '打开歌手：Artist',
+      );
+      expect(
+        bottomPanelArtistChipControlLabel(
+          artistName: '  ',
+          canOpenArtist: false,
+        ),
+        '歌手：未知歌手',
+      );
+    });
+
     test('builds stable label width without intrinsic layout', () {
       final width = bottomPanelMetadataLabelWidth(
         '歌手：',
@@ -217,6 +251,10 @@ void main() {
     expect(metadataSource, contains('required this.playerController'));
     expect(metadataSource, contains('required this.settingsController'));
     expect(metadataSource, contains('BottomPanelProgressBar('));
+    expect(metadataSource, contains('bottomPanelAlbumChipControlLabel('));
+    expect(metadataSource, contains('bottomPanelArtistChipControlLabel('));
+    expect(metadataSource, contains('Semantics('));
+    expect(metadataSource, contains('Tooltip('));
     expect(metadataSource, contains('AlbumRouteView'));
     expect(metadataSource, contains('ArtistRouteView'));
     expect(metadataSource, contains('_artistEntries'));

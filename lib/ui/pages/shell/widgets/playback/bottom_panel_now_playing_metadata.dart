@@ -118,49 +118,63 @@ class _AlbumInfoChip extends GetView<ShellController> {
                     ),
                   ),
                 ),
-                GestureDetector(
-                  onTap: () async {
-                    final currentSong = playerController.currentSongState.value;
-                    final albumId = currentSong.albumId;
-                    if (albumId?.isNotEmpty != true) {
-                      return;
-                    }
-                    final router = context.router;
-                    await controller.bottomPanelController.close();
-                    router.push(
-                      const gr.AlbumRouteView().copyWith(
-                        queryParams: {'albumId': albumId},
-                      ),
-                    );
-                  },
-                  child: Container(
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: settingsController.panelWidgetColor.value.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(albumPadding),
-                    ),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: valueMaxWidth,
-                      ),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: albumPadding / 2,
-                        ),
-                        child: Obx(
-                          () => Text(
-                            playerController.currentSongState.value.albumTitle ?? '未知专辑',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: settingsController.panelWidgetColor.value,
+                Obx(() {
+                  final currentSong = playerController.currentSongState.value;
+                  final albumId = currentSong.albumId;
+                  final albumTitle = currentSong.albumTitle;
+                  final canOpenAlbum = albumId?.isNotEmpty == true;
+                  final controlLabel = bottomPanelAlbumChipControlLabel(
+                    albumTitle: albumTitle,
+                    canOpenAlbum: canOpenAlbum,
+                  );
+                  return Semantics(
+                    button: canOpenAlbum,
+                    enabled: canOpenAlbum,
+                    excludeSemantics: true,
+                    label: controlLabel,
+                    child: Tooltip(
+                      message: controlLabel,
+                      child: GestureDetector(
+                        onTap: canOpenAlbum
+                            ? () async {
+                                final router = context.router;
+                                await controller.bottomPanelController.close();
+                                router.push(
+                                  const gr.AlbumRouteView().copyWith(
+                                    queryParams: {'albumId': albumId},
+                                  ),
+                                );
+                              }
+                            : null,
+                        child: Container(
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: settingsController.panelWidgetColor.value.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(albumPadding),
+                          ),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: valueMaxWidth,
                             ),
-                            overflow: TextOverflow.ellipsis,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: albumPadding / 2,
+                              ),
+                              child: Text(
+                                _metadataChipValue(albumTitle, fallback: '未知专辑'),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: settingsController.panelWidgetColor.value,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ),
+                  );
+                }),
               ],
             ),
           ),
@@ -270,6 +284,12 @@ class _ArtistRouteChip extends GetView<ShellController> {
   @override
   Widget build(BuildContext context) {
     const albumPadding = AppDimensions.paddingLarge;
+    final canOpenArtist = artist.id.isNotEmpty;
+    final artistName = _metadataChipValue(artist.name, fallback: '未知歌手');
+    final controlLabel = bottomPanelArtistChipControlLabel(
+      artistName: artistName,
+      canOpenArtist: canOpenArtist,
+    );
     return Container(
       alignment: Alignment.center,
       padding: const EdgeInsets.symmetric(horizontal: albumPadding / 2),
@@ -277,24 +297,32 @@ class _ArtistRouteChip extends GetView<ShellController> {
         color: settingsController.panelWidgetColor.value.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(albumPadding),
       ),
-      child: GestureDetector(
-        onTap: () async {
-          if (artist.id.isEmpty) {
-            return;
-          }
-          final router = context.router;
-          await controller.closeBottomPanel();
-          router.push(
-            const gr.ArtistRouteView().copyWith(
-              queryParams: {'artistId': artist.id},
+      child: Semantics(
+        button: canOpenArtist,
+        enabled: canOpenArtist,
+        excludeSemantics: true,
+        label: controlLabel,
+        child: Tooltip(
+          message: controlLabel,
+          child: GestureDetector(
+            onTap: canOpenArtist
+                ? () async {
+                    final router = context.router;
+                    await controller.closeBottomPanel();
+                    router.push(
+                      const gr.ArtistRouteView().copyWith(
+                        queryParams: {'artistId': artist.id},
+                      ),
+                    );
+                  }
+                : null,
+            child: Text(
+              artistName,
+              style: TextStyle(color: settingsController.panelWidgetColor.value),
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
             ),
-          );
-        },
-        child: Text(
-          artist.name,
-          style: TextStyle(color: settingsController.panelWidgetColor.value),
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.center,
+          ),
         ),
       ),
     );
@@ -311,6 +339,31 @@ List<_ArtistChipData> _artistEntries(PlaybackQueueItem item) {
       id: index < artistIds.length ? artistIds[index] : '',
     ),
   );
+}
+
+/// 生成播放页专辑入口的辅助语义标签。
+@visibleForTesting
+String bottomPanelAlbumChipControlLabel({
+  required String? albumTitle,
+  required bool canOpenAlbum,
+}) {
+  final title = _metadataChipValue(albumTitle, fallback: '未知专辑');
+  return canOpenAlbum ? '打开专辑：$title' : '专辑：$title';
+}
+
+/// 生成播放页歌手入口的辅助语义标签。
+@visibleForTesting
+String bottomPanelArtistChipControlLabel({
+  required String artistName,
+  required bool canOpenArtist,
+}) {
+  final name = _metadataChipValue(artistName, fallback: '未知歌手');
+  return canOpenArtist ? '打开歌手：$name' : '歌手：$name';
+}
+
+String _metadataChipValue(String? value, {required String fallback}) {
+  final trimmed = value?.trim();
+  return trimmed == null || trimmed.isEmpty ? fallback : trimmed;
 }
 
 /// 生成正在播放元信息标签的稳定宽度。

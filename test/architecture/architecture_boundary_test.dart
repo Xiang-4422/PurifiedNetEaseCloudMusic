@@ -444,6 +444,27 @@ void main() {
       );
     });
 
+    test('music resource id normalizes inputs before prefix conversion', () {
+      final resourceIdFile = File(
+        '${projectRoot.path}/lib/core/entities/music_resource_id.dart',
+      );
+      final content = resourceIdFile.readAsStringSync();
+      final violations = <String>[
+        if (!content.contains('static String _normalizedId(String id)')) '${_relativePath(resourceIdFile)} does not define a shared id normalizer',
+        if (!content.contains('return id.trim();')) '${_relativePath(resourceIdFile)} does not trim resource ids centrally',
+        if (!content.contains('final normalizedId = _normalizedId(id);')) '${_relativePath(resourceIdFile)} public helpers can still branch on raw ids',
+        if (!content.contains(r"return '$neteasePrefix$normalizedId';")) '${_relativePath(resourceIdFile)} can still build netease entity ids from raw input',
+        if (!content.contains('normalizedId.startsWith(neteasePrefix)')) '${_relativePath(resourceIdFile)} does not check netease prefix after normalization',
+        if (!content.contains('normalizedId.startsWith(localPrefix)')) '${_relativePath(resourceIdFile)} does not check local prefix after normalization',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'MusicResourceId 是曲目、歌单和本地资源 id 的基础转换边界，公开方法必须先归一空白再判断或拼接前缀。',
+      );
+    });
+
     test('core does not depend on netease data implementation', () {
       final violations = _dartFiles(Directory('${projectRoot.path}/lib/core')).where((file) => _contains(file, 'package:bujuan/data/music_data/sources/netease/')).map(_relativePath).toList();
 

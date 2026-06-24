@@ -161,7 +161,10 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       PlaylistPerformanceLogger.elapsedMetric(
         AppPerformanceMetrics.cachedPlaylistOpen,
         stopwatch,
-        details: 'source=local state=${initialDetail.localState.name} songs=${songs.length}',
+        details: cachedPlaylistOpenLocalMetricDetails(
+          state: initialDetail.localState,
+          songs: songs.length,
+        ),
       );
       return;
     }
@@ -169,7 +172,10 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     PlaylistPerformanceLogger.elapsedMetric(
       AppPerformanceMetrics.cachedPlaylistOpen,
       stopwatch,
-      details: 'source=remote songs=${songs.length} state=${loadState.name}',
+      details: cachedPlaylistOpenRemoteMetricDetails(
+        songs: songs.length,
+        state: loadState,
+      ),
     );
   }
 
@@ -513,4 +519,22 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       });
     }
   }
+}
+
+/// 生成本地优先展示的缓存歌单打开指标详情。
+@visibleForTesting
+String cachedPlaylistOpenLocalMetricDetails({
+  required PlaylistLocalDetailState state,
+  required int songs,
+}) {
+  return 'source=local state=${state.name} songs=$songs';
+}
+
+/// 生成远程兜底展示的缓存歌单打开指标详情。
+@visibleForTesting
+String cachedPlaylistOpenRemoteMetricDetails({
+  required int songs,
+  required PlaylistPageLoadState state,
+}) {
+  return 'source=remote songs=$songs state=${state.name}';
 }

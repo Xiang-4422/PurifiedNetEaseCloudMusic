@@ -1,5 +1,8 @@
 import 'dart:io';
 
+import 'package:bujuan/features/playlist/playlist_page_controller.dart';
+import 'package:bujuan/ui/pages/playlist/playlist_page_state.dart';
+import 'package:bujuan/ui/pages/playlist/playlist_page_view.dart';
 import 'package:bujuan/ui/pages/playlist/widgets/playlist_header_sliver.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -50,6 +53,32 @@ void main() {
     expect(source, isNot(contains('SliverAppBar(')));
     expect(source, isNot(contains('SongItem(')));
     expect(source, isNot(contains('class _PlaylistActionButtonSurface')));
+  });
+
+  test('playlist page records cached playlist open performance metric', () {
+    final source = File('lib/ui/pages/playlist/playlist_page_view.dart').readAsStringSync();
+
+    expect(source, contains('PlaylistPerformanceLogger.elapsedMetric('));
+    expect(source, contains('AppPerformanceMetrics.cachedPlaylistOpen'));
+    expect(source, contains('cachedPlaylistOpenLocalMetricDetails('));
+    expect(source, contains('cachedPlaylistOpenRemoteMetricDetails('));
+  });
+
+  test('playlist page keeps cached playlist metric details stable', () {
+    expect(
+      cachedPlaylistOpenLocalMetricDetails(
+        state: PlaylistLocalDetailState.partial,
+        songs: 30,
+      ),
+      'source=local state=partial songs=30',
+    );
+    expect(
+      cachedPlaylistOpenRemoteMetricDetails(
+        songs: 12,
+        state: PlaylistPageLoadState.showingPartial,
+      ),
+      'source=remote songs=12 state=showingPartial',
+    );
   });
 
   test('playlist page keeps display state rules in a local state model', () {

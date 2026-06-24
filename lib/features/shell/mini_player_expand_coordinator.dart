@@ -52,7 +52,7 @@ class MiniPlayerExpandCoordinator {
     var opened = false;
     try {
       await action();
-      opened = wasAttached;
+      opened = isFullyOpened();
     } catch (error) {
       commandError = error;
       rethrow;

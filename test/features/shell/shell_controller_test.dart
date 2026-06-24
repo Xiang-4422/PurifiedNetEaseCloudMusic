@@ -25,6 +25,14 @@ void main() {
       expect(
         miniPlayerExpandFeedbackMetricDetails(
           attached: true,
+          alreadyOpened: false,
+          opened: false,
+        ),
+        'action=expand result=skipped attached=true alreadyOpened=false',
+      );
+      expect(
+        miniPlayerExpandFeedbackMetricDetails(
+          attached: true,
           alreadyOpened: true,
           opened: true,
         ),
@@ -98,6 +106,26 @@ void main() {
 
       openCalls.last.complete();
       await third;
+    });
+
+    test('checks opened state after mini player expand action completes', () async {
+      final coordinator = MiniPlayerExpandCoordinator();
+      var opened = false;
+      var openedChecks = 0;
+
+      await coordinator.open(
+        isAttached: () => true,
+        isFullyOpened: () {
+          openedChecks++;
+          return opened;
+        },
+        openPanel: () async {
+          expect(openedChecks, 1);
+          opened = true;
+        },
+      );
+
+      expect(openedChecks, 2);
     });
   });
 }

@@ -30,7 +30,14 @@ class PlaylistSongListSliver extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: AppDimensions.paddingSmall),
-      sliver: SliverList(
+      sliver: SliverPrototypeExtentList(
+        prototypeItem: SongItem(
+          item: songs.isEmpty ? const PlaybackQueueItem.empty() : songs.first,
+          index: 0,
+          playListName: playlistName,
+          playListHeader: '歌单',
+          stringColor: foregroundColor,
+        ),
         delegate: SliverChildBuilderDelegate(
           (BuildContext context, int index) {
             final song = songs[index];
@@ -44,6 +51,7 @@ class PlaylistSongListSliver extends StatelessWidget {
             );
           },
           childCount: songs.length,
+          addAutomaticKeepAlives: false,
         ),
       ),
     );

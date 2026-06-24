@@ -119,9 +119,12 @@ void main() {
     expect(pageSource, contains("playListNameHeader: '歌单'"));
     expect(pageSource, isNot(contains('SliverChildBuilderDelegate(')));
     expect(listSource, contains('class PlaylistSongListSliver'));
+    expect(listSource, contains('SliverPrototypeExtentList('));
+    expect(listSource, contains('prototypeItem: SongItem('));
     expect(listSource, contains('SliverChildBuilderDelegate('));
     expect(listSource, contains('SongItem('));
     expect(listSource, contains("playListHeader: '歌单'"));
     expect(listSource, contains('foregroundColor'));
+    expect(listSource, contains('addAutomaticKeepAlives: false'));
   });
 }

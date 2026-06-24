@@ -47,11 +47,14 @@ fixtures and that every special module is Node-oracle-covered or explicitly
 limited. It also reports the tracked submodule commit, dirty state, upstream
 module file count, generated manifest upstream version/commit, and generated
 manifest differences so upstream refreshes are auditable from one command.
-Runtime option limitations, such as unsupported PAC proxy URLs, are also
-included in `sdkDifferences`. Use `--json` when an automation or follow-up
-goal needs the full machine-readable report, and `--markdown` when reviewing
-the current baseline, per-special-module coverage status, and SDK differences
-by hand.
+The report also verifies that the package barrel keeps exporting both the
+typed SDK facade and the raw api-enhanced dispatcher, and that `NeteaseMusicApi`
+continues to mix in the typed endpoint APIs plus `ApiEnhancedRaw`. Runtime
+option limitations, such as unsupported PAC proxy URLs, are also included in
+`sdkDifferences`. Use `--json` when an automation or follow-up goal needs the
+full machine-readable report, and `--markdown` when reviewing the current
+baseline, public facade status, per-special-module coverage status, and SDK
+differences by hand.
 
 Upstream protocol reference is tracked in the repository submodule:
 

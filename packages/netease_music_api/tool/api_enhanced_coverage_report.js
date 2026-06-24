@@ -22,6 +22,14 @@ const rawDispatcherArg = process.argv.find((arg) => arg.startsWith('--raw-dispat
 const rawDispatcherPath = rawDispatcherArg
   ? path.resolve(repoRoot, rawDispatcherArg.slice('--raw-dispatcher='.length))
   : path.join(repoRoot, 'packages/netease_music_api/lib/src/endpoints/raw/api_enhanced_raw.dart')
+const publicApiArg = process.argv.find((arg) => arg.startsWith('--public-api='))
+const publicApiPath = publicApiArg
+  ? path.resolve(repoRoot, publicApiArg.slice('--public-api='.length))
+  : path.join(repoRoot, 'packages/netease_music_api/lib/netease_music_api.dart')
+const publicFacadeArg = process.argv.find((arg) => arg.startsWith('--public-facade='))
+const publicFacadePath = publicFacadeArg
+  ? path.resolve(repoRoot, publicFacadeArg.slice('--public-facade='.length))
+  : path.join(repoRoot, 'packages/netease_music_api/lib/src/client/netease_api.dart')
 const specialCoverageArg = process.argv.find((arg) => arg.startsWith('--special-coverage='))
 const specialCoveragePath = specialCoverageArg
   ? path.resolve(repoRoot, specialCoverageArg.slice('--special-coverage='.length))
@@ -31,6 +39,22 @@ const markdownOutput = process.argv.includes('--markdown')
 const coverageReportSchemaVersion = 1
 const generatedManifestSupportedCrypto = new Set(['weapi', 'eapi', 'linuxapi', 'api', 'xeapi'])
 const generatedManifestSupportedHttpMethods = new Set(['GET', 'POST'])
+const expectedPublicApiExports = [
+  'src/client/netease_api.dart',
+  'src/client/netease_bean.dart',
+  'src/endpoints/raw/api_enhanced_raw.dart',
+]
+const expectedTypedFacadeMixins = [
+  'ApiDj',
+  'ApiEvent',
+  'ApiLogin',
+  'ApiPlay',
+  'ApiSearch',
+  'ApiUncategorized',
+  'ApiUser',
+]
+const expectedRawFacadeMixins = ['ApiEnhancedRaw']
+const expectedPublicFacadeMixins = sorted([...expectedTypedFacadeMixins, ...expectedRawFacadeMixins])
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'))
@@ -138,6 +162,24 @@ function loadRawConvenienceMethods() {
     methodName: match[1],
     module: match[2],
   }))
+}
+
+function loadPublicApiExports() {
+  const source = fs.readFileSync(publicApiPath, 'utf8')
+  return [...source.matchAll(/export\s+'([^']+)';/g)].map((match) => match[1]).sort()
+}
+
+function loadPublicFacadeMixins() {
+  const source = fs.readFileSync(publicFacadePath, 'utf8')
+  const match = source.match(/class\s+NeteaseMusicApi\s+with\s+([^{]+)/)
+  if (!match) {
+    return []
+  }
+  return match[1]
+    .split(',')
+    .map((name) => name.trim())
+    .filter((name) => name.length > 0)
+    .sort()
 }
 
 function gitOutput(args) {
@@ -568,6 +610,8 @@ const entries = manifest.entries
 const oracleFixtures = loadOracleFixtures()
 const rawConvenienceMethods = loadRawConvenienceMethods()
 const rawDispatcherModules = loadRawDispatcherModules()
+const publicApiExports = loadPublicApiExports()
+const publicFacadeMixins = loadPublicFacadeMixins()
 const oracleFixtureList = Array.isArray(oracleFixtures) ? oracleFixtures : []
 const oracleModuleList = oracleFixtureList
   .filter((fixture) => isRecord(fixture))
@@ -581,6 +625,8 @@ const manifestMapEntries = manifest.mapEntries
 const manifestMapKeys = manifestMapEntries.map((entry) => entry.key)
 const rawConvenienceModules = rawConvenienceMethods.map((entry) => entry.module)
 const rawConvenienceMethodNames = rawConvenienceMethods.map((entry) => entry.methodName)
+const publicApiExportSet = new Set(publicApiExports)
+const publicFacadeMixinSet = new Set(publicFacadeMixins)
 const upstreamModuleSet = new Set(upstreamModules)
 const manifestModuleSet = new Set(manifestModules)
 const rawConvenienceModuleSet = new Set(rawConvenienceModules)
@@ -643,6 +689,8 @@ const rawConvenienceMethodNameMismatches = rawConvenienceMethods
     rawMethodName: entry.methodName,
   }))
   .sort((left, right) => left.module.localeCompare(right.module))
+const publicApiMissingExports = expectedPublicApiExports.filter((exportPath) => !publicApiExportSet.has(exportPath))
+const publicFacadeMissingMixins = expectedPublicFacadeMixins.filter((mixinName) => !publicFacadeMixinSet.has(mixinName))
 const normalMissingOracle = sorted(normalModules.filter((module) => !oracleModules.has(module)))
 const specialMissingStatus = sorted(specialModules.filter((module) => !categorizedSpecial.has(module)))
 const specialUnknownStatus = sorted([...categorizedSpecial].filter((module) => !specialSet.has(module)))
@@ -852,6 +900,22 @@ function buildSdkDifferences() {
       scope: 'raw_convenience_methods',
     })
   }
+  for (const exportPath of publicApiMissingExports) {
+    differences.push({
+      module: exportPath,
+      status: 'missing_public_api_export',
+      reason: 'Public package barrel must export the typed SDK facade, shared SDK beans, and raw api-enhanced dispatcher.',
+      scope: 'public_api',
+    })
+  }
+  for (const mixinName of publicFacadeMissingMixins) {
+    differences.push({
+      module: mixinName,
+      status: 'missing_public_facade_mixin',
+      reason: 'NeteaseMusicApi must keep typed endpoint mixins and ApiEnhancedRaw on the same public facade.',
+      scope: 'public_facade',
+    })
+  }
   for (const module of oracleDuplicateFixtures) {
     differences.push({
       module,
@@ -1054,6 +1118,14 @@ const report = {
   rawConvenienceDuplicateMethodNames,
   rawConvenienceOrderMismatches,
   rawConvenienceMethodNameMismatches,
+  publicApiExports,
+  publicApiExpectedExports: expectedPublicApiExports,
+  publicApiMissingExports,
+  publicFacadeMixins,
+  publicFacadeExpectedMixins: expectedPublicFacadeMixins,
+  publicFacadeMissingMixins,
+  publicFacadeTypedMixinCount: expectedTypedFacadeMixins.filter((mixinName) => publicFacadeMixinSet.has(mixinName)).length,
+  publicFacadeHasRawMixin: expectedRawFacadeMixins.every((mixinName) => publicFacadeMixinSet.has(mixinName)),
   normalMissingOracle,
   specialMissingStatus,
   specialUnknownStatus,
@@ -1103,6 +1175,8 @@ const hasFailure =
   report.rawConvenienceDuplicateMethodNames.length > 0 ||
   report.rawConvenienceOrderMismatches.length > 0 ||
   report.rawConvenienceMethodNameMismatches.length > 0 ||
+  report.publicApiMissingExports.length > 0 ||
+  report.publicFacadeMissingMixins.length > 0 ||
   report.normalMissingOracle.length > 0 ||
   report.specialMissingStatus.length > 0 ||
   report.specialUnknownStatus.length > 0 ||
@@ -1136,6 +1210,17 @@ function renderMarkdownReport(report) {
     `- node oracle scenarios: ${report.nodeOracleScenarioCount}`,
     `- node oracle fixtures: ${report.nodeOracleFixtureCount}`,
     `- raw convenience methods: ${report.rawConvenienceMethodCount}`,
+    '',
+    '## Public Facade',
+    '',
+    `- exports: ${report.publicApiExports.join(', ') || 'none'}`,
+    `- expected exports: ${report.publicApiExpectedExports.join(', ')}`,
+    `- missing exports: ${report.publicApiMissingExports.join(', ') || 'none'}`,
+    `- facade mixins: ${report.publicFacadeMixins.join(', ') || 'none'}`,
+    `- expected facade mixins: ${report.publicFacadeExpectedMixins.join(', ')}`,
+    `- typed facade mixins: ${report.publicFacadeTypedMixinCount}/${expectedTypedFacadeMixins.length}`,
+    `- raw facade mixin: ${report.publicFacadeHasRawMixin ? 'yes' : 'no'}`,
+    `- missing facade mixins: ${report.publicFacadeMissingMixins.join(', ') || 'none'}`,
     '',
     '## Special Modules',
     '',
@@ -1237,6 +1322,12 @@ if (jsonOutput) {
   console.log(`raw convenience duplicate method names: ${report.rawConvenienceDuplicateMethodNames.length}`)
   console.log(`raw convenience order mismatches: ${report.rawConvenienceOrderMismatches.length}`)
   console.log(`raw convenience method name mismatches: ${report.rawConvenienceMethodNameMismatches.length}`)
+  console.log(`public api exports: ${report.publicApiExports.join(', ')}`)
+  console.log(`public api missing exports: ${report.publicApiMissingExports.length}`)
+  console.log(`public facade mixins: ${report.publicFacadeMixins.join(', ')}`)
+  console.log(`public facade typed mixins: ${report.publicFacadeTypedMixinCount}/${expectedTypedFacadeMixins.length}`)
+  console.log(`public facade raw mixin: ${report.publicFacadeHasRawMixin}`)
+  console.log(`public facade missing mixins: ${report.publicFacadeMissingMixins.length}`)
   console.log(`normal modules missing oracle: ${report.normalMissingOracle.length}`)
   console.log(`special modules missing status: ${report.specialMissingStatus.length}`)
   console.log(`special node-oracle modules missing fixture: ${report.specialNodeOracleMissingFixture.length}`)

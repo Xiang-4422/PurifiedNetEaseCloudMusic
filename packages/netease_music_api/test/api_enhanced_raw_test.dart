@@ -213,6 +213,27 @@ void main() {
       expect(report['rawConvenienceDuplicateMethodNames'], isEmpty);
       expect(report['rawConvenienceOrderMismatches'], isEmpty);
       expect(report['rawConvenienceMethodNameMismatches'], isEmpty);
+      expect(_stringSet(report['publicApiExpectedExports']), {
+        'src/client/netease_api.dart',
+        'src/client/netease_bean.dart',
+        'src/endpoints/raw/api_enhanced_raw.dart',
+      });
+      expect(_stringSet(report['publicApiExports']), containsAll(_stringSet(report['publicApiExpectedExports'])));
+      expect(report['publicApiMissingExports'], isEmpty);
+      expect(_stringSet(report['publicFacadeExpectedMixins']), {
+        'ApiDj',
+        'ApiEnhancedRaw',
+        'ApiEvent',
+        'ApiLogin',
+        'ApiPlay',
+        'ApiSearch',
+        'ApiUncategorized',
+        'ApiUser',
+      });
+      expect(_stringSet(report['publicFacadeMixins']), containsAll(_stringSet(report['publicFacadeExpectedMixins'])));
+      expect(report['publicFacadeMissingMixins'], isEmpty);
+      expect(report['publicFacadeTypedMixinCount'], 7);
+      expect(report['publicFacadeHasRawMixin'], isTrue);
       expect(report['normalMissingOracle'], isEmpty);
       expect(report['specialMissingStatus'], isEmpty);
       expect(report['specialNodeOracleMissingFixture'], isEmpty);
@@ -349,6 +370,14 @@ void main() {
           'nodeOracleFixtureCount',
           'specialCoverageStatusByModule',
           'runtimeOptionStatusByName',
+          'publicApiExports',
+          'publicApiExpectedExports',
+          'publicApiMissingExports',
+          'publicFacadeMixins',
+          'publicFacadeExpectedMixins',
+          'publicFacadeMissingMixins',
+          'publicFacadeTypedMixinCount',
+          'publicFacadeHasRawMixin',
           'specialLimitedReasons',
           'runtimeSupportedReasons',
           'runtimeLimitedReasons',
@@ -357,6 +386,10 @@ void main() {
       );
       expect(report['specialCoverageStatusByModule'], isA<Map<String, dynamic>>());
       expect(report['runtimeOptionStatusByName'], isA<Map<String, dynamic>>());
+      expect(report['publicApiExports'], isA<List<dynamic>>());
+      expect(report['publicFacadeMixins'], isA<List<dynamic>>());
+      expect(report['publicFacadeTypedMixinCount'], isA<int>());
+      expect(report['publicFacadeHasRawMixin'], isA<bool>());
       for (final difference in _jsonMapList(report['sdkDifferences'])) {
         expect(difference.keys.toSet(), containsAll({'module', 'status', 'reason', 'scope'}));
         expect(difference['module'], isA<String>());
@@ -406,6 +439,11 @@ void main() {
       expect(markdown, contains('- version: $apiEnhancedUpstreamVersion'));
       expect(markdown, contains('- commit: $apiEnhancedUpstreamCommit'));
       expect(markdown, contains('- modules: ${apiEnhancedModules.length}'));
+      expect(markdown, contains('## Public Facade'));
+      expect(markdown, contains('- missing exports: none'));
+      expect(markdown, contains('- typed facade mixins: 7/7'));
+      expect(markdown, contains('- raw facade mixin: yes'));
+      expect(markdown, contains('- missing facade mixins: none'));
       expect(markdown, contains('| module | coverage | oracle fixture | limited reason |'));
       expect(markdown, contains('| option | status | reason |'));
       expect(markdown, contains('## SDK Differences'));
@@ -708,6 +746,56 @@ void main() {
       expect(
         sdkDifferences.where((item) => item['status'].toString().contains('raw_convenience')).map((item) => item['scope']).toSet(),
         {'raw_convenience_methods'},
+      );
+    });
+
+    test('coverage report rejects public facade drift', () async {
+      final repoRoot = _findRepoRoot();
+      final tempDir = Directory.systemTemp.createTempSync('api_enhanced_public_facade_');
+      addTearDown(() {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      });
+      final publicApi = File('${repoRoot.path}/packages/netease_music_api/lib/netease_music_api.dart').readAsStringSync().replaceFirst(
+            "export 'src/endpoints/raw/api_enhanced_raw.dart';\n",
+            '',
+          );
+      final publicFacade = File('${repoRoot.path}/packages/netease_music_api/lib/src/client/netease_api.dart').readAsStringSync().replaceFirst(
+            ', ApiEnhancedRaw',
+            '',
+          );
+      final publicApiFile = File('${tempDir.path}/netease_music_api.dart')..writeAsStringSync(publicApi);
+      final publicFacadeFile = File('${tempDir.path}/netease_api.dart')..writeAsStringSync(publicFacade);
+
+      final result = await Process.run(
+        'node',
+        [
+          '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js',
+          '--json',
+          '--public-api=${publicApiFile.path}',
+          '--public-facade=${publicFacadeFile.path}',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(result.exitCode, isNot(0), reason: '${result.stdout}\n${result.stderr}');
+      final report = _jsonMap(jsonDecode(result.stdout as String));
+      expect(report['publicApiMissingExports'], contains('src/endpoints/raw/api_enhanced_raw.dart'));
+      expect(report['publicFacadeMissingMixins'], contains('ApiEnhancedRaw'));
+      expect(report['publicFacadeHasRawMixin'], isFalse);
+      final sdkDifferences = _jsonMapList(report['sdkDifferences']);
+      expect(
+        sdkDifferences.where((item) => item['module'] == 'src/endpoints/raw/api_enhanced_raw.dart').map((item) => item['status']),
+        contains('missing_public_api_export'),
+      );
+      expect(
+        sdkDifferences.where((item) => item['module'] == 'ApiEnhancedRaw').map((item) => item['status']),
+        contains('missing_public_facade_mixin'),
+      );
+      expect(
+        sdkDifferences.where((item) => item['status'].toString().startsWith('missing_public_')).map((item) => item['scope']).toSet(),
+        containsAll({'public_api', 'public_facade'}),
       );
     });
 

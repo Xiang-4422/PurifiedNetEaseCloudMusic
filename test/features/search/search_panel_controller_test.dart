@@ -144,9 +144,9 @@ void main() {
       expect(controller.songState.value.data?.single.title, 'second');
     });
 
-    test('does not rerun same keyword when liked song ids only reorder', () async {
+    test('uses normalized liked song ids and skips rerun when they only reorder', () async {
       final repository = _FakeSearchRepository();
-      var likedSongIds = <int>[202, 101];
+      var likedSongIds = <int>[202, 101, 202];
       final controller = _buildController(
         repository: repository,
         likedSongIds: () => likedSongIds,
@@ -163,7 +163,7 @@ void main() {
       await controller.search('keyword');
 
       expect(repository.requestedLikedSongIds, [
-        [202, 101],
+        [101, 202],
       ]);
       expect(controller.songState.value.data?.single.title, 'first');
     });

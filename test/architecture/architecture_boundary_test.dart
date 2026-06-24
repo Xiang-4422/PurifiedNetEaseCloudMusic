@@ -877,6 +877,9 @@ void main() {
         if (!coordinatorContent.contains('_resolveLocalResourceUrlOrNull(normalizedTrackId)')) 'coordinator local lookup does not use normalized track id',
         if (!coordinatorContent.contains('_dropRemoteState(cacheKey);')) 'coordinator keeps stale remote state after local resource hit',
         if (!coordinatorContent.contains('_loads.remove(cacheKey);')) 'coordinator does not clear in-flight remote loads after local resource hit',
+        if (!coordinatorContent.contains('_normalizePlaybackUrl(url)')) 'coordinator does not normalize loaded playback urls before returning them',
+        if (!coordinatorContent.contains('_isRemoteUrl(trimmedUrl)')) 'coordinator can return malformed remote playback urls',
+        if (!coordinatorContent.contains('LocalFilePathNormalizer.normalize(trimmedUrl)')) 'coordinator does not preserve normalized local paths returned by playback load',
       ];
 
       expect(

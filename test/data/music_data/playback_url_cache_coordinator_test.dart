@@ -226,7 +226,7 @@ void main() {
       expect(loadCount, 2);
     });
 
-    test('does not cache malformed remote playback url results', () async {
+    test('does not return or cache malformed remote playback url results', () async {
       var loadCount = 0;
       final coordinator = PlaybackUrlCacheCoordinator(
         resolveLocalResourceUrl: (_) async => null,
@@ -241,9 +241,67 @@ void main() {
       final remote = await coordinator.resolve('1', qualityLevel: 'standard', forceRefresh: false, load: load);
       final cached = await coordinator.resolve('1', qualityLevel: 'standard', forceRefresh: false, load: load);
 
-      expect(malformed, 'HTTPS:///missing-host.mp3');
+      expect(malformed, isNull);
       expect(remote, 'https://audio.test/1.mp3');
       expect(cached, remote);
+      expect(loadCount, 2);
+    });
+
+    test('returns normalized local path produced by playback url load', () async {
+      var loadCount = 0;
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async => null,
+      );
+
+      Future<String?> load() async {
+        loadCount++;
+        return loadCount == 1 ? '  /music/downloaded.mp3?token=local  ' : 'https://audio.test/1.mp3';
+      }
+
+      final local = await coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: load,
+      );
+      final remote = await coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: load,
+      );
+
+      expect(local, '/music/downloaded.mp3');
+      expect(remote, 'https://audio.test/1.mp3');
+      expect(loadCount, 2);
+    });
+
+    test('does not return unsafe playback url schemes', () async {
+      var loadCount = 0;
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async => null,
+      );
+
+      Future<String?> load() async {
+        loadCount++;
+        return loadCount == 1 ? 'ftp://audio.test/1.mp3' : 'https://audio.test/1.mp3';
+      }
+
+      final unsafe = await coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: load,
+      );
+      final remote = await coordinator.resolve(
+        '1',
+        qualityLevel: 'standard',
+        forceRefresh: false,
+        load: load,
+      );
+
+      expect(unsafe, isNull);
+      expect(remote, 'https://audio.test/1.mp3');
       expect(loadCount, 2);
     });
 

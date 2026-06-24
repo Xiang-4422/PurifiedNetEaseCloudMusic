@@ -85,32 +85,32 @@ void main() {
       }
     });
 
-    test('does not cache invalid remote urls', () async {
+    test('does not return or cache invalid remote urls', () async {
       var remoteLoads = 0;
       final coordinator = PlaybackUrlCacheCoordinator(
         resolveLocalResourceUrl: (_) async => null,
       );
 
-      Future<String?> loadInvalidRemoteUrl() async {
+      Future<String?> loadInvalidThenValidRemoteUrl() async {
         remoteLoads++;
-        return 'https:///missing-host-$remoteLoads.mp3';
+        return remoteLoads == 1 ? 'https:///missing-host.mp3' : 'https://audio.test/1.mp3';
       }
 
       final first = await coordinator.resolve(
         'netease:1',
         qualityLevel: 'standard',
         forceRefresh: false,
-        load: loadInvalidRemoteUrl,
+        load: loadInvalidThenValidRemoteUrl,
       );
       final second = await coordinator.resolve(
         'netease:1',
         qualityLevel: 'standard',
         forceRefresh: false,
-        load: loadInvalidRemoteUrl,
+        load: loadInvalidThenValidRemoteUrl,
       );
 
-      expect(first, 'https:///missing-host-1.mp3');
-      expect(second, 'https:///missing-host-2.mp3');
+      expect(first, isNull);
+      expect(second, 'https://audio.test/1.mp3');
       expect(remoteLoads, 2);
     });
 

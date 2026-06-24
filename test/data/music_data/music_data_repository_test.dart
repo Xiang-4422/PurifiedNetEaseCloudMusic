@@ -390,6 +390,26 @@ void main() {
       expect(neteaseSource.playbackUrlCallCount, 1);
     });
 
+    test('does not return or cache malformed remote playback url', () async {
+      final neteaseSource = _FakeNeteaseMusicSource(
+        playbackUrlOverride: 'https:///missing-host.mp3',
+      );
+      final repository = _buildRepository(neteaseSource: neteaseSource);
+
+      final first = await repository.getPlaybackUrlWithQuality(
+        '1',
+        qualityLevel: 'lossless',
+      );
+      final second = await repository.getPlaybackUrlWithQuality(
+        '1',
+        qualityLevel: 'lossless',
+      );
+
+      expect(first, isNull);
+      expect(second, isNull);
+      expect(neteaseSource.playbackUrlCallCount, 2);
+    });
+
     test('normalizes indexed local audio file uri before returning playback url', () async {
       final directory = await Directory.systemTemp.createTemp('music-data-audio-uri-');
       addTearDown(() async {
@@ -1025,12 +1045,14 @@ class _FakeNeteaseMusicSource implements NeteaseMusicSource {
     this.lyricsDelay = Duration.zero,
     this.includeQualityInPlaybackUrl = false,
     this.includeCallCountInPlaybackUrl = false,
+    this.playbackUrlOverride,
   });
 
   final Duration playbackUrlDelay;
   final Duration lyricsDelay;
   final bool includeQualityInPlaybackUrl;
   final bool includeCallCountInPlaybackUrl;
+  final String? playbackUrlOverride;
   int trackCallCount = 0;
   int playbackUrlCallCount = 0;
   int lyricsCallCount = 0;
@@ -1051,6 +1073,9 @@ class _FakeNeteaseMusicSource implements NeteaseMusicSource {
     playbackUrlTrackIds.add(trackId);
     if (playbackUrlDelay > Duration.zero) {
       await Future<void>.delayed(playbackUrlDelay);
+    }
+    if (playbackUrlOverride != null) {
+      return playbackUrlOverride;
     }
     if (includeQualityInPlaybackUrl) {
       return 'https://audio.test/$trackId-${qualityLevel ?? 'normal'}.mp3';

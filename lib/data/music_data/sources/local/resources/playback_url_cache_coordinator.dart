@@ -59,7 +59,7 @@ class PlaybackUrlCacheCoordinator {
     }
     late final Future<String?> loadFuture;
     loadFuture = load().then((url) {
-      final normalizedUrl = _normalizeRemoteUrl(url);
+      final normalizedUrl = _normalizePlaybackUrl(url);
       if (identical(_loads[cacheKey], loadFuture)) {
         _cacheRemoteUrl(cacheKey, normalizedUrl);
       }
@@ -117,7 +117,7 @@ class PlaybackUrlCacheCoordinator {
     return '${_normalizedTrackId(trackId)}|$normalizedQualityLevel';
   }
 
-  static String? _normalizeRemoteUrl(String? url) {
+  static String? _normalizePlaybackUrl(String? url) {
     if (url == null) {
       return null;
     }
@@ -125,19 +125,16 @@ class PlaybackUrlCacheCoordinator {
     if (trimmedUrl.isEmpty) {
       return null;
     }
-    if (_hasHttpScheme(trimmedUrl)) {
+    if (_isRemoteUrl(trimmedUrl)) {
       return trimmedUrl;
     }
-    return url;
+    final localPath = LocalFilePathNormalizer.normalize(trimmedUrl);
+    return localPath.isEmpty ? null : localPath;
   }
 
   static bool _isRemoteUrl(String url) {
     final uri = Uri.tryParse(url.trim());
     return _isHttpUri(uri) && uri?.host.isNotEmpty == true;
-  }
-
-  static bool _hasHttpScheme(String url) {
-    return _isHttpUri(Uri.tryParse(url));
   }
 
   static bool _isHttpUri(Uri? uri) {

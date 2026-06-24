@@ -153,7 +153,7 @@ class PlaybackSourcePrefetcher {
       case PlaybackResolvedSourceKind.neteaseCacheStream:
         return source.url.isNotEmpty && File(source.url).existsSync();
       case PlaybackResolvedSourceKind.url:
-        return source.url.trim().isNotEmpty && !PlaybackUrlExpiry.isExpired(source.url, now: _now());
+        return _isRemoteHttpUrl(source.url) && !PlaybackUrlExpiry.isExpired(source.url, now: _now());
       case PlaybackResolvedSourceKind.empty:
         return false;
     }
@@ -190,17 +190,18 @@ class PlaybackSourcePrefetcher {
     final stopwatch = PlaybackPerformanceLogger.start();
     late final Future<PlaybackResolvedSource> loadFuture;
     loadFuture = Future.sync(load).then((source) {
-      if (identical(_inFlight[key], loadFuture) && !source.isEmpty) {
+      final usableSource = _usableResolvedSource(source);
+      if (identical(_inFlight[key], loadFuture) && !usableSource.isEmpty) {
         _cache.remove(key);
-        _cache[key] = _CachedPlaybackSource(source, _now());
+        _cache[key] = _CachedPlaybackSource(usableSource, _now());
         _trimCache();
       }
       PlaybackPerformanceLogger.elapsed(
         'sourcePrefetch.load',
         stopwatch,
-        details: 'key=$key success=${!source.isEmpty} kind=${source.kind.name}',
+        details: 'key=$key success=${!usableSource.isEmpty} kind=${usableSource.kind.name}',
       );
-      return source;
+      return usableSource;
     }).whenComplete(() {
       if (identical(_inFlight[key], loadFuture)) {
         _inFlight.remove(key);
@@ -208,6 +209,13 @@ class PlaybackSourcePrefetcher {
     });
     _inFlight[key] = loadFuture;
     return loadFuture;
+  }
+
+  PlaybackResolvedSource _usableResolvedSource(PlaybackResolvedSource source) {
+    if (_isCachedSourceStillUsable(source)) {
+      return source;
+    }
+    return const PlaybackResolvedSource(kind: PlaybackResolvedSourceKind.empty);
   }
 
   void _touchCache(String key, _CachedPlaybackSource cached) {
@@ -244,6 +252,12 @@ class PlaybackSourcePrefetcher {
 
   String _localPlaybackUrlKey(PlaybackQueueItem item) {
     return LocalFilePathNormalizer.normalize(item.playbackUrl);
+  }
+
+  bool _isRemoteHttpUrl(String url) {
+    final uri = Uri.tryParse(url.trim());
+    final scheme = uri?.scheme.toLowerCase();
+    return (scheme == 'http' || scheme == 'https') && uri?.host.isNotEmpty == true;
   }
 }
 

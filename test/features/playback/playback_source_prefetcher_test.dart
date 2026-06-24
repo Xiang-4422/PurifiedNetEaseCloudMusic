@@ -23,9 +23,9 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 120));
       final refreshed = await prefetcher.resolve(item, preferHighQuality: false);
 
-      expect(first.url, 'normal-url-1');
-      expect(cached.url, 'normal-url-1');
-      expect(refreshed.url, 'normal-url-2');
+      expect(first.url, _testUrl('normal-url-1'));
+      expect(cached.url, _testUrl('normal-url-1'));
+      expect(refreshed.url, _testUrl('normal-url-2'));
       expect(resolver.resolveCallCount, 2);
     });
 
@@ -61,8 +61,8 @@ void main() {
       final cachedNormal = await prefetcher.resolve(item, preferHighQuality: false);
       final cachedHigh = await prefetcher.resolve(item, preferHighQuality: true);
 
-      expect(normal.url, 'normal-url-1');
-      expect(high.url, 'high-url-2');
+      expect(normal.url, _testUrl('normal-url-1'));
+      expect(high.url, _testUrl('high-url-2'));
       expect(cachedNormal.url, normal.url);
       expect(cachedHigh.url, high.url);
       expect(resolver.resolveCallCount, 2);
@@ -76,8 +76,8 @@ void main() {
       final first = await prefetcher.resolve(_item(' 1 '), preferHighQuality: false);
       final cached = await prefetcher.resolve(_item('1'), preferHighQuality: false);
 
-      expect(first.url, 'normal-url-1');
-      expect(cached.url, 'normal-url-1');
+      expect(first.url, _testUrl('normal-url-1'));
+      expect(cached.url, _testUrl('normal-url-1'));
       expect(resolver.resolveCallCount, 1);
     });
 
@@ -129,8 +129,8 @@ void main() {
         preferHighQuality: false,
       );
 
-      expect(first.url, 'normal-url-1');
-      expect(cached.url, 'normal-url-1');
+      expect(first.url, _testUrl('normal-url-1'));
+      expect(cached.url, _testUrl('normal-url-1'));
       expect(resolver.resolveCallCount, 1);
     });
 
@@ -156,11 +156,11 @@ void main() {
       final second = _item('2');
       final third = _item('3');
 
-      expect((await prefetcher.resolve(first, preferHighQuality: false)).url, 'normal-url-1');
-      expect((await prefetcher.resolve(second, preferHighQuality: false)).url, 'normal-url-2');
-      expect((await prefetcher.resolve(first, preferHighQuality: false)).url, 'normal-url-1');
-      expect((await prefetcher.resolve(third, preferHighQuality: false)).url, 'normal-url-3');
-      expect((await prefetcher.resolve(second, preferHighQuality: false)).url, 'normal-url-4');
+      expect((await prefetcher.resolve(first, preferHighQuality: false)).url, _testUrl('normal-url-1'));
+      expect((await prefetcher.resolve(second, preferHighQuality: false)).url, _testUrl('normal-url-2'));
+      expect((await prefetcher.resolve(first, preferHighQuality: false)).url, _testUrl('normal-url-1'));
+      expect((await prefetcher.resolve(third, preferHighQuality: false)).url, _testUrl('normal-url-3'));
+      expect((await prefetcher.resolve(second, preferHighQuality: false)).url, _testUrl('normal-url-4'));
 
       expect(resolver.resolveCallCount, 4);
     });
@@ -185,7 +185,7 @@ void main() {
       expect(cachedFile.kind, PlaybackResolvedSourceKind.filePath);
       expect(cachedFile.url, audioFile.path);
       expect(refreshed.kind, PlaybackResolvedSourceKind.url);
-      expect(refreshed.url, 'remote-url-2');
+      expect(refreshed.url, _testUrl('remote-url-2'));
       expect(resolver.resolveCallCount, 2);
     });
 
@@ -210,7 +210,7 @@ void main() {
       final refreshed = await prefetcher.resolve(item, preferHighQuality: false);
 
       expect(cachedRemote.kind, PlaybackResolvedSourceKind.url);
-      expect(cachedRemote.url, 'remote-url-1');
+      expect(cachedRemote.url, _testUrl('remote-url-1'));
       expect(refreshed.kind, PlaybackResolvedSourceKind.filePath);
       expect(refreshed.url, audioFile.path);
       expect(resolver.resolveCallCount, 2);
@@ -237,7 +237,7 @@ void main() {
       final refreshed = await prefetcher.resolve(item, preferHighQuality: false);
 
       expect(cachedRemote.kind, PlaybackResolvedSourceKind.url);
-      expect(cachedRemote.url, 'remote-url-1');
+      expect(cachedRemote.url, _testUrl('remote-url-1'));
       expect(refreshed.kind, PlaybackResolvedSourceKind.filePath);
       expect(refreshed.url, audioFile.path);
       expect(resolver.resolveCallCount, 2);
@@ -299,9 +299,9 @@ void main() {
       final reusedRemote = await prefetcher.resolve(item, preferHighQuality: false);
 
       expect(cachedRemote.kind, PlaybackResolvedSourceKind.url);
-      expect(cachedRemote.url, 'remote-url-1');
+      expect(cachedRemote.url, _testUrl('remote-url-1'));
       expect(reusedRemote.kind, PlaybackResolvedSourceKind.url);
-      expect(reusedRemote.url, 'remote-url-1');
+      expect(reusedRemote.url, _testUrl('remote-url-1'));
       expect(resolver.resolveCallCount, 1);
     });
 
@@ -500,6 +500,21 @@ void main() {
       expect(recovered, _hasUrl('recovered-url-2'));
       expect(resolver.resolveCallCount, 2);
     });
+
+    test('does not return or cache malformed remote resolved sources', () async {
+      final resolver = _MalformedThenRecoveredSourceResolver();
+      final prefetcher = PlaybackSourcePrefetcher(resolver: resolver);
+      final item = _item('1');
+
+      final malformed = await prefetcher.resolve(item, preferHighQuality: false);
+      final recovered = await prefetcher.resolve(item, preferHighQuality: false);
+      final cached = await prefetcher.resolve(item, preferHighQuality: false);
+
+      expect(malformed.isEmpty, isTrue);
+      expect(recovered, _hasUrl('recovered-url-2'));
+      expect(cached, _hasUrl('recovered-url-2'));
+      expect(resolver.resolveCallCount, 2);
+    });
   });
 }
 
@@ -552,7 +567,7 @@ class _CountingSourceResolver implements PlaybackSourceResolver {
     preferences.add(preferHighQuality);
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
-      url: '${preferHighQuality ? 'high' : 'normal'}-url-$resolveCallCount',
+      url: _testUrl('${preferHighQuality ? 'high' : 'normal'}-url-$resolveCallCount'),
     );
   }
 
@@ -615,7 +630,7 @@ class _LocalFileThenRemoteSourceResolver implements PlaybackSourceResolver {
     }
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
-      url: 'remote-url-$resolveCallCount',
+      url: _testUrl('remote-url-$resolveCallCount'),
     );
   }
 
@@ -638,7 +653,7 @@ class _ControllableRemoteSourceResolver implements PlaybackSourceResolver {
     _remoteCompleters[index].complete(
       PlaybackResolvedSource(
         kind: PlaybackResolvedSourceKind.url,
-        url: url,
+        url: _testUrl(url),
       ),
     );
   }
@@ -686,7 +701,7 @@ class _FailingThenRecoveredRemoteSourceResolver implements PlaybackSourceResolve
     }
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
-      url: 'recovered-url-$remoteCallCount',
+      url: _testUrl('recovered-url-$remoteCallCount'),
     );
   }
 }
@@ -702,7 +717,32 @@ class _BlankThenRecoveredSourceResolver implements PlaybackSourceResolver {
     resolveCallCount++;
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
-      url: resolveCallCount == 1 ? '   ' : 'recovered-url-$resolveCallCount',
+      url: resolveCallCount == 1 ? '   ' : _testUrl('recovered-url-$resolveCallCount'),
+    );
+  }
+
+  @override
+  Future<PlaybackResolvedSource> resolveRemote(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+    bool forceRefresh = false,
+  }) {
+    return resolve(item, preferHighQuality: preferHighQuality);
+  }
+}
+
+class _MalformedThenRecoveredSourceResolver implements PlaybackSourceResolver {
+  int resolveCallCount = 0;
+
+  @override
+  Future<PlaybackResolvedSource> resolve(
+    PlaybackQueueItem item, {
+    required bool preferHighQuality,
+  }) async {
+    resolveCallCount++;
+    return PlaybackResolvedSource(
+      kind: PlaybackResolvedSourceKind.url,
+      url: resolveCallCount == 1 ? 'https:///missing-host.mp3' : _testUrl('recovered-url-$resolveCallCount'),
     );
   }
 
@@ -729,7 +769,7 @@ class _ControllableLocalFileThenRemoteSourceResolver implements PlaybackSourceRe
     _remoteCompleters[index].complete(
       PlaybackResolvedSource(
         kind: PlaybackResolvedSourceKind.url,
-        url: url,
+        url: _testUrl(url),
       ),
     );
   }
@@ -799,6 +839,13 @@ Matcher _hasUrl(String url) {
   return isA<PlaybackResolvedSource>().having(
     (source) => source.url,
     'url',
-    url,
+    _testUrl(url),
   );
+}
+
+String _testUrl(String label) {
+  if (label.startsWith('http://') || label.startsWith('https://')) {
+    return label;
+  }
+  return 'https://audio.test/$label.mp3';
 }

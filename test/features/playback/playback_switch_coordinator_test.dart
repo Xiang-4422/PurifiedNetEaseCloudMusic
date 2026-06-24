@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
@@ -157,9 +158,10 @@ void main() {
       );
       await Future<void>.delayed(Duration.zero);
 
-      resolver.completeResolve(const PlaybackResolvedSource(
+      final localAudio = await _createTempAudioFile('cached.mp3');
+      resolver.completeResolve(PlaybackResolvedSource(
         kind: PlaybackResolvedSourceKind.filePath,
-        url: '/tmp/cache.mp3',
+        url: localAudio.path,
       ));
       await Future<void>.delayed(Duration.zero);
       resolver.completeRemote(_urlSource('1'));
@@ -172,7 +174,8 @@ void main() {
 
     test('does not resolve remote fallback when local import file fails', () async {
       final playbackService = _FakePlaybackService(failFirstReplace: true);
-      final resolver = _LocalThenRemoteRefreshSourceResolver();
+      final localAudio = await _createTempAudioFile('local-import.mp3');
+      final resolver = _LocalThenRemoteRefreshSourceResolver(localPath: localAudio.path);
       final queueService = _queueService(playbackService);
       final coordinator = PlaybackSwitchCoordinator(
         playbackService: playbackService,
@@ -266,8 +269,8 @@ void main() {
 
       expect(result.success, isTrue);
       expect(playbackService.replaceCalls.map((call) => call.source.url), [
-        'stale-url-1',
-        'fresh-url-1',
+        _testUrl('stale-url-1'),
+        _testUrl('fresh-url-1'),
       ]);
       expect(resolver.remoteForceRefreshValues, [true]);
     });
@@ -296,8 +299,8 @@ void main() {
 
       expect(result.success, isTrue);
       expect(playbackService.replaceCalls.map((call) => call.source.url), [
-        'stale-url-1',
-        'fresh-url-1',
+        _testUrl('stale-url-1'),
+        _testUrl('fresh-url-1'),
       ]);
       expect(resolver.remoteForceRefreshValues, [true]);
       expect(queueService.state.confirmedItem.id, '1');
@@ -326,7 +329,7 @@ void main() {
 
       expect(result.success, isTrue);
       expect(playbackService.replaceCalls.map((call) => call.source.url), [
-        'fresh-url-1',
+        _testUrl('fresh-url-1'),
       ]);
       expect(resolver.resolveCalls, 0);
       expect(resolver.remoteForceRefreshValues, [true]);
@@ -388,7 +391,7 @@ void main() {
       );
 
       expect(result.success, isTrue);
-      expect(playbackService.replaceCalls.single.source.url, 'normal-fresh-1');
+      expect(playbackService.replaceCalls.single.source.url, _testUrl('normal-fresh-1'));
       expect(resolver.remotePreferences, [true, false]);
       expect(resolver.remoteForceRefreshValues, [true, true]);
     });
@@ -417,7 +420,7 @@ void main() {
       expect(result.success, isTrue);
       expect(queueService.state.confirmedItem.id, '2');
       expect(coordinator.state.phase, PlaybackSwitchPhase.confirmed);
-      expect(playbackService.replaceCalls.single.source.url, 'url-2');
+      expect(playbackService.replaceCalls.single.source.url, _testUrl('url-2'));
       expect(resolver.resolveIds, ['2', '1', '3']);
       expect(resolver.pendingIds, {'1', '3'});
 
@@ -449,7 +452,7 @@ void main() {
       expect(result.success, isTrue);
       expect(queueService.state.confirmedItem.id, '2');
       expect(coordinator.state.phase, PlaybackSwitchPhase.confirmed);
-      expect(playbackService.replaceCalls.single.source.url, 'url-2');
+      expect(playbackService.replaceCalls.single.source.url, _testUrl('url-2'));
       expect(resolver.resolveIds, ['2', '1', '3']);
     });
 
@@ -479,9 +482,9 @@ void main() {
 
       expect(result.success, isTrue);
       expect(playbackService.replaceCalls.map((call) => call.source.url), [
-        'high-stale-1',
-        'high-fresh-1',
-        'normal-fresh-1',
+        _testUrl('high-stale-1'),
+        _testUrl('high-fresh-1'),
+        _testUrl('normal-fresh-1'),
       ]);
       expect(resolver.remotePreferences, [true, false]);
       expect(resolver.remoteForceRefreshValues, [true, true]);
@@ -489,7 +492,8 @@ void main() {
 
     test('refreshes remote source after local cached source and first remote fallback both fail', () async {
       final playbackService = _FakePlaybackService(failReplaceCount: 2);
-      final resolver = _LocalThenRemoteRefreshSourceResolver();
+      final localAudio = await _createTempAudioFile('cached-refresh.mp3');
+      final resolver = _LocalThenRemoteRefreshSourceResolver(localPath: localAudio.path);
       final queueService = _queueService(playbackService);
       final coordinator = PlaybackSwitchCoordinator(
         playbackService: playbackService,
@@ -510,9 +514,9 @@ void main() {
 
       expect(result.success, isTrue);
       expect(playbackService.replaceCalls.map((call) => call.source.url), [
-        '/tmp/cache-1.mp3',
-        'remote-stale-1',
-        'remote-fresh-1',
+        localAudio.path,
+        _testUrl('remote-stale-1'),
+        _testUrl('remote-fresh-1'),
       ]);
       expect(resolver.remoteForceRefreshValues, [false, true]);
     });
@@ -568,7 +572,7 @@ void main() {
 
       expect(result.success, isTrue);
       expect(resolver.preferences, [true, false]);
-      expect(playbackService.replaceCalls.single.source.url, 'normal-url');
+      expect(playbackService.replaceCalls.single.source.url, _testUrl('normal-url'));
     });
 
     test('prefetch swallows resolver failures', () async {
@@ -617,8 +621,27 @@ PlaybackQueueItem _item(
 PlaybackResolvedSource _urlSource(String id) {
   return PlaybackResolvedSource(
     kind: PlaybackResolvedSourceKind.url,
-    url: 'url-$id',
+    url: _testUrl('url-$id'),
   );
+}
+
+String _testUrl(String label) {
+  if (label.startsWith('http://') || label.startsWith('https://')) {
+    return label;
+  }
+  return 'https://audio.test/$label.mp3';
+}
+
+Future<File> _createTempAudioFile(String name) async {
+  final directory = await Directory.systemTemp.createTemp('playback-switch-');
+  addTearDown(() async {
+    if (directory.existsSync()) {
+      await directory.delete(recursive: true);
+    }
+  });
+  final file = File('${directory.path}/$name');
+  await file.writeAsString('audio');
+  return file;
 }
 
 class _RemoteUrlPlaybackRepository implements PlaybackRepository {
@@ -752,7 +775,7 @@ class _QualityFallbackSourceResolver implements PlaybackSourceResolver {
     }
     return const PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
-      url: 'normal-url',
+      url: 'https://audio.test/normal-url.mp3',
     );
   }
 
@@ -866,7 +889,7 @@ class _RemoteRefreshSourceResolver implements PlaybackSourceResolver {
     resolveCalls++;
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
-      url: 'stale-url-${item.id}',
+      url: _testUrl('stale-url-${item.id}'),
     );
   }
 
@@ -879,7 +902,7 @@ class _RemoteRefreshSourceResolver implements PlaybackSourceResolver {
     remoteForceRefreshValues.add(forceRefresh);
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
-      url: 'fresh-url-${item.id}',
+      url: _testUrl('fresh-url-${item.id}'),
     );
   }
 }
@@ -895,7 +918,7 @@ class _SourceErrorQualityFallbackResolver implements PlaybackSourceResolver {
   }) async {
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
-      url: 'stale-${item.id}',
+      url: _testUrl('stale-${item.id}'),
     );
   }
 
@@ -912,7 +935,7 @@ class _SourceErrorQualityFallbackResolver implements PlaybackSourceResolver {
     }
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
-      url: 'normal-fresh-${item.id}',
+      url: _testUrl('normal-fresh-${item.id}'),
     );
   }
 }
@@ -928,7 +951,7 @@ class _RemoteQualityFallbackSourceResolver implements PlaybackSourceResolver {
   }) async {
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
-      url: 'high-stale-${item.id}',
+      url: _testUrl('high-stale-${item.id}'),
     );
   }
 
@@ -942,12 +965,15 @@ class _RemoteQualityFallbackSourceResolver implements PlaybackSourceResolver {
     remoteForceRefreshValues.add(forceRefresh);
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
-      url: '${preferHighQuality ? 'high' : 'normal'}-${forceRefresh ? 'fresh' : 'stale'}-${item.id}',
+      url: _testUrl('${preferHighQuality ? 'high' : 'normal'}-${forceRefresh ? 'fresh' : 'stale'}-${item.id}'),
     );
   }
 }
 
 class _LocalThenRemoteRefreshSourceResolver implements PlaybackSourceResolver {
+  _LocalThenRemoteRefreshSourceResolver({this.localPath});
+
+  final String? localPath;
   final List<bool> remoteForceRefreshValues = <bool>[];
 
   @override
@@ -957,7 +983,7 @@ class _LocalThenRemoteRefreshSourceResolver implements PlaybackSourceResolver {
   }) async {
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.filePath,
-      url: '/tmp/cache-${item.id}.mp3',
+      url: localPath ?? '/tmp/cache-${item.id}.mp3',
     );
   }
 
@@ -970,7 +996,7 @@ class _LocalThenRemoteRefreshSourceResolver implements PlaybackSourceResolver {
     remoteForceRefreshValues.add(forceRefresh);
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
-      url: 'remote-${forceRefresh ? 'fresh' : 'stale'}-${item.id}',
+      url: _testUrl('remote-${forceRefresh ? 'fresh' : 'stale'}-${item.id}'),
     );
   }
 }

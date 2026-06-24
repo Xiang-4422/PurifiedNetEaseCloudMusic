@@ -2748,6 +2748,27 @@ void main() {
       );
     });
 
+    test('playback source prefetcher caches only usable sources', () {
+      final prefetcherFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_source_prefetcher.dart',
+      );
+      final prefetcher = prefetcherFile.readAsStringSync();
+      final violations = <String>[
+        if (!prefetcher.contains('final usableSource = _usableResolvedSource(source)')) '${_relativePath(prefetcherFile)} caches raw resolved sources before usability normalization',
+        if (!prefetcher.contains('!usableSource.isEmpty')) '${_relativePath(prefetcherFile)} can cache empty or unusable sources',
+        if (!prefetcher.contains('bool _isRemoteHttpUrl(String url)')) '${_relativePath(prefetcherFile)} does not validate cached remote source URLs',
+        if (!prefetcher.contains("scheme == 'http' || scheme == 'https'")) '${_relativePath(prefetcherFile)} does not restrict cached remote sources to HTTP(S)',
+        if (!prefetcher.contains('uri?.host.isNotEmpty == true')) '${_relativePath(prefetcherFile)} can cache remote sources without authority',
+        if (!prefetcher.contains('PlaybackUrlExpiry.isExpired(source.url')) '${_relativePath(prefetcherFile)} can cache expired remote playback URLs',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '播放源预取缓存只能保存仍可用的本地文件或有效 HTTP(S) 远程地址，不能缓存空白、过期或畸形 source。',
+      );
+    });
+
     test('audio service handler stays playback adapter only', () {
       final handlerFile = File(
         '${projectRoot.path}/lib/features/playback/application/audio_service_handler.dart',

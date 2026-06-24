@@ -1442,6 +1442,28 @@ void main() {
       );
     });
 
+    test('local resource index repository uses shared origin priority policy', () {
+      final repositoryFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/resources/local_resource_index_repository.dart',
+      );
+      final availabilityFile = File('${projectRoot.path}/lib/core/util/track_resource_availability.dart');
+      final repository = repositoryFile.readAsStringSync();
+      final availability = availabilityFile.readAsStringSync();
+      final violations = <String>[
+        if (!repository.contains("import 'package:bujuan/core/util/track_resource_availability.dart';")) '${_relativePath(repositoryFile)} does not import TrackResourceAvailability',
+        if (!repository.contains('TrackResourceAvailability.shouldKeepExistingResource(')) '${_relativePath(repositoryFile)} does not delegate overwrite decisions to the shared policy',
+        if (repository.contains('int _originPriority(')) '${_relativePath(repositoryFile)} still keeps a private origin priority table',
+        if (!availability.contains('static int originPriority(TrackResourceOrigin origin)')) '${_relativePath(availabilityFile)} does not expose shared origin priority',
+        if (!availability.contains('static bool shouldKeepExistingResource(')) '${_relativePath(availabilityFile)} does not expose shared resource overwrite policy',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '资源索引写入的来源优先级必须和播放、下载、本地导入共用同一套语义，避免后续缓存重构时覆盖本地导入或正式下载事实。',
+      );
+    });
+
     test('UI reads explicit queue item fields instead of metadata keys', () {
       final uiFiles = _dartFiles(Directory('${projectRoot.path}/lib/ui'));
       final violations = uiFiles

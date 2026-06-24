@@ -30,6 +30,29 @@ class TrackResourceAvailability {
     TrackResourceOrigin.managedDownload,
   };
 
+  /// Returns the precedence of a resource origin when multiple local facts race.
+  static int originPriority(TrackResourceOrigin origin) {
+    switch (origin) {
+      case TrackResourceOrigin.localImport:
+        return 3;
+      case TrackResourceOrigin.managedDownload:
+        return 2;
+      case TrackResourceOrigin.playbackCache:
+        return 1;
+      case TrackResourceOrigin.artworkCache:
+      case TrackResourceOrigin.none:
+        return 0;
+    }
+  }
+
+  /// Whether an existing indexed resource should stay over a new origin.
+  static bool shouldKeepExistingResource(
+    LocalResourceEntry? existing, {
+    required TrackResourceOrigin newOrigin,
+  }) {
+    return existing != null && originPriority(existing.origin) > originPriority(newOrigin) && existingLocalPath(existing) != null;
+  }
+
   /// Returns a normalized local path for an indexed resource, or null.
   static String? localPath(LocalResourceEntry? resource) {
     if (resource == null) {

@@ -7,6 +7,7 @@ import 'package:bujuan/core/entities/local_resource_entry.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_resource_bundle.dart';
 import 'package:bujuan/core/util/local_file_path_normalizer.dart';
+import 'package:bujuan/core/util/track_resource_availability.dart';
 
 /// 管理曲目本地音频、封面和歌词资源索引。
 class LocalResourceIndexRepository {
@@ -246,27 +247,10 @@ class LocalResourceIndexRepository {
     LocalResourceEntry? existing,
     TrackResourceOrigin newOrigin,
   ) {
-    if (existing == null) {
-      return false;
-    }
-    final existingPriority = _originPriority(existing.origin);
-    final newPriority = _originPriority(newOrigin);
-    final existingFile = _resourceFile(existing.path);
-    return existingPriority > newPriority && existingFile != null && existingFile.existsSync();
-  }
-
-  int _originPriority(TrackResourceOrigin origin) {
-    switch (origin) {
-      case TrackResourceOrigin.localImport:
-        return 3;
-      case TrackResourceOrigin.managedDownload:
-        return 2;
-      case TrackResourceOrigin.playbackCache:
-        return 1;
-      case TrackResourceOrigin.artworkCache:
-      case TrackResourceOrigin.none:
-        return 0;
-    }
+    return TrackResourceAvailability.shouldKeepExistingResource(
+      existing,
+      newOrigin: newOrigin,
+    );
   }
 
   Future<LocalResourceEntry?> _loadUsableResource(

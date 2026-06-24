@@ -94,6 +94,73 @@ void main() {
       expect(TrackResourceAvailability.isDownloadSatisfiedAudioResource(playbackCacheAudio), isFalse);
     });
 
+    test('orders resource origins by ownership strength', () {
+      expect(
+        TrackResourceAvailability.originPriority(TrackResourceOrigin.localImport),
+        greaterThan(TrackResourceAvailability.originPriority(TrackResourceOrigin.managedDownload)),
+      );
+      expect(
+        TrackResourceAvailability.originPriority(TrackResourceOrigin.managedDownload),
+        greaterThan(TrackResourceAvailability.originPriority(TrackResourceOrigin.playbackCache)),
+      );
+      expect(
+        TrackResourceAvailability.originPriority(TrackResourceOrigin.playbackCache),
+        greaterThan(TrackResourceAvailability.originPriority(TrackResourceOrigin.none)),
+      );
+      expect(
+        TrackResourceAvailability.originPriority(TrackResourceOrigin.artworkCache),
+        TrackResourceAvailability.originPriority(TrackResourceOrigin.none),
+      );
+    });
+
+    test('keeps higher priority existing resources only while files exist', () async {
+      final localImportAudio = _audioResource(
+        await _writeFile(tempDirectory, 'local-import.mp3').then((file) => file.path),
+        origin: TrackResourceOrigin.localImport,
+      );
+      final managedAudio = _audioResource(
+        await _writeFile(tempDirectory, 'managed.mp3').then((file) => file.path),
+        origin: TrackResourceOrigin.managedDownload,
+      );
+      final missingManagedAudio = _audioResource(
+        '${tempDirectory.path}/missing-managed.mp3',
+        origin: TrackResourceOrigin.managedDownload,
+      );
+      final playbackCacheAudio = _audioResource(
+        await _writeFile(tempDirectory, 'playback-cache.mp3').then((file) => file.path),
+        origin: TrackResourceOrigin.playbackCache,
+      );
+
+      expect(
+        TrackResourceAvailability.shouldKeepExistingResource(
+          localImportAudio,
+          newOrigin: TrackResourceOrigin.managedDownload,
+        ),
+        isTrue,
+      );
+      expect(
+        TrackResourceAvailability.shouldKeepExistingResource(
+          managedAudio,
+          newOrigin: TrackResourceOrigin.playbackCache,
+        ),
+        isTrue,
+      );
+      expect(
+        TrackResourceAvailability.shouldKeepExistingResource(
+          playbackCacheAudio,
+          newOrigin: TrackResourceOrigin.managedDownload,
+        ),
+        isFalse,
+      );
+      expect(
+        TrackResourceAvailability.shouldKeepExistingResource(
+          missingManagedAudio,
+          newOrigin: TrackResourceOrigin.playbackCache,
+        ),
+        isFalse,
+      );
+    });
+
     test('builds queue playback url and media type from indexed audio first', () async {
       final audioFile = await _writeFile(tempDirectory, 'song.mp3.uc!');
       final track = _track(remoteUrl: 'https://audio.test/song.mp3?auth=temp');

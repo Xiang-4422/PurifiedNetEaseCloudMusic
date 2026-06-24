@@ -13,7 +13,6 @@ import 'package:bujuan/features/auth/auth_state_store.dart';
 import 'package:bujuan/features/cloud/cloud_repository.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:bujuan/features/download/download_repository.dart';
-import 'package:bujuan/features/explore/explore_repository.dart';
 import 'package:bujuan/features/local_media/local_media_repository.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:bujuan/features/playlist/playlist_repository.dart';
@@ -45,7 +44,6 @@ class AppRepositoryBootstrapResult {
     required this.downloadRepository,
     required this.playbackRepository,
     required this.commentRepository,
-    required this.exploreRepository,
   });
 
   /// 本地资源索引 repository。
@@ -98,9 +96,6 @@ class AppRepositoryBootstrapResult {
 
   /// 评论 repository。
   final CommentRepository commentRepository;
-
-  /// 探索 repository。
-  final ExploreRepository exploreRepository;
 }
 
 /// 创建应用核心 repository 和 feature repository。
@@ -196,10 +191,6 @@ AppRepositoryBootstrapResult initializeRepositoryInfrastructure({
       remoteDataSource: dataSources.commentRemoteDataSource,
       cacheStore: dataSources.commentCacheStore,
     ),
-    exploreRepository: ExploreRepository(
-      remoteDataSource: dataSources.exploreRemoteDataSource,
-      cacheStore: dataSources.exploreCacheStore,
-    ),
   );
 }
 
@@ -244,5 +235,4 @@ void registerRepositoryInfrastructure(AppRepositoryBootstrapResult repositories)
   Get.put<DownloadRepository>(repositories.downloadRepository, permanent: true);
   Get.put<PlaybackRepository>(repositories.playbackRepository, permanent: true);
   Get.put<CommentRepository>(repositories.commentRepository, permanent: true);
-  Get.put<ExploreRepository>(repositories.exploreRepository, permanent: true);
 }

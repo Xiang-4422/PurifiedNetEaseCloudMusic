@@ -2777,7 +2777,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason: 'app_cache_entries 是搜索、探索和评论的短期本地优先缓存表，DAO 边界必须归一 cacheKey，并拒绝空白 key 或空白 prefix。',
+        reason: 'app_cache_entries 是搜索和评论的短期本地优先缓存表，DAO 边界必须归一 cacheKey，并拒绝空白 key 或空白 prefix。',
       );
     });
 
@@ -3405,66 +3405,59 @@ void main() {
       );
     });
 
-    test('explore page keeps playlist playback resolution behind controller', () {
-      final pageFile = File(
-        '${projectRoot.path}/lib/ui/pages/explore/explore_page.dart',
-      );
-      final controllerFile = File(
-        '${projectRoot.path}/lib/features/explore/explore_page_controller.dart',
-      );
-      final filterStripFile = File(
-        '${projectRoot.path}/lib/ui/pages/explore/widgets/explore_filter_strip.dart',
-      );
-      final bootstrapFile = File(
+    test('explore information feed stays removed from app runtime', () {
+      final featureBootstrapFile = File(
         '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
       );
-      final page = pageFile.readAsStringSync();
-      final controller = controllerFile.readAsStringSync();
-      final filterStrip = filterStripFile.readAsStringSync();
-      final bootstrap = bootstrapFile.readAsStringSync();
-      final helperStart = page.indexOf('Future<void> _playPlaylistSummary');
-      final pageClassStart = page.indexOf('class ExplorePageView');
-      final helperSection = helperStart >= 0 && pageClassStart > helperStart ? page.substring(helperStart, pageClassStart) : '';
-      final playerLookupCount = 'Get.find<PlayerController>'.allMatches(page).length;
+      final repositoryBootstrapFile = File(
+        '${projectRoot.path}/lib/app/bootstrap/repository_bootstrap.dart',
+      );
+      final dataSourceBootstrapFile = File(
+        '${projectRoot.path}/lib/app/bootstrap/data_source_bootstrap.dart',
+      );
+      final contractFile = File(
+        '${projectRoot.path}/lib/data/music_data/music_remote_data_sources.dart',
+      );
+      final appCacheFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/database/data_sources/app_cache_data_source.dart',
+      );
+      final featureBootstrap = featureBootstrapFile.readAsStringSync();
+      final repositoryBootstrap = repositoryBootstrapFile.readAsStringSync();
+      final dataSourceBootstrap = dataSourceBootstrapFile.readAsStringSync();
+      final contract = contractFile.readAsStringSync();
+      final appCache = appCacheFile.readAsStringSync();
+      const removedPaths = [
+        'lib/ui/pages/explore/explore_page.dart',
+        'lib/ui/pages/explore/widgets/explore_filter_strip.dart',
+        'lib/ui/pages/explore/widgets/explore_ranking_song_list_sliver.dart',
+        'lib/features/explore/explore_page_controller.dart',
+        'lib/features/explore/explore_repository.dart',
+        'lib/features/explore/explore_cache_store.dart',
+        'lib/features/explore/explore_playlist_catalogue_data.dart',
+        'lib/features/explore/ranking_playlist_data.dart',
+        'lib/data/music_data/sources/netease/remote/netease_explore_remote_data_source.dart',
+      ];
       final violations = <String>[
-        if (page.contains('UserLibraryController')) '${_relativePath(pageFile)} reads liked ids directly',
-        if (page.contains('PlaylistRepository')) '${_relativePath(pageFile)} resolves playlist data directly',
-        if (page.contains('fetchPlaylistIndex(')) '${_relativePath(pageFile)} fetches playlist index directly',
-        if (page.contains('fetchPlaylistSongs(')) '${_relativePath(pageFile)} fetches playlist songs directly',
-        if (helperSection.isEmpty) '${_relativePath(pageFile)} playlist playback helper is missing',
-        if (helperSection.contains('Get.find<PlayerController>')) '${_relativePath(pageFile)} playlist playback helper reads player controller globally',
-        if (playerLookupCount != 1) '${_relativePath(pageFile)} should resolve player controller once at page boundary, found $playerLookupCount',
-        if (!helperSection.contains('PlayerController playerController')) '${_relativePath(pageFile)} playlist playback helper does not receive player controller',
-        if (!page.contains('final playerController = Get.find<PlayerController>()')) '${_relativePath(pageFile)} does not resolve player controller at page boundary',
-        if (!page.contains('onPlay: playerController.playPlaylist')) '${_relativePath(pageFile)} does not pass player controller boundary to ranking list',
-        if (!filterStrip.contains('cacheExtent: exploreFilterStripCacheExtent')) '${_relativePath(filterStripFile)} does not bound horizontal filter cache extent',
-        if (controller.contains("package:bujuan/features/shell/home_shell_controller.dart")) 'explore controller imports shell controller',
-        if (controller.contains('HomeShellController.to')) 'explore controller reads global shell controller',
-        if (!controller.contains('required ExplorePageVisibility pageVisibility')) 'explore controller does not accept visibility boundary',
-        if (!bootstrap.contains('pageVisibility: ExplorePageVisibility(')) 'feature bootstrap does not inject explore visibility boundary',
-        if (bootstrap.contains('shellController.isExplorePageIndex')) 'feature bootstrap still binds explore visibility to shell main navigation',
-        if (!bootstrap.contains('isVisible: () => true')) 'feature bootstrap does not keep explore self-contained for secondary use',
-        if (!bootstrap.contains('watchVisible: (_) => () {}')) 'feature bootstrap still waits for shell page visibility',
-        if (!page.contains('controller.resolvePlaylistPlayback(playlist)')) '${_relativePath(pageFile)} does not resolve playlist playback through controller',
-        if (!controller.contains('Future<ExplorePlaylistPlaybackPlan> resolvePlaylistPlayback')) 'explore controller does not expose playlist playback resolution',
-        if (!controller.contains('final likedSongIds = _likedSongIdsSnapshot();')) 'explore controller does not resolve playback with normalized liked ids snapshot',
-        if (!controller.contains('List<int> _likedSongIdsSnapshot()')) 'explore controller does not define a liked ids snapshot normalizer',
-        if (!controller.contains('return normalizeLikedSongIds(_likedSongIds());')) 'explore controller liked ids snapshot does not use shared normalizer',
-        if (!controller.contains('final currentLikedSongIds = _likedSongIdsSnapshot();')) 'explore controller stale check does not reuse normalized liked ids snapshot',
-        if (controller.contains('List<int>.of(_likedSongIds())')) 'explore controller still copies raw liked ids provider output',
-        if (!controller.contains('playlistIndex: index')) 'explore controller does not reuse fetched playlist index for playback songs',
-        if (!controller.contains('String _currentUserIdSnapshot()')) 'explore controller does not centralize current user snapshots',
-        if (!controller.contains('_normalizedCurrentUserId(_currentUserId())')) 'explore controller does not normalize current user snapshots',
-        if (!controller.contains('String _normalizedCurrentUserId(String userId)')) 'explore controller does not define current user normalization',
-        if (controller.contains('final currentUserId = _currentUserId();')) 'explore controller still uses raw current user id for cached ranking context',
-        if (controller.contains('final userId = _currentUserId();')) 'explore controller still uses raw current user id for ranking refresh context',
-        if (controller.contains('_currentUserId() == currentUserId')) 'explore controller still compares raw current user ids when checking stale ranking results',
+        for (final path in removedPaths)
+          if (File('${projectRoot.path}/$path').existsSync()) '$path still exists',
+        if (featureBootstrap.contains('ExplorePageController')) '${_relativePath(featureBootstrapFile)} registers explore controller',
+        if (featureBootstrap.contains('ExploreRepository')) '${_relativePath(featureBootstrapFile)} reads explore repository',
+        if (repositoryBootstrap.contains('ExploreRepository')) '${_relativePath(repositoryBootstrapFile)} registers explore repository',
+        if (repositoryBootstrap.contains('exploreRepository')) '${_relativePath(repositoryBootstrapFile)} keeps explore repository field',
+        if (dataSourceBootstrap.contains('ExploreCacheStore')) '${_relativePath(dataSourceBootstrapFile)} creates explore cache store',
+        if (dataSourceBootstrap.contains('NeteaseExploreRemoteDataSource')) '${_relativePath(dataSourceBootstrapFile)} creates explore remote data source',
+        if (dataSourceBootstrap.contains('exploreRemoteDataSource')) '${_relativePath(dataSourceBootstrapFile)} keeps explore remote field',
+        if (dataSourceBootstrap.contains('exploreCacheStore')) '${_relativePath(dataSourceBootstrapFile)} keeps explore cache field',
+        if (contract.contains('ExploreRemoteDataSource')) '${_relativePath(contractFile)} keeps explore remote contract',
+        if (contract.contains('ExplorePlaylistCatalogueRemoteData')) '${_relativePath(contractFile)} keeps explore catalogue DTO contract',
+        if (appCache.contains('appCacheExplorePlaylistCatalogueKey')) '${_relativePath(appCacheFile)} keeps explore cache key',
+        if (appCache.contains('EXPLORE_PLAYLIST_CATALOGUE')) '${_relativePath(appCacheFile)} keeps explore cache storage key',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: '探索页 Widget 只发起播放意图，歌单摘要到播放队列的解析必须留在 ExplorePageController，避免 UI 直接读用户喜欢列表和 PlaylistRepository。',
+        reason: '探索/发现类信息流已退出自用播放器运行时，不能继续注册 UI、controller、repository、remote data source 或短期缓存键。',
       );
     });
 
@@ -3930,7 +3923,6 @@ void main() {
           'RadioRemoteDataSource',
           'SearchRemoteDataSource',
           'CommentRemoteDataSource',
-          'ExploreRemoteDataSource',
         ])
           if (!contractContent.contains('abstract interface class $name')) name,
       ];
@@ -4150,7 +4142,6 @@ void main() {
         final path = _relativePath(file);
         return path.endsWith('/search_cache_store.dart') ||
             path.endsWith('/comment_cache_store.dart') ||
-            path.endsWith('/explore_cache_store.dart') ||
             path.endsWith('/radio_cache_store.dart') ||
             path.endsWith('/cloud_cache_store.dart') ||
             path.endsWith('/user_profile_cache_store.dart');
@@ -4168,7 +4159,6 @@ void main() {
     test('short app cache keys stay with AppCacheDataSource boundary', () {
       const cacheStorePaths = [
         'lib/features/search/search_cache_store.dart',
-        'lib/features/explore/explore_cache_store.dart',
         'lib/features/comment/comment_cache_store.dart',
       ];
       final appStorageKeys = File('${projectRoot.path}/lib/data/app_storage/app_cache_keys.dart').readAsStringSync();
@@ -4177,11 +4167,9 @@ void main() {
       ).readAsStringSync();
       final violations = <String>[
         if (appStorageKeys.contains('SEARCH_HOT_KEYWORDS')) 'search hot keywords key stays in app_storage',
-        if (appStorageKeys.contains('EXPLORE_PLAYLIST_CATALOGUE')) 'explore catalogue key stays in app_storage',
         if (appStorageKeys.contains('COMMENT_LIST')) 'comment list key stays in app_storage',
         if (appStorageKeys.contains('FLOOR_COMMENT')) 'floor comment key stays in app_storage',
         if (!appCacheDataSource.contains('appCacheSearchHotKeywordsKey')) 'missing search app cache key',
-        if (!appCacheDataSource.contains('appCacheExplorePlaylistCatalogueKey')) 'missing explore app cache key',
         if (!appCacheDataSource.contains('appCacheCommentListPrefix')) 'missing comment app cache prefix',
         if (!appCacheDataSource.contains('appCacheFloorCommentPrefix')) 'missing floor comment app cache prefix',
       ];
@@ -4195,7 +4183,7 @@ void main() {
       expect(
         violations,
         isEmpty,
-        reason: '搜索、探索和评论短期缓存使用 Drift app_cache_entries，缓存 key 应归属 AppCacheDataSource 边界，不能继续混在 Hive/app_storage key 里。',
+        reason: '搜索和评论短期缓存使用 Drift app_cache_entries，缓存 key 应归属 AppCacheDataSource 边界，不能继续混在 Hive/app_storage key 里。',
       );
     });
 

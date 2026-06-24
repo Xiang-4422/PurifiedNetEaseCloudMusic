@@ -1,9 +1,6 @@
 /// 搜索热词短期缓存键。
 const String appCacheSearchHotKeywordsKey = 'SEARCH_HOT_KEYWORDS';
 
-/// 探索页歌单分类目录短期缓存键。
-const String appCacheExplorePlaylistCatalogueKey = 'EXPLORE_PLAYLIST_CATALOGUE';
-
 /// 评论列表短期缓存键前缀。
 const String appCacheCommentListPrefix = 'COMMENT_LIST';
 

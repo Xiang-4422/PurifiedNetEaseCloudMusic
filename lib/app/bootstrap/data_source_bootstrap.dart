@@ -7,13 +7,11 @@ import 'package:bujuan/data/music_data/sources/netease/remote/netease_artist_rem
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_auth_remote_data_source.dart';
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_cloud_remote_data_source.dart';
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_comment_remote_data_source.dart';
-import 'package:bujuan/data/music_data/sources/netease/remote/netease_explore_remote_data_source.dart';
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_playlist_remote_data_source.dart';
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_radio_remote_data_source.dart';
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_search_remote_data_source.dart';
 import 'package:bujuan/data/music_data/sources/netease/remote/netease_user_remote_data_source.dart';
 import 'package:bujuan/features/comment/comment_cache_store.dart';
-import 'package:bujuan/features/explore/explore_cache_store.dart';
 import 'package:bujuan/features/search/search_cache_store.dart';
 import 'package:netease_music_api/netease_music_api.dart';
 
@@ -35,7 +33,6 @@ class AppDataSourceBootstrapResult {
     required this.appCacheDataSource,
     required this.commentCacheStore,
     required this.searchCacheStore,
-    required this.exploreCacheStore,
     required this.localMusicSource,
     required this.neteaseMusicSource,
     required this.authRemoteDataSource,
@@ -47,7 +44,6 @@ class AppDataSourceBootstrapResult {
     required this.radioRemoteDataSource,
     required this.searchRemoteDataSource,
     required this.commentRemoteDataSource,
-    required this.exploreRemoteDataSource,
   });
 
   /// 本地曲库数据源。
@@ -92,9 +88,6 @@ class AppDataSourceBootstrapResult {
   /// 搜索缓存 store。
   final SearchCacheStore searchCacheStore;
 
-  /// 探索页缓存 store。
-  final ExploreCacheStore exploreCacheStore;
-
   /// 本地音乐来源门面。
   final LocalMusicSource localMusicSource;
 
@@ -127,9 +120,6 @@ class AppDataSourceBootstrapResult {
 
   /// 网易云评论远程数据源。
   final CommentRemoteDataSource commentRemoteDataSource;
-
-  /// 网易云探索页远程数据源。
-  final ExploreRemoteDataSource exploreRemoteDataSource;
 }
 
 /// 从已初始化的数据库门面创建数据源和轻量 cache store。
@@ -154,7 +144,6 @@ AppDataSourceBootstrapResult initializeDataSourceInfrastructure({
     appCacheDataSource: appCacheDataSource,
     commentCacheStore: CommentCacheStore(cacheDataSource: appCacheDataSource),
     searchCacheStore: SearchCacheStore(cacheDataSource: appCacheDataSource),
-    exploreCacheStore: ExploreCacheStore(cacheDataSource: appCacheDataSource),
     localMusicSource: LocalMusicSource(localDataSource: localLibraryDataSource),
     neteaseMusicSource: NeteaseMusicSource(api: neteaseApi),
     authRemoteDataSource: NeteaseAuthRemoteDataSource(api: neteaseApi),
@@ -166,6 +155,5 @@ AppDataSourceBootstrapResult initializeDataSourceInfrastructure({
     radioRemoteDataSource: NeteaseRadioRemoteDataSource(api: neteaseApi),
     searchRemoteDataSource: NeteaseSearchRemoteDataSource(api: neteaseApi),
     commentRemoteDataSource: NeteaseCommentRemoteDataSource(api: neteaseApi),
-    exploreRemoteDataSource: NeteaseExploreRemoteDataSource(api: neteaseApi),
   );
 }

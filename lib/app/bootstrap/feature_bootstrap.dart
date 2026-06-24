@@ -16,8 +16,6 @@ import 'package:bujuan/features/comment/comment_controller_factory.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:bujuan/features/download/download_repository.dart';
 import 'package:bujuan/features/download/local_song_list_controller_factory.dart';
-import 'package:bujuan/features/explore/explore_page_controller.dart';
-import 'package:bujuan/features/explore/explore_repository.dart';
 import 'package:bujuan/features/local_media/local_media_repository.dart';
 import 'package:bujuan/features/local_media/local_media_scan_controller.dart';
 import 'package:bujuan/features/local_media/local_media_scan_repository.dart';
@@ -235,19 +233,6 @@ void registerFeatureControllers() {
         },
         clearCurrentUser: () => Get.find<UserSessionController>().clearUser(),
         expireCurrentSession: () => Get.find<UserSessionController>().expireLoginSession(),
-      ),
-    ),
-    fenix: true,
-  );
-  Get.lazyPut(
-    () => ExplorePageController(
-      exploreRepository: Get.find<ExploreRepository>(),
-      playlistRepository: Get.find<PlaylistRepository>(),
-      likedSongIds: _likedSongIdsSnapshot,
-      currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId,
-      pageVisibility: ExplorePageVisibility(
-        isVisible: () => true,
-        watchVisible: (_) => () {},
       ),
     ),
     fenix: true,

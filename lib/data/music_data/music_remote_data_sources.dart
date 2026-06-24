@@ -53,11 +53,6 @@ typedef FloorCommentRemotePage = ({
   int nextTime,
 });
 
-typedef ExplorePlaylistCatalogueRemoteData = ({
-  List<String> categoryNames,
-  Map<String, List<String>> tagsByCategory,
-});
-
 typedef PlaylistRemoteIndex = ({
   PlaylistEntity? playlist,
   List<String> trackIds,
@@ -212,10 +207,4 @@ abstract interface class CommentRemoteDataSource {
     String commentId,
     bool like,
   );
-}
-
-abstract interface class ExploreRemoteDataSource {
-  Future<ExplorePlaylistCatalogueRemoteData> fetchPlaylistCatalogue();
-
-  Future<List<PlaylistEntity>> fetchCategoryPlaylists(String category);
 }

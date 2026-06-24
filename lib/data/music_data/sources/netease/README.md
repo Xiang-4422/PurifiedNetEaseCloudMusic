@@ -31,7 +31,6 @@ lib/data/music_data/sources/netease/
 │   ├── netease_auth_remote_data_source.dart
 │   ├── netease_cloud_remote_data_source.dart
 │   ├── netease_comment_remote_data_source.dart
-│   ├── netease_explore_remote_data_source.dart
 │   ├── netease_playlist_remote_data_source.dart
 │   ├── netease_radio_remote_data_source.dart
 │   ├── netease_search_remote_data_source.dart
@@ -85,7 +84,6 @@ mapper 是 data/domain 边界，允许 import 网易云 DTO 和 domain entity，
 - `netease_comment_remote_data_source.dart`：评论列表、楼层、发送、点赞等。
 - `netease_cloud_remote_data_source.dart`：云盘歌曲。
 - `netease_radio_remote_data_source.dart`：电台、播客相关远程数据。
-- `netease_explore_remote_data_source.dart`：首页、榜单、发现页远程数据。
 
 remote data source 可以知道网易云接口和 mapper，但不负责页面流程、缓存策略编排、播放队列模式切换或 UI 提示。它也不直接依赖 `package:netease_music_api/src/client`、`DioMetaData`、`Https` 或 `DioProxy`，这些底层请求细节只能留在 SDK client/endpoints 内。
 

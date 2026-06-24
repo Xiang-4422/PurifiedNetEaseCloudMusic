@@ -120,6 +120,89 @@ void main() {
       expect(musicDataRepository.requestedResourceIds, isEmpty);
     });
 
+    test('normalizes account scoped user ids before remote and local access', () async {
+      final remoteDataSource = _FakeNeteaseUserRemoteDataSource(
+        likedSongIds: const [101],
+        userPlaylists: [
+          _playlist('liked', title: 'Liked'),
+          _playlist('own', title: 'Own'),
+        ],
+        fmSongs: [_track('netease:101')],
+      );
+      final musicDataRepository = _FakeMusicDataRepository(
+        resourcesByTrackId: const {},
+      );
+      final profileDataSource = _FakeUserProfileDataSource();
+      final trackListDataSource = _FakeUserTrackListDataSource();
+      final playlistListDataSource = _FakeUserPlaylistListDataSource();
+      final syncMarkerDataSource = _FakeUserSyncMarkerDataSource();
+      final repository = _buildRepository(
+        musicDataRepository: musicDataRepository,
+        remoteDataSource: remoteDataSource,
+        profileDataSource: profileDataSource,
+        trackListDataSource: trackListDataSource,
+        playlistListDataSource: playlistListDataSource,
+        syncMarkerDataSource: syncMarkerDataSource,
+      );
+
+      await repository.loadCachedUserDetail(' user-1 ');
+      await repository.fetchUserDetail(' user-1 ');
+      await repository.loadCachedLikedSongIds(' user-1 ');
+      await repository.loadCachedPlaylistList(
+        ' user-1 ',
+        UserPlaylistListKind.userPlaylists,
+      );
+      await repository.loadCachedTrackList(
+        userId: ' user-1 ',
+        kind: UserTrackListKind.liked,
+        likedSongIds: const [],
+      );
+      await repository.isSyncMarkerFresh(
+        userId: ' user-1 ',
+        markerKey: 'library',
+        ttl: const Duration(minutes: 5),
+      );
+      await repository.markSyncMarkerUpdated(
+        userId: ' user-1 ',
+        markerKey: 'library',
+      );
+      await repository.fetchLikedSongIds(' user-1 ');
+      await repository.fetchUserLibrarySnapshot(' user-1 ');
+      await repository.fetchRecommendedPlaylists(
+        userId: ' user-1 ',
+        offset: 0,
+      );
+      await repository.fetchRecommendedPlaylists(
+        userId: ' user-1 ',
+        offset: 10,
+      );
+      await repository.fetchUserPlaylists(' user-1 ');
+      await repository.fetchTodayRecommendSongs(
+        userId: ' user-1 ',
+        likedSongIds: const [],
+      );
+      await repository.fetchFmSongs(
+        userId: ' user-1 ',
+        likedSongIds: const [],
+      );
+      await repository.toggleLikeSong(' user-1 ', '101', true);
+      await repository.toggleLikeSong(' user-1 ', '101', false);
+
+      expect(profileDataSource.loadProfileUserIds, everyElement('user-1'));
+      expect(remoteDataSource.fetchUserDetailUserIds, everyElement('user-1'));
+      expect(remoteDataSource.fetchLikedSongIdsUserIds, everyElement('user-1'));
+      expect(remoteDataSource.fetchUserPlaylistsUserIds, everyElement('user-1'));
+      expect(trackListDataSource.loadTrackIdsUserIds, everyElement('user-1'));
+      expect(trackListDataSource.replaceTrackListUserIds, everyElement('user-1'));
+      expect(trackListDataSource.upsertTrackRefUserIds, everyElement('user-1'));
+      expect(trackListDataSource.deleteTrackRefUserIds, everyElement('user-1'));
+      expect(playlistListDataSource.loadPlaylistItemsUserIds, everyElement('user-1'));
+      expect(playlistListDataSource.replacePlaylistItemsUserIds, everyElement('user-1'));
+      expect(playlistListDataSource.appendPlaylistItemsUserIds, everyElement('user-1'));
+      expect(syncMarkerDataSource.loadSyncMarkerUserIds, everyElement('user-1'));
+      expect(syncMarkerDataSource.markSyncMarkerUpdatedUserIds, everyElement('user-1'));
+    });
+
     test('builds fetched FM queue items from saved track resources', () async {
       final remoteDataSource = _FakeNeteaseUserRemoteDataSource(
         fmSongs: [_track('netease:1')],
@@ -380,10 +463,14 @@ class _FakeNeteaseUserRemoteDataSource implements NeteaseUserRemoteDataSource {
   int fetchTodayRecommendSongsCalls = 0;
   int fetchFmSongsCalls = 0;
   int toggleLikeSongCalls = 0;
+  final List<String> fetchUserDetailUserIds = [];
+  final List<String> fetchLikedSongIdsUserIds = [];
+  final List<String> fetchUserPlaylistsUserIds = [];
 
   @override
   Future<UserProfileData> fetchUserDetail(String userId) async {
     fetchUserDetailCalls++;
+    fetchUserDetailUserIds.add(userId);
     return const UserProfileData(
       userId: 'user-1',
       nickname: 'User 1',
@@ -398,12 +485,14 @@ class _FakeNeteaseUserRemoteDataSource implements NeteaseUserRemoteDataSource {
   @override
   Future<List<int>> fetchLikedSongIds(String userId) async {
     fetchLikedSongIdsCalls++;
+    fetchLikedSongIdsUserIds.add(userId);
     return likedSongIds;
   }
 
   @override
   Future<List<PlaylistEntity>> fetchUserPlaylists(String userId) async {
     fetchUserPlaylistsCalls++;
+    fetchUserPlaylistsUserIds.add(userId);
     final error = userPlaylistsError;
     if (error != null) {
       throw error;
@@ -447,10 +536,12 @@ class _FakeNeteaseUserRemoteDataSource implements NeteaseUserRemoteDataSource {
 class _FakeUserProfileDataSource implements UserProfileDataSource {
   int loadProfileCalls = 0;
   int saveProfileCalls = 0;
+  final List<String> loadProfileUserIds = [];
 
   @override
   Future<UserProfileData?> loadProfile(String userId) async {
     loadProfileCalls++;
+    loadProfileUserIds.add(userId);
     return null;
   }
 
@@ -467,6 +558,10 @@ class _FakeUserTrackListDataSource implements UserTrackListDataSource {
   int replaceTrackListCalls = 0;
   int upsertTrackRefCalls = 0;
   int deleteTrackRefCalls = 0;
+  final List<String> loadTrackIdsUserIds = [];
+  final List<String> replaceTrackListUserIds = [];
+  final List<String> upsertTrackRefUserIds = [];
+  final List<String> deleteTrackRefUserIds = [];
 
   @override
   Future<List<String>> loadTrackIds(
@@ -474,6 +569,7 @@ class _FakeUserTrackListDataSource implements UserTrackListDataSource {
     UserTrackListKind kind,
   ) async {
     loadTrackIdsCalls++;
+    loadTrackIdsUserIds.add(userId);
     return const [];
   }
 
@@ -484,6 +580,7 @@ class _FakeUserTrackListDataSource implements UserTrackListDataSource {
     List<String> trackIds,
   ) async {
     replaceTrackListCalls++;
+    replaceTrackListUserIds.add(userId);
     replacedKind = kind;
     replacedTrackIds = trackIds;
   }
@@ -496,6 +593,7 @@ class _FakeUserTrackListDataSource implements UserTrackListDataSource {
     int? sortOrder,
   }) async {
     upsertTrackRefCalls++;
+    upsertTrackRefUserIds.add(userId);
   }
 
   @override
@@ -505,6 +603,7 @@ class _FakeUserTrackListDataSource implements UserTrackListDataSource {
     String trackId,
   ) async {
     deleteTrackRefCalls++;
+    deleteTrackRefUserIds.add(userId);
   }
 
   @override
@@ -518,6 +617,9 @@ class _FakeUserPlaylistListDataSource implements UserPlaylistListDataSource {
   int loadPlaylistItemsCalls = 0;
   int replacePlaylistItemsCalls = 0;
   int appendPlaylistItemsCalls = 0;
+  final List<String> loadPlaylistItemsUserIds = [];
+  final List<String> replacePlaylistItemsUserIds = [];
+  final List<String> appendPlaylistItemsUserIds = [];
 
   @override
   Future<List<PlaylistSummaryData>> loadPlaylistItems(
@@ -526,6 +628,7 @@ class _FakeUserPlaylistListDataSource implements UserPlaylistListDataSource {
     String? keyword,
   }) async {
     loadPlaylistItemsCalls++;
+    loadPlaylistItemsUserIds.add(userId);
     return const [];
   }
 
@@ -544,6 +647,7 @@ class _FakeUserPlaylistListDataSource implements UserPlaylistListDataSource {
     List<PlaylistSummaryData> playlists,
   ) async {
     replacePlaylistItemsCalls++;
+    replacePlaylistItemsUserIds.add(userId);
     replacedPlaylistItems[kind] = playlists;
   }
 
@@ -555,6 +659,7 @@ class _FakeUserPlaylistListDataSource implements UserPlaylistListDataSource {
     required int startOrder,
   }) async {
     appendPlaylistItemsCalls++;
+    appendPlaylistItemsUserIds.add(userId);
   }
 
   @override
@@ -566,6 +671,8 @@ class _FakeUserPlaylistListDataSource implements UserPlaylistListDataSource {
 class _FakeUserSyncMarkerDataSource implements UserSyncMarkerDataSource {
   int loadSyncMarkerCalls = 0;
   int markSyncMarkerUpdatedCalls = 0;
+  final List<String> loadSyncMarkerUserIds = [];
+  final List<String> markSyncMarkerUpdatedUserIds = [];
 
   @override
   Future<DateTime?> loadSyncMarker(
@@ -573,6 +680,7 @@ class _FakeUserSyncMarkerDataSource implements UserSyncMarkerDataSource {
     String markerKey,
   ) async {
     loadSyncMarkerCalls++;
+    loadSyncMarkerUserIds.add(userId);
     return null;
   }
 
@@ -582,6 +690,7 @@ class _FakeUserSyncMarkerDataSource implements UserSyncMarkerDataSource {
     String markerKey,
   ) async {
     markSyncMarkerUpdatedCalls++;
+    markSyncMarkerUpdatedUserIds.add(userId);
   }
 
   @override

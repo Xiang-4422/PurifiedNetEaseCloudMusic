@@ -28,11 +28,12 @@ class CloudRepository {
     required String userId,
     required List<int> likedSongIds,
   }) async {
-    if (_isBlankUserId(userId)) {
+    final normalizedUserId = _normalizedUserId(userId);
+    if (_isBlankUserId(normalizedUserId)) {
       return const [];
     }
     final trackIds = await _userTrackListDataSource.loadTrackIds(
-      userId,
+      normalizedUserId,
       UserTrackListKind.cloud,
     );
     if (trackIds.isEmpty) {
@@ -55,7 +56,8 @@ class CloudRepository {
     required int limit,
     required List<int> likedSongIds,
   }) async {
-    if (_isBlankUserId(userId)) {
+    final normalizedUserId = _normalizedUserId(userId);
+    if (_isBlankUserId(normalizedUserId)) {
       return const CloudSongPage(
         items: [],
         hasMore: false,
@@ -78,13 +80,13 @@ class CloudRepository {
     final trackIds = result.tracks.map((track) => track.id).toList();
     if (offset == 0) {
       await _userTrackListDataSource.replaceTrackList(
-        userId,
+        normalizedUserId,
         UserTrackListKind.cloud,
         trackIds,
       );
     } else {
       await _userTrackListDataSource.appendTrackList(
-        userId,
+        normalizedUserId,
         UserTrackListKind.cloud,
         trackIds,
         startOrder: offset,
@@ -124,7 +126,11 @@ class CloudRepository {
   }
 
   bool _isBlankUserId(String userId) {
-    return userId.trim().isEmpty;
+    return _normalizedUserId(userId).isEmpty;
+  }
+
+  String _normalizedUserId(String userId) {
+    return userId.trim();
   }
 }
 

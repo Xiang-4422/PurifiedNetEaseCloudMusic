@@ -90,6 +90,41 @@ void main() {
       expect(page.items.single.isCached, isTrue);
       expect(page.items.single.isLiked, isTrue);
     });
+
+    test('normalizes account scoped user id before local cache writes', () async {
+      final remoteDataSource = _FakeNeteaseCloudRemoteDataSource(
+        tracks: [_track('netease:1')],
+      );
+      final trackListDataSource = _FakeUserTrackListDataSource();
+      final repository = CloudRepository(
+        musicDataRepository: _FakeMusicDataRepository(
+          resourcesByTrackId: const {},
+        ),
+        userTrackListDataSource: trackListDataSource,
+        remoteDataSource: remoteDataSource,
+      );
+
+      await repository.loadCachedSongs(
+        userId: ' user-1 ',
+        likedSongIds: const [],
+      );
+      await repository.fetchCloudSongs(
+        userId: ' user-1 ',
+        offset: 0,
+        limit: 30,
+        likedSongIds: const [],
+      );
+      await repository.fetchCloudSongs(
+        userId: ' user-1 ',
+        offset: 30,
+        limit: 30,
+        likedSongIds: const [],
+      );
+
+      expect(trackListDataSource.loadedUserIds, ['user-1']);
+      expect(trackListDataSource.replacedUserIds, ['user-1']);
+      expect(trackListDataSource.appendedUserIds, ['user-1']);
+    });
   });
 }
 
@@ -180,6 +215,7 @@ class _FakeNeteaseCloudRemoteDataSource implements NeteaseCloudRemoteDataSource 
 class _FakeUserTrackListDataSource implements UserTrackListDataSource {
   final List<String> loadedUserIds = [];
   final List<String> replacedUserIds = [];
+  final List<String> appendedUserIds = [];
   List<String> replacedTrackIds = [];
   UserTrackListKind? replacedKind;
 
@@ -201,6 +237,16 @@ class _FakeUserTrackListDataSource implements UserTrackListDataSource {
     replacedUserIds.add(userId);
     replacedKind = kind;
     replacedTrackIds = trackIds;
+  }
+
+  @override
+  Future<void> appendTrackList(
+    String userId,
+    UserTrackListKind kind,
+    List<String> trackIds, {
+    required int startOrder,
+  }) async {
+    appendedUserIds.add(userId);
   }
 
   @override

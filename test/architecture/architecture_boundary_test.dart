@@ -2399,7 +2399,9 @@ void main() {
       final repository = repositoryFile.readAsStringSync();
       final violations = <String>[
         if (!repository.contains('bool _isBlankUserId(String userId)')) '${_relativePath(repositoryFile)} does not define a blank user guard',
-        if (!repository.contains('if (_isBlankUserId(userId))')) '${_relativePath(repositoryFile)} does not guard user-scoped cloud entry points',
+        if (!repository.contains('String _normalizedUserId(String userId)')) '${_relativePath(repositoryFile)} does not normalize account scoped user ids',
+        if (!repository.contains('final normalizedUserId = _normalizedUserId(userId);')) '${_relativePath(repositoryFile)} does not normalize user ids at repository entry points',
+        if (!repository.contains('if (_isBlankUserId(normalizedUserId))')) '${_relativePath(repositoryFile)} does not guard normalized user-scoped cloud entry points',
         if (!repository.contains('return const CloudSongPage(')) '${_relativePath(repositoryFile)} does not return an empty cloud page for blank users',
       ];
 
@@ -4270,7 +4272,9 @@ void main() {
       final repository = repositoryFile.readAsStringSync();
       final violations = <String>[
         if (!repository.contains('bool _isBlankUserId(String userId)')) '${_relativePath(repositoryFile)} does not define a blank user guard',
-        if (!repository.contains('if (_isBlankUserId(userId))')) '${_relativePath(repositoryFile)} does not guard user-scoped repository entry points',
+        if (!repository.contains('String _normalizedUserId(String userId)')) '${_relativePath(repositoryFile)} does not normalize account scoped user ids',
+        if (!repository.contains('final normalizedUserId = _normalizedUserId(userId);')) '${_relativePath(repositoryFile)} does not normalize user ids at repository entry points',
+        if (!repository.contains('if (_isBlankUserId(normalizedUserId))')) '${_relativePath(repositoryFile)} does not guard normalized user-scoped repository entry points',
         if (!repository.contains('return _emptyUserProfile')) '${_relativePath(repositoryFile)} does not return an empty profile for blank users',
         if (!repository.contains('likedSongIds: const <int>[]')) '${_relativePath(repositoryFile)} does not return an empty library snapshot for blank users',
         if (!repository.contains('return const OperationResult(success: false)')) '${_relativePath(repositoryFile)} does not reject like mutations for blank users',

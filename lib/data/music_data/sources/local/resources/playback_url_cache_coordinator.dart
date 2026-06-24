@@ -22,6 +22,7 @@ class PlaybackUrlCacheCoordinator {
   final int _maxEntries;
   final DateTime Function() _now;
   final Map<String, Future<String?>> _loads = {};
+  final Set<String> _forceRefreshLoads = <String>{};
   final Map<String, _CachedPlaybackUrl> _cache = {};
 
   /// Returns a playback URL for [trackId], preferring fresh local resources.
@@ -41,6 +42,8 @@ class PlaybackUrlCacheCoordinator {
       _dropRemoteState(cacheKey);
       return localUrl;
     }
+    final loadingUrl = _loads[cacheKey];
+    final canReuseForceRefreshLoad = forceRefresh && _forceRefreshLoads.contains(cacheKey);
     if (forceRefresh) {
       _cache.remove(cacheKey);
     }
@@ -53,22 +56,33 @@ class PlaybackUrlCacheCoordinator {
       }
       _cache.remove(cacheKey);
     }
-    final loadingUrl = _loads[cacheKey];
-    if (!forceRefresh && loadingUrl != null) {
+    if (loadingUrl != null && (!forceRefresh || canReuseForceRefreshLoad)) {
       return loadingUrl;
     }
     late final Future<String?> loadFuture;
-    loadFuture = load().then((url) {
-      final normalizedUrl = _normalizePlaybackUrl(url);
-      if (identical(_loads[cacheKey], loadFuture)) {
-        _cacheRemoteUrl(cacheKey, normalizedUrl);
+    try {
+      final remoteLoad = load();
+      if (forceRefresh) {
+        _forceRefreshLoads.add(cacheKey);
       }
-      return normalizedUrl;
-    }).whenComplete(() {
-      if (identical(_loads[cacheKey], loadFuture)) {
-        _loads.remove(cacheKey);
+      loadFuture = remoteLoad.then((url) {
+        final normalizedUrl = _normalizePlaybackUrl(url);
+        if (identical(_loads[cacheKey], loadFuture)) {
+          _cacheRemoteUrl(cacheKey, normalizedUrl);
+        }
+        return normalizedUrl;
+      }).whenComplete(() {
+        if (identical(_loads[cacheKey], loadFuture)) {
+          _loads.remove(cacheKey);
+          _forceRefreshLoads.remove(cacheKey);
+        }
+      });
+    } catch (_) {
+      if (forceRefresh) {
+        _forceRefreshLoads.remove(cacheKey);
       }
-    });
+      rethrow;
+    }
     _loads[cacheKey] = loadFuture;
     return loadFuture;
   }
@@ -104,6 +118,7 @@ class PlaybackUrlCacheCoordinator {
   void _dropRemoteState(String cacheKey) {
     _cache.remove(cacheKey);
     _loads.remove(cacheKey);
+    _forceRefreshLoads.remove(cacheKey);
   }
 
   void _trim() {

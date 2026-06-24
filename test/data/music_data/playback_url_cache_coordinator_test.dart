@@ -346,6 +346,52 @@ void main() {
       expect(loadCount, 2);
     });
 
+    test('clears force refresh marker after synchronous load failure', () async {
+      final completers = <Completer<String?>>[];
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async => null,
+      );
+
+      await expectLater(
+        coordinator.resolve(
+          '1',
+          qualityLevel: 'lossless',
+          forceRefresh: true,
+          load: () {
+            throw StateError('sync failed');
+          },
+        ),
+        throwsA(isA<StateError>()),
+      );
+
+      Future<String?> load() {
+        final completer = Completer<String?>();
+        completers.add(completer);
+        return completer.future;
+      }
+
+      final staleLoad = coordinator.resolve(
+        '1',
+        qualityLevel: 'lossless',
+        forceRefresh: false,
+        load: load,
+      );
+      await _waitUntil(() => completers.length == 1);
+      final refreshLoad = coordinator.resolve(
+        '1',
+        qualityLevel: 'lossless',
+        forceRefresh: true,
+        load: load,
+      );
+      await _waitUntil(() => completers.length == 2);
+
+      completers[1].complete('https://audio.test/1-fresh.mp3');
+      completers[0].complete('https://audio.test/1-stale.mp3');
+
+      expect(await staleLoad, 'https://audio.test/1-stale.mp3');
+      expect(await refreshLoad, 'https://audio.test/1-fresh.mp3');
+    });
+
     test('prefers local resource over cached and in-flight remote url', () async {
       String? localUrl;
       var loadCount = 0;
@@ -676,6 +722,50 @@ void main() {
       );
 
       expect(cached, 'https://audio.test/1-fresh.mp3');
+    });
+
+    test('coalesces concurrent force refresh loads after replacing stale load', () async {
+      final completers = <Completer<String?>>[];
+      final coordinator = PlaybackUrlCacheCoordinator(
+        resolveLocalResourceUrl: (_) async => null,
+      );
+
+      Future<String?> load() {
+        final completer = Completer<String?>();
+        completers.add(completer);
+        return completer.future;
+      }
+
+      final staleLoad = coordinator.resolve(
+        '1',
+        qualityLevel: 'lossless',
+        forceRefresh: false,
+        load: load,
+      );
+      await _waitUntil(() => completers.length == 1);
+
+      final firstRefresh = coordinator.resolve(
+        '1',
+        qualityLevel: 'lossless',
+        forceRefresh: true,
+        load: load,
+      );
+      await _waitUntil(() => completers.length == 2);
+      final secondRefresh = coordinator.resolve(
+        '1',
+        qualityLevel: 'lossless',
+        forceRefresh: true,
+        load: load,
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      completers[1].complete('https://audio.test/1-fresh.mp3');
+      completers[0].complete('https://audio.test/1-stale.mp3');
+
+      expect(await staleLoad, 'https://audio.test/1-stale.mp3');
+      expect(await firstRefresh, 'https://audio.test/1-fresh.mp3');
+      expect(await secondRefresh, 'https://audio.test/1-fresh.mp3');
+      expect(completers, hasLength(2));
     });
 
     test('force refresh evicts stale cache before refresh load completes', () async {

@@ -59,7 +59,7 @@ class SettingPageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controllers = Get.find<SettingsPageControllerBundle>();
+    final SettingsPageControllerBundle controllers = Get.find<SettingsPageControllerBundle>();
     final localMediaScanController = controllers.localMediaScanController;
     final playerController = controllers.playerController;
     final settingsController = controllers.settingsController;

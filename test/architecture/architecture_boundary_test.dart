@@ -2752,12 +2752,12 @@ void main() {
       final sections = sectionsFile.readAsStringSync();
       final bootstrap = bootstrapFile.readAsStringSync();
       final violations = <String>[
-        if (!page.contains('final SettingsPageControllerBundle _controllers = Get.find<SettingsPageControllerBundle>()')) '${_relativePath(pageFile)} does not resolve settings page controller bundle at page boundary',
+        if (!page.contains('final SettingsPageControllerBundle controllers = Get.find<SettingsPageControllerBundle>()')) '${_relativePath(pageFile)} does not resolve settings page controller bundle at page boundary',
         if (page.contains('Get.find<SettingsController>')) '${_relativePath(pageFile)} reads settings controller globally',
-        if (!page.contains('final _settingsController = _controllers.settingsController')) '${_relativePath(pageFile)} does not receive settings controller from settings page bundle',
+        if (!page.contains('final settingsController = controllers.settingsController')) '${_relativePath(pageFile)} does not receive settings controller from settings page bundle',
         if (!bootstrap.contains('Get.put<SettingsPageControllerBundle>')) 'feature bootstrap does not register settings page controller bundle',
         if (!bootstrap.contains('settingsController: Get.find<SettingsController>()')) 'feature bootstrap does not inject settings controller into settings page bundle',
-        if (!page.contains('settingsController: _settingsController')) '${_relativePath(pageFile)} does not inject settings controller into sections',
+        if (!page.contains('settingsController: settingsController')) '${_relativePath(pageFile)} does not inject settings controller into sections',
         if (!sections.contains('required this.settingsController')) '${_relativePath(sectionsFile)} does not receive settings controller',
         if (sections.contains('SettingsController.to')) '${_relativePath(sectionsFile)} reads settings controller globally',
         if (!sections.contains('settingsController.isHighSoundQualityOpen.value')) '${_relativePath(sectionsFile)} does not read quality preference through injected controller',
@@ -2864,11 +2864,11 @@ void main() {
       final demo = demoFile.readAsStringSync();
       final bootstrap = bootstrapFile.readAsStringSync();
       final violations = <String>[
-        if (!page.contains('final SettingsPageControllerBundle _controllers = Get.find<SettingsPageControllerBundle>()')) '${_relativePath(pageFile)} does not resolve settings page controller bundle at page boundary',
+        if (!page.contains('final SettingsPageControllerBundle controllers = Get.find<SettingsPageControllerBundle>()')) '${_relativePath(pageFile)} does not resolve settings page controller bundle at page boundary',
         if (page.contains('Get.find<PlayerController>')) '${_relativePath(pageFile)} reads playback controller globally',
-        if (!page.contains('final _playerController = _controllers.playerController')) '${_relativePath(pageFile)} does not receive playback controller from settings page bundle',
+        if (!page.contains('final playerController = controllers.playerController')) '${_relativePath(pageFile)} does not receive playback controller from settings page bundle',
         if (!bootstrap.contains('playerController: Get.find<PlayerController>()')) 'feature bootstrap does not inject playback controller into settings page bundle',
-        if (!page.contains('playerController: _playerController')) '${_relativePath(pageFile)} does not inject playback controller into setting sections',
+        if (!page.contains('playerController: playerController')) '${_relativePath(pageFile)} does not inject playback controller into setting sections',
         if (!sections.contains('required this.playerController')) '${_relativePath(sectionsFile)} does not receive playback controller',
         if (!sections.contains('playerController: playerController')) '${_relativePath(sectionsFile)} does not pass playback controller into CoverFlow demo',
         if (!demo.contains('required this.playerController')) '${_relativePath(demoFile)} does not receive playback controller',

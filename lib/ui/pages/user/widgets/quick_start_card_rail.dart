@@ -350,83 +350,111 @@ class QuickStartCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isEnabled = onTap != null;
+    final semanticsLabel = quickStartCardSemanticsLabel(
+      title: title,
+      isEnabled: isEnabled,
+    );
     final localAlbumPath = ArtworkPathResolver.resolveDisplayPath(albumUrl);
 
-    return GestureDetector(
-      onTap: isEnabled ? onTap : null,
-      child: Opacity(
-        opacity: isEnabled ? 1.0 : 0.5,
-        child: Container(
-          width: width,
-          height: height,
-          clipBehavior: Clip.hardEdge,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppDimensions.paddingSmall),
-          ),
-          child: AsyncImageColor(
-            imageUrl: localAlbumPath,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final imageSize = math.min(
-                  width,
-                  constraints.maxHeight * 0.78,
-                );
-                return Column(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        width: double.infinity,
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Colors.black, Colors.transparent],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            icon == null
-                                ? const SizedBox.shrink()
-                                : Icon(
-                                    icon,
-                                    color: Colors.white,
-                                  ),
-                            Flexible(
-                              child: Text(
-                                title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+    return Semantics(
+      button: true,
+      enabled: isEnabled,
+      label: semanticsLabel,
+      child: Tooltip(
+        message: semanticsLabel,
+        excludeFromSemantics: true,
+        child: GestureDetector(
+          onTap: isEnabled ? onTap : null,
+          child: ExcludeSemantics(
+            child: Opacity(
+              opacity: isEnabled ? 1.0 : 0.5,
+              child: Container(
+                width: width,
+                height: height,
+                clipBehavior: Clip.hardEdge,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppDimensions.paddingSmall),
+                ),
+                child: AsyncImageColor(
+                  imageUrl: localAlbumPath,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final imageSize = math.min(
+                        width,
+                        constraints.maxHeight * 0.78,
+                      );
+                      return Column(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              width: double.infinity,
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [Colors.black, Colors.transparent],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
                                 ),
                               ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  icon == null
+                                      ? const SizedBox.shrink()
+                                      : Icon(
+                                          icon,
+                                          color: Colors.white,
+                                        ),
+                                  Flexible(
+                                    child: Text(
+                                      title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: imageSize,
-                      height: imageSize,
-                      child: SimpleExtendedImage(
-                        localAlbumPath,
-                        height: imageSize,
-                        width: imageSize,
-                      ),
-                    ),
-                  ],
-                );
-              },
+                          ),
+                          SizedBox(
+                            width: imageSize,
+                            height: imageSize,
+                            child: SimpleExtendedImage(
+                              localAlbumPath,
+                              height: imageSize,
+                              width: imageSize,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ),
             ),
           ),
         ),
       ),
     );
   }
+}
+
+/// 生成快速入口卡片的辅助语义标签。
+@visibleForTesting
+String quickStartCardSemanticsLabel({
+  required String title,
+  required bool isEnabled,
+}) {
+  final resolvedTitle = title.trim().isEmpty ? '快速入口' : title.trim();
+  if (isEnabled) {
+    return resolvedTitle;
+  }
+  return '$resolvedTitle（当前不可用）';
 }
 
 String _playbackArtworkPath(PlaybackQueueItem item) {

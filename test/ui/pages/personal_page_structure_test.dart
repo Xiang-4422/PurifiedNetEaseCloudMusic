@@ -1,8 +1,33 @@
 import 'dart:io';
 
+import 'package:bujuan/ui/pages/user/widgets/quick_start_card_rail.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('quick start cards expose stable semantics labels', () {
+    expect(
+      quickStartCardSemanticsLabel(
+        title: ' 每日推荐 ',
+        isEnabled: true,
+      ),
+      '每日推荐',
+    );
+    expect(
+      quickStartCardSemanticsLabel(
+        title: '继续播放',
+        isEnabled: false,
+      ),
+      '继续播放（当前不可用）',
+    );
+    expect(
+      quickStartCardSemanticsLabel(
+        title: '   ',
+        isEnabled: false,
+      ),
+      '快速入口（当前不可用）',
+    );
+  });
+
   test('personal page keeps continue playback as the first quick start action', () {
     final source = File('lib/ui/pages/user/personal_page.dart').readAsStringSync();
     final standardSource = File(
@@ -40,6 +65,12 @@ void main() {
     expect(quickStartSource, contains("title: '每日推荐'"));
     expect(quickStartSource, contains("title: '漫游模式'"));
     expect(quickStartSource, contains("title: '心动模式'"));
+    expect(quickStartSource, contains('quickStartCardSemanticsLabel('));
+    expect(quickStartSource, contains('Semantics('));
+    expect(quickStartSource, contains('button: true'));
+    expect(quickStartSource, contains('Tooltip('));
+    expect(quickStartSource, contains('excludeFromSemantics: true'));
+    expect(quickStartSource, contains('ExcludeSemantics('));
   });
 
   test('personal page exposes focused library shortcuts before recommendations', () {

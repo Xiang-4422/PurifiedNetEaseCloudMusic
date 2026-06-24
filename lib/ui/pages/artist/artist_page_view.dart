@@ -330,18 +330,27 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                         style: TextStyle(color: onAlbumColor, fontWeight: FontWeight.bold),
                       ).paddingOnly(left: AppDimensions.paddingMedium))),
             ),
-            SliverList(
+            SliverPrototypeExtentList(
+              prototypeItem: SongItem(
+                item: topSongs.isEmpty ? const PlaybackQueueItem.empty() : topSongs.first,
+                index: 0,
+                playListName: artist.name,
+                playListHeader: "歌手",
+                stringColor: onAlbumColor,
+                showIndex: true,
+              ).paddingSymmetric(horizontal: AppDimensions.paddingMedium),
               delegate: SliverChildBuilderDelegate(
-                childCount: topSongs.length + 1,
                 (BuildContext context, int index) {
-                  if (index == topSongs.length) {
-                    return const SizedBox(
-                      height: AppDimensions.bottomPanelHeaderHeight,
-                    );
-                  }
                   return SongItem(playlist: topSongs, index: index, playListName: artist.name, playListHeader: "歌手", stringColor: onAlbumColor, showIndex: true, onPlay: _playerController.playPlaylist)
                       .paddingSymmetric(horizontal: AppDimensions.paddingMedium);
                 },
+                childCount: topSongs.length,
+                addAutomaticKeepAlives: false,
+              ),
+            ),
+            const SliverToBoxAdapter(
+              child: SizedBox(
+                height: AppDimensions.bottomPanelHeaderHeight,
               ),
             ),
           ],

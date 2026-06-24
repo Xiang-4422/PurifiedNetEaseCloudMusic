@@ -78,6 +78,17 @@ void main() {
     expect(todayPlayAllControlLabel(hasSongs: false), '每日推荐暂无歌曲');
   });
 
+  test('today page song list keeps stable prototype extents', () {
+    final source = File(
+      'lib/ui/pages/user/today_page_view.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('SliverPrototypeExtentList('));
+    expect(source, contains('prototypeItem: SongItem('));
+    expect(source, contains('addAutomaticKeepAlives: false'));
+    expect(source, contains('height: AppDimensions.bottomPanelHeaderHeight'));
+  });
+
   test('personal page keeps continue playback as the first quick start action', () {
     final source = File('lib/ui/pages/user/personal_page.dart').readAsStringSync();
     final standardSource = File(

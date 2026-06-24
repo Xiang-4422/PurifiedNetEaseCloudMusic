@@ -94,4 +94,20 @@ void main() {
     );
     expect(source, isNot(contains('shrinkWrap: true')));
   });
+
+  test('album and artist song lists keep stable prototype extents', () {
+    final albumSource = File(
+      'lib/ui/pages/album/album_page_view.dart',
+    ).readAsStringSync();
+    final artistSource = File(
+      'lib/ui/pages/artist/artist_page_view.dart',
+    ).readAsStringSync();
+
+    for (final source in [albumSource, artistSource]) {
+      expect(source, contains('SliverPrototypeExtentList('));
+      expect(source, contains('prototypeItem: SongItem('));
+      expect(source, contains('addAutomaticKeepAlives: false'));
+      expect(source, contains('height: AppDimensions.bottomPanelHeaderHeight'));
+    }
+  });
 }

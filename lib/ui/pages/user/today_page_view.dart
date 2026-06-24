@@ -1,4 +1,5 @@
 import 'package:blurrycontainer/blurrycontainer.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/ui/layout/adaptive_layout_metrics.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
@@ -123,17 +124,25 @@ class TodayPageView extends GetView<RecommendationController> {
           ),
           // bottom:
         ),
-        SliverList(
+        SliverPrototypeExtentList(
+          prototypeItem: SongItem(
+            item: songs.isEmpty ? const PlaybackQueueItem.empty() : songs.first,
+            index: 0,
+            playListName: "今日推荐",
+            stringColor: Colors.black,
+            showIndex: true,
+          ).paddingSymmetric(horizontal: AppDimensions.paddingMedium),
           delegate: SliverChildBuilderDelegate(
-            childCount: songs.length + 1,
             (BuildContext context, int index) {
-              if (index == songs.length) {
-                return const SizedBox(
-                  height: AppDimensions.bottomPanelHeaderHeight,
-                );
-              }
               return SongItem(playlist: songs, index: index, playListName: "今日推荐", stringColor: Colors.black, showIndex: true, onPlay: playerController.playPlaylist).paddingSymmetric(horizontal: AppDimensions.paddingMedium);
             },
+            childCount: songs.length,
+            addAutomaticKeepAlives: false,
+          ),
+        ),
+        const SliverToBoxAdapter(
+          child: SizedBox(
+            height: AppDimensions.bottomPanelHeaderHeight,
           ),
         ),
       ]),

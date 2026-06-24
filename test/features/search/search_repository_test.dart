@@ -238,6 +238,43 @@ void main() {
       expect(playlists.map((playlist) => playlist.id), ['netease:user-playlist']);
     });
 
+    test('normalizes user playlist summary ids before merging search playlists', () async {
+      final userPlaylistListDataSource = _FakeUserPlaylistListDataSource(
+        userPlaylists: const [
+          PlaylistSummaryData(id: ' user-playlist ', title: 'User Playlist'),
+          PlaylistSummaryData(id: ' netease:prefixed-playlist ', title: 'Prefixed Playlist'),
+          PlaylistSummaryData(id: ' ', title: 'Blank Playlist'),
+        ],
+      );
+      final repository = SearchRepository(
+        musicDataRepository: _FakeMusicDataRepository(
+          remotePlaylists: [
+            _playlist('netease:prefixed-playlist'),
+            _playlist('netease:remote-playlist'),
+          ],
+        ),
+        remoteDataSource: _FakeNeteaseSearchRemoteDataSource(),
+        cacheStore: _FakeSearchCacheStore(),
+        userPlaylistListDataSource: userPlaylistListDataSource,
+      );
+
+      final playlists = await repository.searchPlaylists(
+        'keyword',
+        currentUserId: '42',
+      );
+
+      expect(playlists.map((playlist) => playlist.id), [
+        'netease:user-playlist',
+        'netease:prefixed-playlist',
+        'netease:remote-playlist',
+      ]);
+      expect(playlists.map((playlist) => playlist.sourceId), [
+        'user-playlist',
+        'prefixed-playlist',
+        'remote-playlist',
+      ]);
+    });
+
     test('keeps local non-track category results when remote search fails', () async {
       final repository = SearchRepository(
         musicDataRepository: _FakeMusicDataRepository(

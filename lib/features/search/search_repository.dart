@@ -2,6 +2,7 @@ import 'package:bujuan/data/music_data/sources/local/database/data_sources/user_
 import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/artist_entity.dart';
+import 'package:bujuan/core/entities/music_resource_id.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/core/entities/source_type.dart';
@@ -86,6 +87,7 @@ class SearchRepository {
             keyword,
           ))
             .map(_playlistSummaryToEntity)
+            .whereType<PlaylistEntity>()
             .toList();
     final mergedLocalPlaylists = _mergeById(
       localPlaylists,
@@ -165,11 +167,15 @@ class SearchRepository {
     return merged;
   }
 
-  PlaylistEntity _playlistSummaryToEntity(PlaylistSummaryData playlist) {
+  PlaylistEntity? _playlistSummaryToEntity(PlaylistSummaryData playlist) {
+    final sourceId = MusicResourceId.toNeteaseSourceId(playlist.id).trim();
+    if (sourceId.isEmpty || MusicResourceId.hasKnownPrefix(sourceId)) {
+      return null;
+    }
     return PlaylistEntity(
-      id: 'netease:${playlist.id}',
+      id: MusicResourceId.toNeteaseEntityId(sourceId),
       sourceType: SourceType.netease,
-      sourceId: playlist.id,
+      sourceId: sourceId,
       title: playlist.title,
       description: playlist.description,
       coverUrl: playlist.coverUrl,

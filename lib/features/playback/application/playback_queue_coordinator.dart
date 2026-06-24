@@ -26,13 +26,17 @@ class PlaybackQueueCoordinator {
     if (incomingSongs.isEmpty) {
       return;
     }
+    final normalizedCurrentSongId = _normalizedQueueItemId(currentSongId);
+    if (normalizedCurrentSongId.isEmpty) {
+      return;
+    }
 
     final queueState = await _queueService.appendQueueItems(
       incomingSongs,
-      currentSongId: currentSongId,
+      currentSongId: normalizedCurrentSongId,
     );
     final updatedIndex = queueState.activeQueue.indexWhere(
-      (element) => element.id == currentSongId,
+      (element) => _normalizedQueueItemId(element.id) == normalizedCurrentSongId,
     );
     final nextIndex = updatedIndex != -1 ? updatedIndex : fallbackIndex;
 
@@ -45,5 +49,9 @@ class PlaybackQueueCoordinator {
         );
       }
     }
+  }
+
+  String _normalizedQueueItemId(String id) {
+    return id.trim();
   }
 }

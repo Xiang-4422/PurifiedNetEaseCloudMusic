@@ -865,6 +865,26 @@ void main() {
       );
     });
 
+    test('playback queue coordinator normalizes roaming append current song ids', () {
+      final coordinatorFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_queue_coordinator.dart',
+      );
+      final coordinator = coordinatorFile.readAsStringSync();
+      final violations = <String>[
+        if (!coordinator.contains('String _normalizedQueueItemId(String id)')) '${_relativePath(coordinatorFile)} does not define queue item id normalization',
+        if (!coordinator.contains('final normalizedCurrentSongId = _normalizedQueueItemId(currentSongId);')) '${_relativePath(coordinatorFile)} can still append roaming songs from a raw current song id',
+        if (!coordinator.contains('currentSongId: normalizedCurrentSongId')) '${_relativePath(coordinatorFile)} can still pass raw current song id to queue service',
+        if (!coordinator.contains('(element) => _normalizedQueueItemId(element.id) == normalizedCurrentSongId')) '${_relativePath(coordinatorFile)} can still locate appended roaming index through raw queue ids',
+        if (coordinator.contains('(element) => element.id == currentSongId')) '${_relativePath(coordinatorFile)} still compares raw queue item ids after roaming append',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '漫游追加后自动续播下一首依赖当前歌曲索引，currentSongId 和 activeQueue id 必须先规范化再匹配。',
+      );
+    });
+
     test('playback repository rejects negative restore positions', () {
       final repositoryFile = File(
         '${projectRoot.path}/lib/features/playback/playback_repository.dart',

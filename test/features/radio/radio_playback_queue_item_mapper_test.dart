@@ -36,5 +36,25 @@ void main() {
       expect(items.single.isLiked, isTrue);
       expect(items.single.metadata, isEmpty);
     });
+
+    test('marks prefixed program track ids as liked', () {
+      final items = RadioPlaybackQueueItemMapper.fromPrograms(
+        const [
+          RadioProgramData(
+            id: 'program-1',
+            mainTrackId: '  netease:123  ',
+            title: 'Track 123',
+            coverUrl: '',
+            artistName: 'Artist',
+            albumTitle: 'Album',
+            durationMs: 3000,
+          ),
+        ],
+        likedSongIds: const [123],
+      );
+
+      expect(items.single.id, 'netease:123');
+      expect(items.single.isLiked, isTrue);
+    });
   });
 }

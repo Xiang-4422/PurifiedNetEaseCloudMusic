@@ -1,6 +1,7 @@
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/util/image_url_normalizer.dart';
 import 'package:bujuan/core/entities/local_resource_entry.dart';
+import 'package:bujuan/core/entities/music_resource_id.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
@@ -69,7 +70,11 @@ class PlaybackQueueItemMapper {
         lyricKey: track.lyricKey,
         localLyricsPath: localLyricsPath,
         availability: track.availability,
-        isLiked: likedSongIds.contains(int.tryParse(track.sourceId)),
+        isLiked: _isLikedTrack(
+          trackId: trackId,
+          sourceId: track.sourceId,
+          likedSongIds: likedSongIds,
+        ),
         isCached: _isCachedAudioResource(resources.audio),
         metadata: playbackQueueCustomMetadata(track.metadata),
       );
@@ -130,6 +135,18 @@ class PlaybackQueueItemMapper {
 
   static String? _localResourcePath(LocalResourceEntry? resource) {
     return _emptyToNull(LocalFilePathNormalizer.normalize(resource?.path));
+  }
+
+  static bool _isLikedTrack({
+    required String trackId,
+    required String sourceId,
+    required List<int> likedSongIds,
+  }) {
+    final normalizedSourceId = MusicResourceId.toNeteaseSourceId(
+      sourceId.trim().isNotEmpty ? sourceId : trackId,
+    );
+    final numericSongId = int.tryParse(normalizedSourceId);
+    return numericSongId != null && likedSongIds.contains(numericSongId);
   }
 
   static String _normalizedQueueItemId(String id) {

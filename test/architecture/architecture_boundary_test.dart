@@ -1072,10 +1072,16 @@ void main() {
         if (!mapper.contains('_normalizedQueueItemId(track.id).isNotEmpty')) 'playback queue item mapper does not filter blank track ids',
         if (!mapper.contains('final trackId = _normalizedQueueItemId(track.id);')) 'playback queue item mapper does not normalize ids before mapping',
         if (!mapper.contains('id: trackId')) 'playback queue item mapper can still write raw track ids',
+        if (!mapper.contains('MusicResourceId.toNeteaseSourceId(')) 'playback queue item mapper can still derive liked state from raw source ids',
+        if (!mapper.contains('static bool _isLikedTrack({')) 'playback queue item mapper does not keep liked state derivation behind a normalized helper',
+        if (mapper.contains('likedSongIds.contains(int.tryParse(track.sourceId))')) 'playback queue item mapper still parses raw sourceId for liked state',
         if (!radioMapper.contains('String _normalizedQueueItemId(String id)')) 'radio queue item mapper does not define id normalization',
         if (!radioMapper.contains('_normalizedQueueItemId(program.mainTrackId).isNotEmpty')) 'radio queue item mapper does not filter blank main track ids',
         if (!radioMapper.contains('final trackId = _normalizedQueueItemId(program.mainTrackId);')) 'radio queue item mapper does not normalize main track ids before mapping',
         if (!radioMapper.contains('id: trackId')) 'radio queue item mapper can still write raw main track ids',
+        if (!radioMapper.contains('MusicResourceId.toNeteaseSourceId(trackId)')) 'radio queue item mapper can still derive liked state from raw track ids',
+        if (!radioMapper.contains('static bool _isLikedTrack(String trackId, List<int> likedSongIds)')) 'radio queue item mapper does not keep liked state derivation behind a normalized helper',
+        if (radioMapper.contains('likedSongIds.contains(int.tryParse(trackId))')) 'radio queue item mapper still parses raw trackId for liked state',
       ];
 
       expect(

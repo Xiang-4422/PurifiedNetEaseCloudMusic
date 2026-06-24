@@ -39,6 +39,34 @@ void main() {
       expect(items.map((item) => item.id), ['netease:1']);
     });
 
+    test('marks liked tracks with prefixed and trimmed source ids', () {
+      final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
+        [
+          TrackWithResources(
+            track: _track(sourceId: ' netease:1 '),
+            resources: const TrackResourceBundle(),
+          ),
+        ],
+        likedSongIds: const [1],
+      ).single;
+
+      expect(item.isLiked, isTrue);
+    });
+
+    test('falls back to track id when liked track source id is blank', () {
+      final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
+        [
+          TrackWithResources(
+            track: _track(id: ' netease:1 ', sourceId: '   '),
+            resources: const TrackResourceBundle(),
+          ),
+        ],
+        likedSongIds: const [1],
+      ).single;
+
+      expect(item.isLiked, isTrue);
+    });
+
     test('maps normal downloaded audio files as local file playback', () {
       final item = PlaybackQueueItemMapper.fromTrackWithResourcesList(
         [

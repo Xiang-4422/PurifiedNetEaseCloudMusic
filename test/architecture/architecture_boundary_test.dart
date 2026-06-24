@@ -2728,6 +2728,26 @@ void main() {
       );
     });
 
+    test('playback source resolver validates final remote urls', () {
+      final resolverFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_source_resolver.dart',
+      );
+      final resolver = resolverFile.readAsStringSync();
+      final violations = <String>[
+        if (!resolver.contains('bool _isRemoteHttpUrl(String url)')) '${_relativePath(resolverFile)} does not define final remote URL validation',
+        if (!resolver.contains("scheme == 'http' || scheme == 'https'")) '${_relativePath(resolverFile)} does not restrict remote playback URLs to HTTP(S)',
+        if (!resolver.contains('uri?.host.isNotEmpty == true')) '${_relativePath(resolverFile)} can accept remote playback URLs without authority',
+        if (!resolver.contains('if (!_isRemoteHttpUrl(url))')) '${_relativePath(resolverFile)} can return malformed remote playback URLs to the player',
+        if (!resolver.contains('LocalFilePathNormalizer.normalize(url)')) '${_relativePath(resolverFile)} does not normalize local playback URLs before final source resolution',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'PlaybackSourceResolver 是进入底层播放器前的最终边界，必须阻断非 HTTP(S) 或缺 authority 的远程播放地址。',
+      );
+    });
+
     test('audio service handler stays playback adapter only', () {
       final handlerFile = File(
         '${projectRoot.path}/lib/features/playback/application/audio_service_handler.dart',

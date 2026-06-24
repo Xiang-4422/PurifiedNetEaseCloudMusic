@@ -84,6 +84,11 @@ class PlaybackSourceResolver {
         kind: PlaybackResolvedSourceKind.empty,
       );
     }
+    if (!_isRemoteHttpUrl(url)) {
+      return const PlaybackResolvedSource(
+        kind: PlaybackResolvedSourceKind.empty,
+      );
+    }
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
       url: url,
@@ -96,6 +101,12 @@ class PlaybackSourceResolver {
 
   bool _isFileUri(String url) {
     return Uri.tryParse(url)?.scheme.toLowerCase() == 'file';
+  }
+
+  bool _isRemoteHttpUrl(String url) {
+    final uri = Uri.tryParse(url);
+    final scheme = uri?.scheme.toLowerCase();
+    return (scheme == 'http' || scheme == 'https') && uri?.host.isNotEmpty == true;
   }
 
   PlaybackResolvedSource _resolveLocalFileSource(PlaybackQueueItem item) {

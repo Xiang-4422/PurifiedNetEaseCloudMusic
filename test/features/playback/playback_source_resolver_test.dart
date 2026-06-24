@@ -259,6 +259,63 @@ void main() {
       expect(source.url, 'https://example.com/song.mp3?auth=temp');
     });
 
+    test('accepts uppercase remote http playback url with authority', () async {
+      final resolver = PlaybackSourceResolver(
+        repository: _FakePlaybackRepository(
+          playbackUrl: 'HTTPS://example.com/song.mp3?auth=temp',
+        ),
+      );
+
+      final source = await resolver.resolveRemote(
+        _mediaItem(
+          type: MediaType.playlist,
+          url: '',
+        ),
+        preferHighQuality: false,
+      );
+
+      expect(source.kind, PlaybackResolvedSourceKind.url);
+      expect(source.url, 'HTTPS://example.com/song.mp3?auth=temp');
+    });
+
+    test('treats malformed remote playback url as empty source', () async {
+      final resolver = PlaybackSourceResolver(
+        repository: _FakePlaybackRepository(
+          playbackUrl: 'https:///missing-host.mp3',
+        ),
+      );
+
+      final source = await resolver.resolveRemote(
+        _mediaItem(
+          type: MediaType.playlist,
+          url: '',
+        ),
+        preferHighQuality: false,
+      );
+
+      expect(source.kind, PlaybackResolvedSourceKind.empty);
+      expect(source.isEmpty, isTrue);
+    });
+
+    test('treats non-http remote playback url as empty source', () async {
+      final resolver = PlaybackSourceResolver(
+        repository: _FakePlaybackRepository(
+          playbackUrl: 'ftp://example.com/song.mp3',
+        ),
+      );
+
+      final source = await resolver.resolveRemote(
+        _mediaItem(
+          type: MediaType.playlist,
+          url: '',
+        ),
+        preferHighQuality: false,
+      );
+
+      expect(source.kind, PlaybackResolvedSourceKind.empty);
+      expect(source.isEmpty, isTrue);
+    });
+
     test('strips query only when resolving an existing local file path', () async {
       final directory = await Directory.systemTemp.createTemp('playback-source-resolver-');
       addTearDown(() async {

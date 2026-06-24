@@ -3292,9 +3292,13 @@ void main() {
       final bodyFile = File(
         '${projectRoot.path}/lib/ui/pages/shell/app_body_page_view.dart',
       );
+      final shellControllerFile = File(
+        '${projectRoot.path}/lib/features/shell/home_shell_controller.dart',
+      );
       final home = homeFile.readAsStringSync();
       final bootstrap = bootstrapFile.readAsStringSync();
       final body = bodyFile.readAsStringSync();
+      final shellController = shellControllerFile.readAsStringSync();
       final drawerStart = body.indexOf('class DrawerMainScreenView');
       final menuStart = body.indexOf('class MenuView');
       final drawerSection = drawerStart >= 0 && menuStart > drawerStart ? body.substring(drawerStart, menuStart) : '';
@@ -3316,12 +3320,19 @@ void main() {
         if (!body.contains('homeShellController: homeShellController')) '${_relativePath(bodyFile)} does not inject home shell into main screen',
         if (!drawerSection.contains('required this.homeShellController')) '${_relativePath(bodyFile)} drawer main screen does not receive home shell controller',
         if (!menuSection.contains('required this.homeShellController')) '${_relativePath(bodyFile)} menu view does not receive home shell controller',
+        if (body.contains('CoffeePageView') || body.contains('coffee_page.dart')) '${_relativePath(bodyFile)} restores a non-listening coffee page to shell body',
+        if (shellController.contains('HomeShellPageKind.coffee')) '${_relativePath(shellControllerFile)} restores coffee as a shell page kind',
+        if (shellController.contains("Routes.coffee")) '${_relativePath(shellControllerFile)} restores coffee route in shell menus',
+        if (shellController.contains("'捐赠'")) '${_relativePath(shellControllerFile)} restores donation as a main navigation item',
+        if (!shellController.contains("'我的音乐'")) '${_relativePath(shellControllerFile)} does not expose focused music entry label',
+        if (!shellController.contains("'探索'")) '${_relativePath(shellControllerFile)} does not expose focused explore entry label',
+        if (!shellController.contains("'设置'")) '${_relativePath(shellControllerFile)} does not expose focused settings entry label',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: '首页壳层负责读取 HomeShellController 并通过局部 scope 传给路由子树，主体页、抽屉主屏幕和菜单不能各自读取全局容器。',
+        reason: '首页壳层负责读取 HomeShellController 并通过局部 scope 传给路由子树；主导航只保留听歌相关路径，不能恢复捐赠/咖啡等非听歌入口。',
       );
     });
 

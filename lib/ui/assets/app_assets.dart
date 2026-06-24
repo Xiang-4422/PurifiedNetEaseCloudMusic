@@ -8,9 +8,6 @@ class AppAssets {
   /// Lottie 动画资源目录。
   static const String lottieDirectory = 'assets/lottie/';
 
-  /// 咖啡图片资源路径。
-  static const String imagesCoffee = '${imagesDirectory}coffee.jpg';
-
   /// 应用 Logo 资源路径。
   static const String imagesLogo = '${imagesDirectory}logo.png';
 

@@ -81,9 +81,6 @@ abstract class Routes {
   /// 图片模糊设置页根路径。
   static const imageBlur = '/imageBlur';
 
-  /// 咖啡入口子路径。
-  static const coffee = 'coffee';
-
   /// 网易云缓存页子路径。
   static const neteaseCache = 'neteaseCache';
 

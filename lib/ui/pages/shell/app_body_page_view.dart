@@ -5,7 +5,6 @@ import 'package:bujuan/ui/pages/settings/setting_page.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:bujuan/features/shell/personal_home_controller_bundle.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
-import 'package:bujuan/ui/pages/shell/coffee_page.dart';
 import 'package:bujuan/ui/pages/shell/home_shell_scope.dart';
 import 'package:bujuan/ui/pages/user/personal_page.dart';
 import 'package:bujuan/ui/pages/user/recommended_playlists_page.dart';
@@ -107,8 +106,6 @@ class DrawerMainScreenView extends GetView<ShellController> {
         return _absorbed(const ExplorePageView());
       case HomeShellPageKind.settings:
         return _absorbed(const SettingPageView());
-      case HomeShellPageKind.coffee:
-        return _absorbed(const CoffeePageView());
       case null:
         return const SizedBox.shrink();
     }

@@ -61,69 +61,55 @@ class HomeShellController extends GetxController with GetTickerProviderStateMixi
   static final List<ShellMenuItemData> _normalLeftMenus = [
     ShellMenuItemData(
       HomeShellPageKind.personal,
-      '个人中心',
-      TablerIcons.user,
+      '我的音乐',
+      TablerIcons.music,
       Routes.user,
       '/home/user',
     ),
     ShellMenuItemData(
       HomeShellPageKind.explore,
-      '发现',
+      '探索',
       TablerIcons.smart_home,
       Routes.index,
       '/home/index',
     ),
     ShellMenuItemData(
       HomeShellPageKind.settings,
-      '个性设置',
+      '设置',
       TablerIcons.settings,
       Routes.setting,
       '/home/settingL',
-    ),
-    ShellMenuItemData(
-      HomeShellPageKind.coffee,
-      '捐赠',
-      TablerIcons.coffee,
-      Routes.coffee,
-      '',
     ),
   ];
 
   static final List<ShellMenuItemData> _squareLeftMenus = [
     ShellMenuItemData(
       HomeShellPageKind.personal,
-      '个人中心',
-      TablerIcons.user,
+      '我的音乐',
+      TablerIcons.music,
       Routes.user,
       '/home/user',
     ),
     ShellMenuItemData(
       HomeShellPageKind.recommendedPlaylists,
-      '推荐歌单',
+      '推荐',
       TablerIcons.playlist,
       Routes.index,
       '/home/recommended-playlists',
     ),
     ShellMenuItemData(
       HomeShellPageKind.explore,
-      '发现',
+      '探索',
       TablerIcons.smart_home,
       Routes.index,
       '/home/index',
     ),
     ShellMenuItemData(
       HomeShellPageKind.settings,
-      '个性设置',
+      '设置',
       TablerIcons.settings,
       Routes.setting,
       '/home/settingL',
-    ),
-    ShellMenuItemData(
-      HomeShellPageKind.coffee,
-      '捐赠',
-      TablerIcons.coffee,
-      Routes.coffee,
-      '',
     ),
   ];
 
@@ -300,8 +286,6 @@ class HomeShellController extends GetxController with GetTickerProviderStateMixi
     switch (pageKind) {
       case HomeShellPageKind.personal:
         return _defaultHomePageTitle;
-      case HomeShellPageKind.coffee:
-        return '赞助开发者';
       case HomeShellPageKind.recommendedPlaylists:
       case HomeShellPageKind.explore:
       case HomeShellPageKind.settings:
@@ -363,20 +347,17 @@ Duration homePageSwitchAnimationDuration({
 
 /// 首页壳层页面类型。
 enum HomeShellPageKind {
-  /// 个人中心。
+  /// 我的音乐。
   personal,
 
-  /// 方屏下独立展示的推荐歌单。
+  /// 方屏下独立展示的推荐。
   recommendedPlaylists,
 
-  /// 发现页。
+  /// 探索页。
   explore,
 
   /// 设置页。
   settings,
-
-  /// 捐赠页。
-  coffee,
 }
 
 /// 首页抽屉菜单项数据。

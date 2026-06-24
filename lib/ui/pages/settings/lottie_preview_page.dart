@@ -15,7 +15,13 @@ class LottiePreviewPageView extends StatefulWidget {
 }
 
 class _LottiePreviewPageViewState extends State<LottiePreviewPageView> {
-  late final Future<List<String>> _assetFuture = _loadLottieAssets();
+  late Future<List<String>> _assetFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _assetFuture = _loadLottieAssets();
+  }
 
   Future<List<String>> _loadLottieAssets() async {
     final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
@@ -24,6 +30,12 @@ class _LottiePreviewPageViewState extends State<LottiePreviewPageView> {
 
   bool _isLottieAsset(String path) {
     return path.startsWith(AppAssets.lottieDirectory) && path.endsWith('.json');
+  }
+
+  void _reloadAssets() {
+    setState(() {
+      _assetFuture = _loadLottieAssets();
+    });
   }
 
   @override
@@ -42,7 +54,7 @@ class _LottiePreviewPageViewState extends State<LottiePreviewPageView> {
             return const LoadingView();
           }
           if (snapshot.hasError) {
-            return const ErrorView();
+            return ErrorView(onRetry: _reloadAssets);
           }
           final assets = snapshot.data ?? const [];
           if (assets.isEmpty) {

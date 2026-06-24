@@ -188,4 +188,16 @@ void main() {
     expect(bootstrapSource, contains('Get.put<SettingsPageControllerBundle>'));
     expect(bootstrapSource, contains('localMediaScanController: Get.find<LocalMediaScanController>()'));
   });
+
+  test('lottie preview page can retry asset manifest loading', () {
+    final source = File(
+      'lib/ui/pages/settings/lottie_preview_page.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('late Future<List<String>> _assetFuture'));
+    expect(source, contains('void _reloadAssets()'));
+    expect(source, contains('_assetFuture = _loadLottieAssets();'));
+    expect(source, contains('ErrorView(onRetry: _reloadAssets)'));
+    expect(source, isNot(contains('return const ErrorView();')));
+  });
 }

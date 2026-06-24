@@ -14,12 +14,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 /// 应用主体页，组合侧边抽屉和首页主内容。
-class AppBodyPageView extends GetView<ShellController> {
+class AppBodyPageView extends StatelessWidget {
   /// 创建应用主体页。
   const AppBodyPageView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final shellController = HomeShellScope.shellControllerOf(context);
     final homeShellController = HomeShellScope.of(context);
     final personalHomeControllers = Get.find<PersonalHomeControllerBundle>();
     return Stack(
@@ -53,11 +54,11 @@ class AppBodyPageView extends GetView<ShellController> {
             dragOffset: context.width,
 
             menuScreen: MenuView(
-              shellController: controller,
+              shellController: shellController,
               homeShellController: homeShellController,
             ),
             mainScreen: DrawerMainScreenView(
-              shellController: controller,
+              shellController: shellController,
               homeShellController: homeShellController,
               personalHomeControllers: personalHomeControllers,
             ),

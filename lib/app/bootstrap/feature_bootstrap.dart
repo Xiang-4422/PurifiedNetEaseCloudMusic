@@ -364,6 +364,7 @@ void registerFeatureControllers() {
       playerController: Get.find<PlayerController>(),
       searchController: Get.find<SearchPanelController>(),
       settingsController: Get.find<SettingsController>(),
+      shellController: Get.find<ShellController>(),
     ),
     permanent: true,
   );

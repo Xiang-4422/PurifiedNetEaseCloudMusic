@@ -3,6 +3,7 @@ import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/search/search_panel_controller.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
+import 'package:bujuan/features/shell/shell_controller.dart';
 
 /// 首页壳层需要的控制器组合。
 class AppHomeControllerBundle {
@@ -13,6 +14,7 @@ class AppHomeControllerBundle {
     required this.playerController,
     required this.searchController,
     required this.settingsController,
+    required this.shellController,
   });
 
   /// 评论控制器工厂。
@@ -29,4 +31,7 @@ class AppHomeControllerBundle {
 
   /// 设置控制器。
   final SettingsController settingsController;
+
+  /// 应用壳层协调器。
+  final ShellController shellController;
 }

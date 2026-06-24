@@ -14,6 +14,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
+/// 我的播客列表项固定高度，供列表虚拟滚动和行布局共用。
+@visibleForTesting
+const double myRadioListItemExtent = 120;
+
 /// 我的播客列表页。
 class MyRadioView extends StatefulWidget {
   /// 创建我的播客列表页。
@@ -81,6 +85,7 @@ class _MyRadioViewState extends State<MyRadioView> {
                 child: ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   physics: const ClampingScrollPhysics(),
+                  itemExtent: myRadioListItemExtent,
                   itemBuilder: (context, index) => _buildItem(state.items[index]),
                   itemCount: state.items.length,
                 ),
@@ -98,7 +103,7 @@ class _MyRadioViewState extends State<MyRadioView> {
   Widget _buildItem(RadioSummaryData data) {
     return InkWell(
         child: SizedBox(
-          height: 120,
+          height: myRadioListItemExtent,
           child: Row(
             children: [
               SimpleExtendedImage(

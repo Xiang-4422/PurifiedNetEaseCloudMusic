@@ -1638,6 +1638,8 @@ void main() {
         if (radioListView.contains('UserSessionController')) '${_relativePath(radioListViewFile)} reads current user directly',
         if (!radioListView.contains('Get.find<RadioControllerFactory>().createList()')) '${_relativePath(radioListViewFile)} does not create list controller through feature factory',
         if (radioListView.contains('shrinkWrap: true')) '${_relativePath(radioListViewFile)} enables shrinkWrap on paged radio list',
+        if (!radioListView.contains('itemExtent: myRadioListItemExtent')) '${_relativePath(radioListViewFile)} does not fix radio list item extent',
+        if (!radioListView.contains('height: myRadioListItemExtent')) '${_relativePath(radioListViewFile)} does not share radio row height with item extent',
         if (!radioListController.contains('bool get _hasUserId => _userId.trim().isNotEmpty')) 'radio list controller does not trim-check current user before repository access',
         if (radioView.contains('UserLibraryController')) '${_relativePath(radioViewFile)} reads user library directly',
         if (radioView.contains('RadioRepository')) '${_relativePath(radioViewFile)} names radio repository directly',

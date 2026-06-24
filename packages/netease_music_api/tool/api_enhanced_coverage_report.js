@@ -28,6 +28,7 @@ const specialCoveragePath = specialCoverageArg
   : path.join(repoRoot, 'packages/netease_music_api/tool/api_enhanced_special_coverage.json')
 const jsonOutput = process.argv.includes('--json')
 const markdownOutput = process.argv.includes('--markdown')
+const coverageReportSchemaVersion = 1
 const generatedManifestSupportedCrypto = new Set(['weapi', 'eapi', 'linuxapi', 'api', 'xeapi'])
 const generatedManifestSupportedHttpMethods = new Set(['GET', 'POST'])
 
@@ -1014,6 +1015,7 @@ function buildRuntimeOptionStatusByName() {
 }
 
 const report = {
+  schemaVersion: coverageReportSchemaVersion,
   upstreamVersion: upstreamPackage.version,
   upstreamSubmodulePath: path.relative(repoRoot, upstreamRepoPath).replace(/\\/g, '/'),
   upstreamCommit,
@@ -1117,6 +1119,7 @@ function renderMarkdownReport(report) {
     '',
     '## Upstream',
     '',
+    `- schema version: ${report.schemaVersion}`,
     `- version: ${report.upstreamVersion}`,
     `- submodule: ${report.upstreamSubmodulePath}`,
     `- commit: ${report.upstreamCommit || 'unknown'}`,
@@ -1196,6 +1199,7 @@ if (jsonOutput) {
   console.log(renderMarkdownReport(report))
 } else {
   console.log('api-enhanced coverage report')
+  console.log(`schema version: ${report.schemaVersion}`)
   console.log(`upstream version: ${report.upstreamVersion}`)
   console.log(`upstream submodule: ${report.upstreamSubmodulePath}`)
   console.log(`upstream commit: ${report.upstreamCommit || 'unknown'}`)

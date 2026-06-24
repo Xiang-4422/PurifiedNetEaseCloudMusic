@@ -176,6 +176,7 @@ void main() {
       );
       final report = _jsonMap(jsonDecode(result.stdout as String));
 
+      expect(report['schemaVersion'], 1);
       expect(report['upstreamVersion'], packageJson['version']);
       expect(report['upstreamSubmodulePath'], 'third_party/api-enhanced');
       expect(report['upstreamCommit'], (commitResult.stdout as String).trim());
@@ -311,6 +312,60 @@ void main() {
       }
     });
 
+    test('coverage report exposes stable JSON schema for automation', () async {
+      final repoRoot = _findRepoRoot();
+      final result = await Process.run(
+        'node',
+        [
+          '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js',
+          '--json',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(
+        result.exitCode,
+        0,
+        reason: '${result.stdout}\n${result.stderr}',
+      );
+      final report = _jsonMap(jsonDecode(result.stdout as String));
+
+      expect(report['schemaVersion'], 1);
+      expect(
+        report.keys.toSet(),
+        containsAll({
+          'schemaVersion',
+          'upstreamVersion',
+          'upstreamSubmodulePath',
+          'upstreamCommit',
+          'upstreamDirty',
+          'manifestUpstreamVersion',
+          'manifestUpstreamCommit',
+          'upstreamModuleFileCount',
+          'moduleCount',
+          'normalModuleCount',
+          'specialModuleCount',
+          'nodeOracleScenarioCount',
+          'nodeOracleFixtureCount',
+          'specialCoverageStatusByModule',
+          'runtimeOptionStatusByName',
+          'specialLimitedReasons',
+          'runtimeSupportedReasons',
+          'runtimeLimitedReasons',
+          'sdkDifferences',
+        }),
+      );
+      expect(report['specialCoverageStatusByModule'], isA<Map<String, dynamic>>());
+      expect(report['runtimeOptionStatusByName'], isA<Map<String, dynamic>>());
+      for (final difference in _jsonMapList(report['sdkDifferences'])) {
+        expect(difference.keys.toSet(), containsAll({'module', 'status', 'reason', 'scope'}));
+        expect(difference['module'], isA<String>());
+        expect(difference['status'], isA<String>());
+        expect(difference['reason'], isA<String>());
+        expect(difference['scope'], isA<String>());
+      }
+    });
+
     test('coverage report renders markdown summary for manual review', () async {
       final repoRoot = _findRepoRoot();
       final result = await Process.run(
@@ -347,6 +402,7 @@ void main() {
 
       expect(markdown, contains('# api-enhanced coverage report'));
       expect(markdown, contains('## Upstream'));
+      expect(markdown, contains('- schema version: 1'));
       expect(markdown, contains('- version: $apiEnhancedUpstreamVersion'));
       expect(markdown, contains('- commit: $apiEnhancedUpstreamCommit'));
       expect(markdown, contains('- modules: ${apiEnhancedModules.length}'));

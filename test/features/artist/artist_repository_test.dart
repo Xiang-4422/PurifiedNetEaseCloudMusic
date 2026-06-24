@@ -51,6 +51,81 @@ void main() {
       expect(detail.topSongs.single.isLiked, isTrue);
       expect(detail.hotAlbums.single.id, 'netease:album-1');
     });
+
+    test('normalizes artist id for local detail queries', () async {
+      final musicDataRepository = _FakeMusicDataRepository(
+        resourcesByTrackId: const {},
+        artistsById: {
+          'netease:artist-1': _artist('netease:artist-1'),
+        },
+        tracksByArtistSourceId: {
+          'artist-1': [_track('netease:1')],
+        },
+        localAlbums: [_album('netease:album-1')],
+      );
+      final repository = ArtistRepository(
+        musicDataRepository: musicDataRepository,
+        remoteDataSource: _FakeNeteaseArtistRemoteDataSource(
+          artist: null,
+          topTracks: const [],
+          hotAlbums: const [],
+        ),
+      );
+
+      final detail = await repository.loadLocalArtistDetail(
+        artistId: ' netease:artist-1 ',
+        likedSongIds: const [],
+      );
+
+      expect(detail?.artist.id, 'netease:artist-1');
+      expect(musicDataRepository.requestedArtistIds, ['netease:artist-1']);
+      expect(musicDataRepository.requestedArtistTrackSourceIds, ['artist-1']);
+      expect(musicDataRepository.requestedResourceIds, ['netease:1']);
+    });
+
+    test('normalizes artist id before remote detail fetch', () async {
+      final remoteDataSource = _FakeNeteaseArtistRemoteDataSource(
+        artist: _artist('netease:artist-1'),
+        topTracks: const [],
+        hotAlbums: const [],
+      );
+      final repository = ArtistRepository(
+        musicDataRepository: _FakeMusicDataRepository(
+          resourcesByTrackId: const {},
+        ),
+        remoteDataSource: remoteDataSource,
+      );
+
+      await repository.fetchArtistDetail(
+        artistId: ' netease:artist-1 ',
+        likedSongIds: const [],
+      );
+
+      expect(remoteDataSource.requestedArtistIds, ['artist-1']);
+    });
+
+    test('rejects blank artist id before remote detail fetch', () async {
+      final remoteDataSource = _FakeNeteaseArtistRemoteDataSource(
+        artist: _artist('netease:artist-1'),
+        topTracks: const [],
+        hotAlbums: const [],
+      );
+      final repository = ArtistRepository(
+        musicDataRepository: _FakeMusicDataRepository(
+          resourcesByTrackId: const {},
+        ),
+        remoteDataSource: remoteDataSource,
+      );
+
+      await expectLater(
+        repository.fetchArtistDetail(
+          artistId: ' local:artist-1 ',
+          likedSongIds: const [],
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
+      expect(remoteDataSource.requestedArtistIds, isEmpty);
+    });
   });
 }
 
@@ -101,13 +176,40 @@ LocalResourceEntry _audioResource({
 }
 
 class _FakeMusicDataRepository implements MusicDataRepository {
-  _FakeMusicDataRepository({required this.resourcesByTrackId});
+  _FakeMusicDataRepository({
+    required this.resourcesByTrackId,
+    this.artistsById = const {},
+    this.tracksByArtistSourceId = const {},
+    this.localAlbums = const [],
+  });
 
   final Map<String, TrackResourceBundle> resourcesByTrackId;
+  final Map<String, ArtistEntity> artistsById;
+  final Map<String, List<Track>> tracksByArtistSourceId;
+  final List<AlbumEntity> localAlbums;
   final List<String> savedArtistIds = [];
   final List<String> savedAlbumIds = [];
   final List<String> savedTrackIds = [];
+  final List<String> requestedArtistIds = [];
+  final List<String> requestedArtistTrackSourceIds = [];
   final List<String> requestedResourceIds = [];
+
+  @override
+  Future<ArtistEntity?> getArtist(String artistId) async {
+    requestedArtistIds.add(artistId);
+    return artistsById[artistId];
+  }
+
+  @override
+  Future<List<Track>> getTracksByArtistId(String artistSourceId) async {
+    requestedArtistTrackSourceIds.add(artistSourceId);
+    return tracksByArtistSourceId[artistSourceId] ?? const [];
+  }
+
+  @override
+  Future<List<AlbumEntity>> searchLocalAlbums(String keyword) async {
+    return localAlbums;
+  }
 
   @override
   Future<void> saveArtists(List<ArtistEntity> artists) async {
@@ -157,6 +259,7 @@ class _FakeNeteaseArtistRemoteDataSource implements NeteaseArtistRemoteDataSourc
   final ArtistEntity? artist;
   final List<Track> topTracks;
   final List<AlbumEntity> hotAlbums;
+  final List<String> requestedArtistIds = [];
 
   @override
   Future<
@@ -167,6 +270,7 @@ class _FakeNeteaseArtistRemoteDataSource implements NeteaseArtistRemoteDataSourc
       })> fetchArtistDetail({
     required String artistId,
   }) async {
+    requestedArtistIds.add(artistId);
     return (
       artist: artist,
       topTracks: topTracks,

@@ -605,6 +605,51 @@ void main() {
       );
     });
 
+    test('album and artist detail boundaries normalize ids before local and SDK access', () {
+      final albumRepositoryFile = File(
+        '${projectRoot.path}/lib/features/album/album_repository.dart',
+      );
+      final artistRepositoryFile = File(
+        '${projectRoot.path}/lib/features/artist/artist_repository.dart',
+      );
+      final albumRemoteFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/netease/remote/netease_album_remote_data_source.dart',
+      );
+      final artistRemoteFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/netease/remote/netease_artist_remote_data_source.dart',
+      );
+      final albumRepository = albumRepositoryFile.readAsStringSync();
+      final artistRepository = artistRepositoryFile.readAsStringSync();
+      final albumRemote = albumRemoteFile.readAsStringSync();
+      final artistRemote = artistRemoteFile.readAsStringSync();
+      final violations = <String>[
+        if (!albumRepository.contains("import 'package:bujuan/core/entities/music_resource_id.dart';")) '${_relativePath(albumRepositoryFile)} does not use MusicResourceId',
+        if (!artistRepository.contains("import 'package:bujuan/core/entities/music_resource_id.dart';")) '${_relativePath(artistRepositoryFile)} does not use MusicResourceId',
+        if (!albumRepository.contains('final sourceAlbumId = _normalizedAlbumSourceId(albumId);')) '${_relativePath(albumRepositoryFile)} does not normalize album detail source ids',
+        if (!artistRepository.contains('final sourceArtistId = _normalizedArtistSourceId(artistId);')) '${_relativePath(artistRepositoryFile)} does not normalize artist detail source ids',
+        if (!albumRepository.contains('MusicResourceId.toNeteaseEntityId(sourceAlbumId)')) '${_relativePath(albumRepositoryFile)} does not derive album entity id from normalized source id',
+        if (!artistRepository.contains('MusicResourceId.toNeteaseEntityId(sourceArtistId)')) '${_relativePath(artistRepositoryFile)} does not derive artist entity id from normalized source id',
+        if (!albumRepository.contains('getTracksByAlbumId(sourceAlbumId)')) '${_relativePath(albumRepositoryFile)} does not query album tracks by normalized source id',
+        if (!artistRepository.contains('getTracksByArtistId(sourceArtistId)')) '${_relativePath(artistRepositoryFile)} does not query artist tracks by normalized source id',
+        if (!albumRepository.contains("ArgumentError.value(albumId, 'albumId'")) '${_relativePath(albumRepositoryFile)} does not reject blank album ids before remote fetch',
+        if (!artistRepository.contains("ArgumentError.value(artistId, 'artistId'")) '${_relativePath(artistRepositoryFile)} does not reject blank artist ids before remote fetch',
+        if (albumRepository.contains("getAlbum('netease:\$albumId')")) '${_relativePath(albumRepositoryFile)} still builds album entity ids with raw interpolation',
+        if (artistRepository.contains("getArtist('netease:\$artistId')")) '${_relativePath(artistRepositoryFile)} still builds artist entity ids with raw interpolation',
+        if (!albumRemote.contains('final normalizedAlbumId = _normalizedAlbumSourceId(albumId);')) '${_relativePath(albumRemoteFile)} does not normalize album ids at SDK boundary',
+        if (!artistRemote.contains('final normalizedArtistId = _normalizedArtistSourceId(artistId);')) '${_relativePath(artistRemoteFile)} does not normalize artist ids at SDK boundary',
+        if (!albumRemote.contains('_api.albumDetail(normalizedAlbumId)')) '${_relativePath(albumRemoteFile)} can still call SDK with raw album id',
+        if (!artistRemote.contains('_api.artistDetail(normalizedArtistId)')) '${_relativePath(artistRemoteFile)} can still call artist detail with raw id',
+        if (!artistRemote.contains('_api.artistTopSongList(normalizedArtistId)')) '${_relativePath(artistRemoteFile)} can still call artist songs with raw id',
+        if (!artistRemote.contains('_api.artistAlbumList(normalizedArtistId)')) '${_relativePath(artistRemoteFile)} can still call artist albums with raw id',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '专辑和歌手详情链路必须把页面输入归一为网易云来源 id，再分别派生本地实体 id、关系查询 source id 和 SDK 请求 id。',
+      );
+    });
+
     test('netease radio mapper normalizes remote radio and program ids', () {
       final mapperFile = File(
         '${projectRoot.path}/lib/data/music_data/sources/netease/mappers/netease_radio_mapper.dart',

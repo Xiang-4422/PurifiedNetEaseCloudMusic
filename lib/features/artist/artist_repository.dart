@@ -2,6 +2,7 @@ import 'package:bujuan/features/playback/application/playback_queue_item_mapper.
 import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/artist_entity.dart';
+import 'package:bujuan/core/entities/music_resource_id.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_resource_bundle.dart';
@@ -44,11 +45,16 @@ class ArtistRepository {
     required String artistId,
     required List<int> likedSongIds,
   }) async {
-    final artist = await _musicDataRepository.getArtist('netease:$artistId');
+    final sourceArtistId = _normalizedArtistSourceId(artistId);
+    if (sourceArtistId.isEmpty) {
+      return null;
+    }
+    final entityArtistId = MusicResourceId.toNeteaseEntityId(sourceArtistId);
+    final artist = await _musicDataRepository.getArtist(entityArtistId);
     if (artist == null) {
       return null;
     }
-    final topTracks = await _musicDataRepository.getTracksByArtistId(artistId);
+    final topTracks = await _musicDataRepository.getTracksByArtistId(sourceArtistId);
     final hotAlbums = await _musicDataRepository.searchLocalAlbums(artist.name);
     return ArtistDetailData(
       artist: artist,
@@ -65,8 +71,12 @@ class ArtistRepository {
     required String artistId,
     required List<int> likedSongIds,
   }) async {
+    final sourceArtistId = _normalizedArtistSourceId(artistId);
+    if (sourceArtistId.isEmpty) {
+      throw ArgumentError.value(artistId, 'artistId', 'Expected a non-empty netease artist id');
+    }
     final result = await _remoteDataSource.fetchArtistDetail(
-      artistId: artistId,
+      artistId: sourceArtistId,
     );
     final artist = result.artist;
     final tracks = result.topTracks;
@@ -110,5 +120,13 @@ class ArtistRepository {
       ],
       likedSongIds: likedSongIds,
     );
+  }
+
+  String _normalizedArtistSourceId(String artistId) {
+    final sourceArtistId = MusicResourceId.toNeteaseSourceId(artistId).trim();
+    if (sourceArtistId.isEmpty || MusicResourceId.hasKnownPrefix(sourceArtistId)) {
+      return '';
+    }
+    return sourceArtistId;
   }
 }

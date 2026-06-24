@@ -1,6 +1,7 @@
 import 'package:bujuan/features/playback/application/playback_queue_item_mapper.dart';
 import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
+import 'package:bujuan/core/entities/music_resource_id.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_resource_bundle.dart';
@@ -39,11 +40,16 @@ class AlbumRepository {
     required String albumId,
     required List<int> likedSongIds,
   }) async {
-    final album = await _musicDataRepository.getAlbum('netease:$albumId');
+    final sourceAlbumId = _normalizedAlbumSourceId(albumId);
+    if (sourceAlbumId.isEmpty) {
+      return null;
+    }
+    final entityAlbumId = MusicResourceId.toNeteaseEntityId(sourceAlbumId);
+    final album = await _musicDataRepository.getAlbum(entityAlbumId);
     if (album == null) {
       return null;
     }
-    final tracks = await _musicDataRepository.getTracksByAlbumId(albumId);
+    final tracks = await _musicDataRepository.getTracksByAlbumId(sourceAlbumId);
     return AlbumDetailData(
       album: album,
       albumSongs: await _mapTracksToPlaybackQueueItems(
@@ -58,8 +64,12 @@ class AlbumRepository {
     required String albumId,
     required List<int> likedSongIds,
   }) async {
+    final sourceAlbumId = _normalizedAlbumSourceId(albumId);
+    if (sourceAlbumId.isEmpty) {
+      throw ArgumentError.value(albumId, 'albumId', 'Expected a non-empty netease album id');
+    }
     final result = await _remoteDataSource.fetchAlbumDetail(
-      albumId: albumId,
+      albumId: sourceAlbumId,
     );
     final album = result.album;
     final tracks = result.tracks;
@@ -99,5 +109,13 @@ class AlbumRepository {
       ],
       likedSongIds: likedSongIds,
     );
+  }
+
+  String _normalizedAlbumSourceId(String albumId) {
+    final sourceAlbumId = MusicResourceId.toNeteaseSourceId(albumId).trim();
+    if (sourceAlbumId.isEmpty || MusicResourceId.hasKnownPrefix(sourceAlbumId)) {
+      return '';
+    }
+    return sourceAlbumId;
   }
 }

@@ -1,4 +1,5 @@
 import 'package:netease_music_api/netease_music_api.dart';
+import 'package:bujuan/core/entities/music_resource_id.dart';
 import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_album_mapper.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_artist_mapper.dart';
@@ -24,9 +25,13 @@ class NeteaseArtistRemoteDataSource implements ArtistRemoteDataSource {
       })> fetchArtistDetail({
     required String artistId,
   }) async {
-    final artistDetail = await _api.artistDetail(artistId);
-    final artistSongs = await _api.artistTopSongList(artistId);
-    final artistAlbums = await _api.artistAlbumList(artistId);
+    final normalizedArtistId = _normalizedArtistSourceId(artistId);
+    if (normalizedArtistId.isEmpty) {
+      throw ArgumentError.value(artistId, 'artistId', 'Expected a non-empty netease artist id');
+    }
+    final artistDetail = await _api.artistDetail(normalizedArtistId);
+    final artistSongs = await _api.artistTopSongList(normalizedArtistId);
+    final artistAlbums = await _api.artistAlbumList(normalizedArtistId);
     final artist = artistDetail.data?.artist == null ? null : NeteaseArtistMapper.fromArtist(artistDetail.data!.artist!);
     final tracks = NeteaseTrackMapper.fromSong2List(artistSongs.songs ?? const []);
     final albums = NeteaseAlbumMapper.fromAlbumList(artistAlbums.hotAlbums ?? const []);
@@ -35,5 +40,13 @@ class NeteaseArtistRemoteDataSource implements ArtistRemoteDataSource {
       topTracks: tracks,
       hotAlbums: albums,
     );
+  }
+
+  String _normalizedArtistSourceId(String artistId) {
+    final sourceArtistId = MusicResourceId.toNeteaseSourceId(artistId).trim();
+    if (sourceArtistId.isEmpty || MusicResourceId.hasKnownPrefix(sourceArtistId)) {
+      return '';
+    }
+    return sourceArtistId;
   }
 }

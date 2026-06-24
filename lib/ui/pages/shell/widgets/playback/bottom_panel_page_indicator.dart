@@ -6,6 +6,26 @@ import 'package:bujuan/ui/widgets/common/layout/my_tab_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// 播放队列会话标题的完整辅助语义标签。
+@visibleForTesting
+String bottomPanelSessionTitleLabel({
+  required String playlistHeader,
+  required String playlistName,
+}) {
+  final header = playlistHeader.trim();
+  final name = playlistName.trim();
+  if (header.isEmpty && name.isEmpty) {
+    return '当前播放列表';
+  }
+  if (header.isEmpty) {
+    return '当前播放列表：$name';
+  }
+  if (name.isEmpty) {
+    return '当前播放列表：$header';
+  }
+  return '当前播放列表：$header $name';
+}
+
 /// 底部播放面板页面指示器，展示队列、正在播放和评论分页。
 class BottomPanelPageIndicator extends GetView<ShellController> {
   /// 创建页面指示器。
@@ -31,6 +51,10 @@ class BottomPanelPageIndicator extends GetView<ShellController> {
           color: settingsController.albumColor.value,
           child: Obx(() {
             final sessionState = playerController.sessionState.value;
+            final sessionTitleLabel = bottomPanelSessionTitleLabel(
+              playlistHeader: sessionState.playlistHeader,
+              playlistName: sessionState.playlistName,
+            );
             return Container(
               height: albumPadding,
               margin: const EdgeInsets.symmetric(
@@ -43,41 +67,50 @@ class BottomPanelPageIndicator extends GetView<ShellController> {
               ),
               child: MyTabBarItemAnimatedSwitcher(
                 isTabBarVisible: controller.curPanelPageIndex.value == 0,
-                replaceItem: Row(
-                  children: [
-                    Offstage(
-                      offstage: sessionState.playlistHeader.isEmpty,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: albumPadding / 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: settingsController.panelWidgetColor.value.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(albumPadding),
-                        ),
-                        child: Text(
-                          sessionState.playlistHeader,
-                          style: context.textTheme.titleMedium?.copyWith(
-                            color: settingsController.panelWidgetColor.value.withValues(alpha: 0.5),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Container(
-                        alignment: AlignmentDirectional.center,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Text(
-                            sessionState.playlistName,
-                            style: context.textTheme.titleMedium?.copyWith(
-                              color: settingsController.panelWidgetColor.value.withValues(alpha: 0.5),
+                replaceItem: Tooltip(
+                  message: sessionTitleLabel,
+                  excludeFromSemantics: true,
+                  child: Semantics(
+                    label: sessionTitleLabel,
+                    child: ExcludeSemantics(
+                      child: Row(
+                        children: [
+                          Offstage(
+                            offstage: sessionState.playlistHeader.isEmpty,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: albumPadding / 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: settingsController.panelWidgetColor.value.withValues(alpha: 0.05),
+                                borderRadius: BorderRadius.circular(albumPadding),
+                              ),
+                              child: Text(
+                                sessionState.playlistHeader,
+                                style: context.textTheme.titleMedium?.copyWith(
+                                  color: settingsController.panelWidgetColor.value.withValues(alpha: 0.5),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                          Expanded(
+                            child: Container(
+                              alignment: AlignmentDirectional.center,
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Text(
+                                  sessionState.playlistName,
+                                  style: context.textTheme.titleMedium?.copyWith(
+                                    color: settingsController.panelWidgetColor.value.withValues(alpha: 0.5),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
                 tabItem: MyTabBar(
                   height: albumPadding,

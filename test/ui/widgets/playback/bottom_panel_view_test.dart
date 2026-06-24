@@ -5,6 +5,7 @@ import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_header.dart'
 import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_mini_player.dart';
 import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_now_playing_metadata.dart';
 import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_now_playing_page.dart';
+import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_page_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -212,6 +213,39 @@ void main() {
     });
   });
 
+  group('bottom panel page indicator helpers', () {
+    test('builds session title labels', () {
+      expect(
+        bottomPanelSessionTitleLabel(
+          playlistHeader: ' Header ',
+          playlistName: ' Queue ',
+        ),
+        '当前播放列表：Header Queue',
+      );
+      expect(
+        bottomPanelSessionTitleLabel(
+          playlistHeader: '',
+          playlistName: ' Queue ',
+        ),
+        '当前播放列表：Queue',
+      );
+      expect(
+        bottomPanelSessionTitleLabel(
+          playlistHeader: ' Header ',
+          playlistName: '',
+        ),
+        '当前播放列表：Header',
+      );
+      expect(
+        bottomPanelSessionTitleLabel(
+          playlistHeader: ' ',
+          playlistName: ' ',
+        ),
+        '当前播放列表',
+      );
+    });
+  });
+
   test('bottom panel keeps mini player in a dedicated local widget file', () {
     final panelSource = File(
       'lib/ui/pages/shell/widgets/playback/bottom_panel_view.dart',
@@ -318,6 +352,10 @@ void main() {
     expect(indicatorSource, contains("'播放列表'"));
     expect(indicatorSource, contains("'正在播放'"));
     expect(indicatorSource, contains("'歌曲评论'"));
+    expect(indicatorSource, contains('bottomPanelSessionTitleLabel('));
+    expect(indicatorSource, contains('Tooltip('));
+    expect(indicatorSource, contains('Semantics('));
+    expect(indicatorSource, contains('ExcludeSemantics('));
     expect(indicatorSource, contains('bottomPanelCommentTabController'));
     expect(indicatorSource, isNot(contains('PlayerController.to')));
     expect(indicatorSource, isNot(contains('SettingsController.to')));

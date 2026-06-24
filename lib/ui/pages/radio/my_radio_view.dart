@@ -20,6 +20,17 @@ import 'package:pull_to_refresh/pull_to_refresh.dart';
 @visibleForTesting
 const double myRadioListItemExtent = 120;
 
+/// 我的播客列表项辅助语义标签。
+@visibleForTesting
+String myRadioTileSemanticsLabel({
+  required String name,
+  required String lastProgramName,
+}) {
+  final resolvedName = name.trim().isEmpty ? '未知播客' : name.trim();
+  final resolvedProgram = lastProgramName.trim().isEmpty ? '暂无节目' : lastProgramName.trim();
+  return '打开播客：$resolvedName - $resolvedProgram';
+}
+
 /// 我的播客列表页。
 class MyRadioView extends StatefulWidget {
   /// 创建我的播客列表页。
@@ -105,51 +116,66 @@ class _MyRadioViewState extends State<MyRadioView> {
   }
 
   Widget _buildItem(RadioSummaryData data) {
-    return InkWell(
-        child: SizedBox(
-          height: myRadioListItemExtent,
-          child: Row(
-            children: [
-              SimpleExtendedImage(
-                ArtworkPathResolver.resolveDisplayPath(data.coverUrl),
-                width: 85,
-                height: 85,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              Expanded(
-                  child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      data.name,
-                      maxLines: 1,
-                      style: const TextStyle(fontSize: 28),
+    final label = myRadioTileSemanticsLabel(
+      name: data.name,
+      lastProgramName: data.lastProgramName,
+    );
+    return Tooltip(
+      message: label,
+      child: Semantics(
+        button: true,
+        label: label,
+        child: ExcludeSemantics(
+          child: InkWell(
+            child: SizedBox(
+              height: myRadioListItemExtent,
+              child: Row(
+                children: [
+                  SimpleExtendedImage(
+                    ArtworkPathResolver.resolveDisplayPath(data.coverUrl),
+                    width: 85,
+                    height: 85,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            data.name,
+                            maxLines: 1,
+                            style: const TextStyle(fontSize: 28),
+                          ),
+                          const Padding(padding: EdgeInsets.symmetric(vertical: 3)),
+                          Text(
+                            data.lastProgramName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 26, color: Colors.grey),
+                          )
+                        ],
+                      ),
                     ),
-                    const Padding(padding: EdgeInsets.symmetric(vertical: 3)),
-                    Text(
-                      data.lastProgramName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 26, color: Colors.grey),
-                    )
-                  ],
+                  )
+                ],
+              ),
+            ),
+            onTap: () {
+              context.router.push(
+                const RadioDetailsView().copyWith(
+                  queryParams: {
+                    'radioId': data.id,
+                    'radioName': data.name,
+                  },
                 ),
-              ))
-            ],
+              );
+            },
           ),
         ),
-        onTap: () {
-          context.router.push(
-            const RadioDetailsView().copyWith(
-              queryParams: {
-                'radioId': data.id,
-                'radioName': data.name,
-              },
-            ),
-          );
-        });
+      ),
+    );
   }
 }

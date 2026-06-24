@@ -87,12 +87,16 @@ void main() {
       'lib/ui/pages/playlist/playlist_page_state.dart',
     ).readAsStringSync();
 
-    expect(pageSource, contains('PlaylistPagePresentation('));
+    expect(pageSource, contains('PlaylistPageStateModel.initial('));
+    expect(pageSource, contains('_playlistState.presentation'));
     expect(pageSource, isNot(contains('enum _PlaylistPageLoadState')));
     expect(pageSource, isNot(contains('enum _PlaylistFetchKind')));
     expect(stateSource, contains('enum PlaylistPageLoadState'));
     expect(stateSource, contains('enum PlaylistFetchKind'));
+    expect(stateSource, contains('class PlaylistPageStateModel'));
     expect(stateSource, contains('class PlaylistPagePresentation'));
+    expect(stateSource, contains('applyLocalPlaylist'));
+    expect(stateSource, contains('applyDetail'));
     expect(stateSource, contains('canPlayLoadedPlaylist'));
     expect(stateSource, contains('completionMessage'));
   });

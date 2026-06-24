@@ -13,6 +13,7 @@ import 'package:get/get.dart';
 
 const double _recentPlaybackStripHeight = 76;
 const double _recentPlaybackTileWidth = 220;
+const double _recentPlaybackItemExtent = _recentPlaybackTileWidth + AppDimensions.paddingSmall;
 const double _recentPlaybackCacheExtent = 360;
 
 /// 个人页中的最近播放横向列表。
@@ -47,24 +48,27 @@ class RecentPlaybackStrip extends StatelessWidget {
           ).marginOnly(top: AppDimensions.paddingSmall),
           SizedBox(
             height: _recentPlaybackStripHeight,
-            child: ListView.separated(
+            child: ListView.builder(
               cacheExtent: _recentPlaybackCacheExtent,
               scrollDirection: Axis.horizontal,
+              itemExtent: _recentPlaybackItemExtent,
               physics: const ClampingScrollPhysics(),
               padding: const EdgeInsets.symmetric(
                 horizontal: AppDimensions.paddingSmall,
               ),
               itemCount: recentTracks.length,
-              separatorBuilder: (_, __) => const SizedBox(width: AppDimensions.paddingSmall),
               itemBuilder: (context, index) {
                 final song = recentTracks[index];
-                return _RecentPlaybackTile(
-                  song: song,
-                  isCurrent: song.id == currentSongId,
-                  onTap: () => playbackAction.playPlaylist(
-                    recentTracks,
-                    index,
-                    playListName: '最近播放',
+                return Padding(
+                  padding: const EdgeInsets.only(right: AppDimensions.paddingSmall),
+                  child: _RecentPlaybackTile(
+                    song: song,
+                    isCurrent: song.id == currentSongId,
+                    onTap: () => playbackAction.playPlaylist(
+                      recentTracks,
+                      index,
+                      playListName: '最近播放',
+                    ),
                   ),
                 );
               },

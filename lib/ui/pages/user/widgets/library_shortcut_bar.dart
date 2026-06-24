@@ -9,6 +9,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
 const double _libraryShortcutBarHeight = 72;
 const double _libraryShortcutItemWidth = 84;
+const double _libraryShortcutItemExtent = _libraryShortcutItemWidth + AppDimensions.paddingSmall;
 const double _libraryShortcutCacheExtent = 240;
 
 /// 个人页资料库区域的轻量快捷入口。
@@ -68,15 +69,18 @@ class LibraryShortcutBar extends StatelessWidget {
       ),
       child: SizedBox(
         height: _libraryShortcutBarHeight,
-        child: ListView.separated(
+        child: ListView.builder(
           cacheExtent: _libraryShortcutCacheExtent,
           scrollDirection: Axis.horizontal,
+          itemExtent: _libraryShortcutItemExtent,
           itemCount: shortcuts.length,
-          separatorBuilder: (_, __) => const SizedBox(width: AppDimensions.paddingSmall),
           itemBuilder: (context, index) {
-            return SizedBox(
-              width: _libraryShortcutItemWidth,
-              child: _LibraryShortcutButton(action: shortcuts[index]),
+            return Padding(
+              padding: const EdgeInsets.only(right: AppDimensions.paddingSmall),
+              child: SizedBox(
+                width: _libraryShortcutItemWidth,
+                child: _LibraryShortcutButton(action: shortcuts[index]),
+              ),
             );
           },
         ),

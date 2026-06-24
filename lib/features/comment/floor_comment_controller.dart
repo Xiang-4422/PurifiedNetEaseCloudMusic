@@ -1,5 +1,6 @@
 import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/comment_data.dart';
+import 'package:bujuan/features/comment/comment_paged_controller.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:flutter/foundation.dart';
 
@@ -12,7 +13,26 @@ class FloorCommentController {
     required this.parentCommentId,
     required CommentRepository repository,
     this.pageSize = 20,
-  }) : _repository = repository;
+  })  : _repository = repository,
+        _pagedController = CommentPagedController<int>(
+          firstCursor: -1,
+          skipRepeatedInitialLoad: true,
+          loadPage: ({required cursor, required forceRefresh}) async {
+            final page = await repository.fetchFloorComments(
+              id,
+              type,
+              parentCommentId,
+              time: cursor,
+              limit: pageSize,
+              forceRefresh: forceRefresh,
+            );
+            return CommentPagedPage<int>(
+              items: page.items,
+              hasMore: page.hasMore,
+              nextCursor: page.nextTime,
+            );
+          },
+        );
 
   /// 评论资源 id。
   final String id;
@@ -26,122 +46,24 @@ class FloorCommentController {
   /// 每页楼层回复数量。
   final int pageSize;
   final CommentRepository _repository;
+  final CommentPagedController<int> _pagedController;
 
   /// 楼层回复分页加载状态。
-  final ValueNotifier<PagedState<CommentData>> state = ValueNotifier(PagedState.initialLoading());
-
-  int _time = -1;
-  bool _loadedOnce = false;
-  int _requestGeneration = 0;
-  bool _disposed = false;
+  ValueNotifier<PagedState<CommentData>> get state => _pagedController.state;
 
   /// 首次加载楼层回复，可通过 `force` 强制重新加载。
   Future<void> loadInitial({bool force = false}) async {
-    if (_disposed || (_loadedOnce && !force)) {
-      return;
-    }
-    state.value = PagedState.initialLoading();
-    await _reload();
+    await _pagedController.loadInitial(force: force);
   }
 
   /// 刷新楼层回复第一页。
   Future<bool> refresh() async {
-    if (_disposed) {
-      return true;
-    }
-    state.value = state.value.copyWith(
-      refreshing: true,
-      error: null,
-    );
-    return _reload();
+    return _pagedController.refresh();
   }
 
   /// 加载下一页楼层回复。
   Future<bool> loadMore() async {
-    if (_disposed) {
-      return true;
-    }
-    final currentState = state.value;
-    if (currentState.initialLoading || currentState.refreshing || currentState.loadingMore || !currentState.hasMore) {
-      return true;
-    }
-    final generation = _requestGeneration;
-    state.value = currentState.copyWith(
-      loadingMore: true,
-      error: null,
-    );
-    try {
-      final page = await _repository.fetchFloorComments(
-        id,
-        type,
-        parentCommentId,
-        time: _time,
-        limit: pageSize,
-      );
-      if (!_isCurrentRequest(generation)) {
-        return true;
-      }
-      _time = page.nextTime;
-      state.value = PagedState(
-        items: [...currentState.items, ...page.items],
-        hasMore: page.hasMore,
-      );
-      _loadedOnce = true;
-      return true;
-    } catch (error, stackTrace) {
-      if (!_isCurrentRequest(generation)) {
-        return true;
-      }
-      state.value = currentState.copyWith(
-        loadingMore: false,
-        error: error,
-        stackTrace: stackTrace,
-      );
-      return false;
-    }
-  }
-
-  Future<bool> _reload() async {
-    if (_disposed) {
-      return true;
-    }
-    final generation = ++_requestGeneration;
-    final previousState = state.value;
-    try {
-      final page = await _repository.fetchFloorComments(
-        id,
-        type,
-        parentCommentId,
-        time: -1,
-        limit: pageSize,
-        forceRefresh: previousState.refreshing,
-      );
-      if (!_isCurrentRequest(generation)) {
-        return true;
-      }
-      _time = page.nextTime;
-      state.value = PagedState.data(
-        page.items,
-        hasMore: page.hasMore,
-      );
-      _loadedOnce = true;
-      return true;
-    } catch (error, stackTrace) {
-      if (!_isCurrentRequest(generation)) {
-        return true;
-      }
-      state.value = previousState.items.isEmpty
-          ? PagedState.error(
-              error,
-              stackTrace: stackTrace,
-            )
-          : previousState.copyWith(
-              refreshing: false,
-              error: error,
-              stackTrace: stackTrace,
-            );
-      return false;
-    }
+    return _pagedController.loadMore();
   }
 
   /// 切换评论点赞状态。
@@ -175,15 +97,6 @@ class FloorCommentController {
 
   /// 释放楼层回复状态监听器。
   void dispose() {
-    if (_disposed) {
-      return;
-    }
-    _disposed = true;
-    _requestGeneration++;
-    state.dispose();
-  }
-
-  bool _isCurrentRequest(int generation) {
-    return !_disposed && generation == _requestGeneration;
+    _pagedController.dispose();
   }
 }

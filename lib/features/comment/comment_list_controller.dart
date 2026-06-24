@@ -1,7 +1,23 @@
 import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/comment_data.dart';
+import 'package:bujuan/features/comment/comment_paged_controller.dart';
 import 'package:bujuan/features/comment/comment_repository.dart';
 import 'package:flutter/foundation.dart';
+
+/// 评论列表分页游标。
+class CommentListPageCursor {
+  /// 创建评论列表分页游标。
+  const CommentListPageCursor({
+    required this.pageNo,
+    required this.cursor,
+  });
+
+  /// 请求页码。
+  final int pageNo;
+
+  /// 服务端游标。
+  final String? cursor;
+}
 
 /// 评论列表分页控制器。
 class CommentListController {
@@ -12,7 +28,31 @@ class CommentListController {
     required this.sortType,
     required CommentRepository repository,
     this.pageSize = 10,
-  }) : _repository = repository;
+  }) : _pagedController = CommentPagedController<CommentListPageCursor>(
+          firstCursor: const CommentListPageCursor(
+            pageNo: 1,
+            cursor: null,
+          ),
+          loadPage: ({required cursor, required forceRefresh}) async {
+            final page = await repository.fetchComments(
+              id,
+              type,
+              pageNo: cursor.pageNo,
+              pageSize: pageSize,
+              sortType: sortType,
+              cursor: cursor.cursor,
+              forceRefresh: forceRefresh,
+            );
+            return CommentPagedPage<CommentListPageCursor>(
+              items: page.items,
+              hasMore: page.hasMore,
+              nextCursor: CommentListPageCursor(
+                pageNo: cursor.pageNo + 1,
+                cursor: page.nextCursor,
+              ),
+            );
+          },
+        );
 
   /// 评论资源 id。
   final String id;
@@ -25,137 +65,28 @@ class CommentListController {
 
   /// 每页评论数量。
   final int pageSize;
-  final CommentRepository _repository;
+  final CommentPagedController<CommentListPageCursor> _pagedController;
 
   /// 评论分页加载状态。
-  final ValueNotifier<PagedState<CommentData>> state = ValueNotifier(PagedState.initialLoading());
-
-  int _pageNo = 1;
-  String? _cursor;
-  int _requestGeneration = 0;
-  bool _disposed = false;
+  ValueNotifier<PagedState<CommentData>> get state => _pagedController.state;
 
   /// 首次加载评论列表。
   Future<void> loadInitial() async {
-    if (_disposed) {
-      return;
-    }
-    state.value = PagedState.initialLoading();
-    await _reload();
+    await _pagedController.loadInitial();
   }
 
   /// 刷新评论第一页。
   Future<bool> refresh() async {
-    if (_disposed) {
-      return true;
-    }
-    state.value = state.value.copyWith(
-      refreshing: true,
-      error: null,
-    );
-    return _reload();
+    return _pagedController.refresh();
   }
 
   /// 加载下一页评论。
   Future<bool> loadMore() async {
-    if (_disposed) {
-      return true;
-    }
-    final currentState = state.value;
-    if (currentState.initialLoading || currentState.refreshing || currentState.loadingMore || !currentState.hasMore) {
-      return true;
-    }
-    final generation = _requestGeneration;
-    state.value = currentState.copyWith(
-      loadingMore: true,
-      error: null,
-    );
-    try {
-      final page = await _repository.fetchComments(
-        id,
-        type,
-        pageNo: _pageNo + 1,
-        pageSize: pageSize,
-        sortType: sortType,
-        cursor: _cursor,
-      );
-      if (!_isCurrentRequest(generation)) {
-        return true;
-      }
-      _pageNo += 1;
-      _cursor = page.nextCursor;
-      state.value = PagedState(
-        items: [...currentState.items, ...page.items],
-        hasMore: page.hasMore,
-      );
-      return true;
-    } catch (error, stackTrace) {
-      if (!_isCurrentRequest(generation)) {
-        return true;
-      }
-      state.value = currentState.copyWith(
-        loadingMore: false,
-        error: error,
-        stackTrace: stackTrace,
-      );
-      return false;
-    }
-  }
-
-  Future<bool> _reload() async {
-    if (_disposed) {
-      return true;
-    }
-    final generation = ++_requestGeneration;
-    final previousState = state.value;
-    try {
-      final page = await _repository.fetchComments(
-        id,
-        type,
-        pageNo: 1,
-        pageSize: pageSize,
-        sortType: sortType,
-        forceRefresh: previousState.refreshing,
-      );
-      if (!_isCurrentRequest(generation)) {
-        return true;
-      }
-      _pageNo = 1;
-      _cursor = page.nextCursor;
-      state.value = PagedState.data(
-        page.items,
-        hasMore: page.hasMore,
-      );
-      return true;
-    } catch (error, stackTrace) {
-      if (!_isCurrentRequest(generation)) {
-        return true;
-      }
-      state.value = previousState.items.isEmpty
-          ? PagedState.error(
-              error,
-              stackTrace: stackTrace,
-            )
-          : previousState.copyWith(
-              refreshing: false,
-              error: error,
-              stackTrace: stackTrace,
-            );
-      return false;
-    }
+    return _pagedController.loadMore();
   }
 
   /// 释放评论列表状态监听器。
   void dispose() {
-    if (_disposed) {
-      return;
-    }
-    _disposed = true;
-    _requestGeneration++;
-    state.dispose();
-  }
-
-  bool _isCurrentRequest(int generation) {
-    return !_disposed && generation == _requestGeneration;
+    _pagedController.dispose();
   }
 }

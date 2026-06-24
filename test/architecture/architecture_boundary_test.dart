@@ -3127,6 +3127,15 @@ void main() {
       final floorSheet = floorSheetFile.readAsStringSync();
       final factory = factoryFile.readAsStringSync();
       final bootstrap = bootstrapFile.readAsStringSync();
+      final commentListController = File(
+        '${projectRoot.path}/lib/features/comment/comment_list_controller.dart',
+      ).readAsStringSync();
+      final floorCommentController = File(
+        '${projectRoot.path}/lib/features/comment/floor_comment_controller.dart',
+      ).readAsStringSync();
+      final pagedController = File(
+        '${projectRoot.path}/lib/features/comment/comment_paged_controller.dart',
+      ).readAsStringSync();
       final violations = <String>[
         if (commentWidget.contains('CommentRepository')) '${_relativePath(commentWidgetFile)} names comment repository directly',
         if (commentItem.contains('CommentRepository')) '${_relativePath(commentItemFile)} names comment repository directly',
@@ -3154,6 +3163,10 @@ void main() {
         if (!factory.contains('ReplySheetController createReplySheet({')) 'comment controller factory does not create reply sheet controllers',
         if (!factory.contains('repository: _repository')) 'comment controller factory does not inject comment repository',
         if (!bootstrap.contains('CommentControllerFactory(')) 'feature bootstrap does not register comment controller factory',
+        if (!commentListController.contains('CommentPagedController<CommentListPageCursor>')) 'comment list controller does not reuse shared paged controller',
+        if (!floorCommentController.contains('CommentPagedController<int>')) 'floor comment controller does not reuse shared paged controller',
+        if (!pagedController.contains('previousState.items.isEmpty')) 'comment paged controller does not distinguish first-load and refresh failures',
+        if (!pagedController.contains('generation == _requestGeneration')) 'comment paged controller does not guard stale requests by generation',
       ];
 
       expect(

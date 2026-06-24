@@ -1,6 +1,6 @@
 import 'package:bujuan/ui/theme/app_constants.dart';
+import 'package:bujuan/features/settings/utility_page_controller_bundle.dart';
 import 'package:bujuan/features/user/user_profile_controller.dart';
-import 'package:bujuan/features/user/user_profile_controller_factory.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:bujuan/ui/widgets/common/feedback/load_state_view.dart';
 import 'package:bujuan/ui/widgets/common/image/simple_extended_image.dart';
@@ -19,12 +19,13 @@ class UserProfilePageView extends StatefulWidget {
 }
 
 class _UserProfilePageViewState extends State<UserProfilePageView> {
+  late final UtilityPageControllerBundle _controllers = Get.find<UtilityPageControllerBundle>();
   late final UserProfileController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = Get.find<UserProfileControllerFactory>().create()..loadInitial();
+    _controller = _controllers.userProfileControllerFactory.create()..loadInitial();
   }
 
   @override

@@ -1,6 +1,6 @@
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/features/download/local_song_list_controller.dart';
-import 'package:bujuan/features/download/local_song_list_controller_factory.dart';
+import 'package:bujuan/features/settings/utility_page_controller_bundle.dart';
 import 'package:bujuan/ui/pages/download/widgets/local_song_bulk_actions.dart';
 import 'package:bujuan/ui/pages/download/widgets/local_song_list_widgets.dart';
 import 'package:bujuan/ui/pages/download/widgets/local_song_tab_bar.dart';
@@ -35,6 +35,7 @@ class DownloadTaskPageView extends StatefulWidget {
 }
 
 class _DownloadTaskPageViewState extends State<DownloadTaskPageView> with SingleTickerProviderStateMixin {
+  late final UtilityPageControllerBundle _controllers = Get.find<UtilityPageControllerBundle>();
   late final TabController _tabController;
   late final LocalSongListController _allController;
   late final LocalSongListController _cacheController;
@@ -69,7 +70,7 @@ class _DownloadTaskPageViewState extends State<DownloadTaskPageView> with Single
   LocalSongListController _localSongList({
     Set<TrackResourceOrigin>? origins,
   }) {
-    return Get.find<LocalSongListControllerFactory>().create(origins: origins);
+    return _controllers.localSongListControllerFactory.create(origins: origins);
   }
 
   @override

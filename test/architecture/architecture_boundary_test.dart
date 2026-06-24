@@ -2462,17 +2462,26 @@ void main() {
       final bootstrapFile = File(
         '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
       );
+      final utilityBundleFile = File(
+        '${projectRoot.path}/lib/features/settings/utility_page_controller_bundle.dart',
+      );
       final page = pageFile.readAsStringSync();
       final factory = factoryFile.readAsStringSync();
       final bootstrap = bootstrapFile.readAsStringSync();
+      final utilityBundle = utilityBundleFile.readAsStringSync();
       final violations = <String>[
         if (page.contains('MusicDataRepository')) '${_relativePath(pageFile)} names music data repository directly',
         if (page.contains('DownloadRepository')) '${_relativePath(pageFile)} names download repository directly',
-        if (!page.contains('Get.find<LocalSongListControllerFactory>().create(origins: origins)')) '${_relativePath(pageFile)} does not create local song controllers through feature factory',
+        if (page.contains('Get.find<LocalSongListControllerFactory>')) '${_relativePath(pageFile)} reads local song factory directly',
+        if (!page.contains('Get.find<UtilityPageControllerBundle>()')) '${_relativePath(pageFile)} does not resolve utility page bundle at page boundary',
+        if (!page.contains('_controllers.localSongListControllerFactory.create(origins: origins)')) '${_relativePath(pageFile)} does not create local song controllers through utility bundle',
         if (!factory.contains('LocalSongListController create({')) 'local song controller factory does not create page-local controllers',
         if (!factory.contains('musicDataRepository: _musicDataRepository')) 'local song controller factory does not inject music data repository',
         if (!factory.contains('downloadRepository: _downloadRepository')) 'local song controller factory does not inject download repository',
         if (!bootstrap.contains('LocalSongListControllerFactory(')) 'feature bootstrap does not register local song controller factory',
+        if (!bootstrap.contains('Get.put<UtilityPageControllerBundle>')) 'feature bootstrap does not register utility page controller bundle',
+        if (!bootstrap.contains('localSongListControllerFactory: Get.find<LocalSongListControllerFactory>()')) 'feature bootstrap does not inject local song factory into utility bundle',
+        if (!utilityBundle.contains('final LocalSongListControllerFactory localSongListControllerFactory')) 'utility bundle does not expose local song list controller factory',
       ];
 
       expect(
@@ -2846,16 +2855,24 @@ void main() {
       final bootstrapFile = File(
         '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
       );
+      final utilityBundleFile = File(
+        '${projectRoot.path}/lib/features/settings/utility_page_controller_bundle.dart',
+      );
       final page = pageFile.readAsStringSync();
       final controller = controllerFile.readAsStringSync();
       final bootstrap = bootstrapFile.readAsStringSync();
+      final utilityBundle = utilityBundleFile.readAsStringSync();
       final violations = <String>[
         if (page.contains('Get.find<CacheAnalysisService>')) '${_relativePath(pageFile)} reads cache service directly',
         if (page.contains('CacheAnalysisService')) '${_relativePath(pageFile)} names cache service directly',
-        if (!page.contains('Get.find<CacheAnalysisControllerFactory>().create()')) '${_relativePath(pageFile)} does not create controller through feature factory',
+        if (page.contains('Get.find<CacheAnalysisControllerFactory>')) '${_relativePath(pageFile)} reads cache analysis factory directly',
+        if (!page.contains('Get.find<UtilityPageControllerBundle>()')) '${_relativePath(pageFile)} does not resolve utility page bundle at page boundary',
+        if (!page.contains('_controllers.cacheAnalysisControllerFactory.create()')) '${_relativePath(pageFile)} does not create controller through utility bundle',
         if (!controller.contains('class CacheAnalysisControllerFactory')) '${_relativePath(controllerFile)} does not define cache analysis controller factory',
         if (!controller.contains('required CacheAnalysisService service')) '${_relativePath(controllerFile)} does not receive cache analysis service through constructor',
         if (!bootstrap.contains('CacheAnalysisControllerFactory(')) 'feature bootstrap does not register cache analysis controller factory',
+        if (!bootstrap.contains('cacheAnalysisControllerFactory: Get.find<CacheAnalysisControllerFactory>()')) 'feature bootstrap does not inject cache analysis factory into utility bundle',
+        if (!utilityBundle.contains('final CacheAnalysisControllerFactory cacheAnalysisControllerFactory')) 'utility bundle does not expose cache analysis controller factory',
       ];
 
       expect(
@@ -2960,15 +2977,21 @@ void main() {
       final bootstrapFile = File(
         '${projectRoot.path}/lib/app/bootstrap/feature_bootstrap.dart',
       );
+      final utilityBundleFile = File(
+        '${projectRoot.path}/lib/features/settings/utility_page_controller_bundle.dart',
+      );
       final page = pageFile.readAsStringSync();
       final factory = factoryFile.readAsStringSync();
       final controller = controllerFile.readAsStringSync();
       final bootstrap = bootstrapFile.readAsStringSync();
+      final utilityBundle = utilityBundleFile.readAsStringSync();
       final violations = <String>[
         if (page.contains('UserRepository')) '${_relativePath(pageFile)} names user repository directly',
         if (page.contains('UserSessionController')) '${_relativePath(pageFile)} reads current user directly',
         if (page.contains('AuthController')) '${_relativePath(pageFile)} reads auth controller directly',
-        if (!page.contains('Get.find<UserProfileControllerFactory>().create()')) '${_relativePath(pageFile)} does not create profile controller through feature factory',
+        if (page.contains('Get.find<UserProfileControllerFactory>')) '${_relativePath(pageFile)} reads profile factory directly',
+        if (!page.contains('Get.find<UtilityPageControllerBundle>()')) '${_relativePath(pageFile)} does not resolve utility page bundle at page boundary',
+        if (!page.contains('_controllers.userProfileControllerFactory.create()')) '${_relativePath(pageFile)} does not create profile controller through utility bundle',
         if (!page.contains('_controller.logoutCurrentUser()')) '${_relativePath(pageFile)} does not submit logout through profile controller',
         if (!factory.contains('UserProfileController create()')) 'user profile controller factory does not create page-local controllers',
         if (!factory.contains('userId: _currentUserId()')) 'user profile controller factory does not snapshot current user at controller creation',
@@ -2980,6 +3003,8 @@ void main() {
         if (!bootstrap.contains('UserProfileControllerFactory(')) 'feature bootstrap does not register user profile controller factory',
         if (!bootstrap.contains('currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId')) 'feature bootstrap does not inject current user provider',
         if (!bootstrap.contains('logoutCurrentUser: () => Get.find<AuthController>().logoutCurrentUser()')) 'feature bootstrap does not inject auth logout boundary',
+        if (!bootstrap.contains('userProfileControllerFactory: Get.find<UserProfileControllerFactory>()')) 'feature bootstrap does not inject profile factory into utility bundle',
+        if (!utilityBundle.contains('final UserProfileControllerFactory userProfileControllerFactory')) 'utility bundle does not expose user profile controller factory',
       ];
 
       expect(

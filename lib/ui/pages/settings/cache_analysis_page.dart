@@ -2,6 +2,7 @@ import 'package:bujuan/ui/services/dialog_service.dart';
 import 'package:bujuan/ui/services/toast_service.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/features/settings/cache_analysis_controller.dart';
+import 'package:bujuan/features/settings/utility_page_controller_bundle.dart';
 import 'package:bujuan/ui/widgets/common/layout/section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -17,13 +18,14 @@ class CacheAnalysisPageView extends StatefulWidget {
 }
 
 class _CacheAnalysisPageViewState extends State<CacheAnalysisPageView> {
+  late final UtilityPageControllerBundle _controllers = Get.find<UtilityPageControllerBundle>();
   late final CacheAnalysisController _controller;
   late Future<CacheAnalysisResult> _analysisFuture;
 
   @override
   void initState() {
     super.initState();
-    _controller = Get.find<CacheAnalysisControllerFactory>().create();
+    _controller = _controllers.cacheAnalysisControllerFactory.create();
     _analysisFuture = _controller.analyze();
   }
 

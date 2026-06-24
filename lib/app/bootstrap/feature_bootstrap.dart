@@ -52,6 +52,7 @@ import 'package:bujuan/features/settings/cache_analysis_service.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
 import 'package:bujuan/features/settings/settings_page_controller_bundle.dart';
 import 'package:bujuan/features/settings/settings_repository.dart';
+import 'package:bujuan/features/settings/utility_page_controller_bundle.dart';
 import 'package:bujuan/features/shell/app_home_controller_bundle.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
 import 'package:bujuan/features/shell/personal_home_controller_bundle.dart';
@@ -323,6 +324,14 @@ void registerFeatureControllers() {
       playbackActions: Get.find<MusicPagePlaybackActions>(),
       playlistControllerFactory: Get.find<PlaylistPageControllerFactory>(),
       radioControllerFactory: Get.find<RadioControllerFactory>(),
+    ),
+    permanent: true,
+  );
+  Get.put<UtilityPageControllerBundle>(
+    UtilityPageControllerBundle(
+      cacheAnalysisControllerFactory: Get.find<CacheAnalysisControllerFactory>(),
+      localSongListControllerFactory: Get.find<LocalSongListControllerFactory>(),
+      userProfileControllerFactory: Get.find<UserProfileControllerFactory>(),
     ),
     permanent: true,
   );

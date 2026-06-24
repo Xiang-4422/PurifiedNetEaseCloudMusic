@@ -158,7 +158,11 @@ class PlayerController extends GetxController {
   int get confirmedQueueIndex => runtimeState.value.currentIndex;
 
   /// 当前 UI selection 是否已经被底层播放器确认。
-  bool get isSelectionConfirmed => selectedSong.id.isNotEmpty && selectedSong.id == confirmedSong.id;
+  bool get isSelectionConfirmed {
+    final selectedSongId = _normalizedPlaybackQueueItemId(selectedSong.id);
+    final confirmedSongId = _normalizedPlaybackQueueItemId(confirmedSong.id);
+    return selectedSongId.isNotEmpty && selectedSongId == confirmedSongId;
+  }
 
   /// 当前是否是 FM 模式。
   bool get isFmModeValue => playbackMode.value == PlaybackMode.roaming;

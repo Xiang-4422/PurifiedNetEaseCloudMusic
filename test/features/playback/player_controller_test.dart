@@ -18,6 +18,7 @@ import 'package:bujuan/features/playback/playback_artwork_presenter.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/playback_runtime_state.dart';
 import 'package:bujuan/features/playback/playback_queue_state.dart';
+import 'package:bujuan/features/playback/playback_selection_state.dart';
 import 'package:bujuan/features/playback/playback_selection_ui_effect_coordinator.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -147,6 +148,24 @@ void main() {
 
       expect(controller.runtimeState.value.currentIndex, 0);
       expect(controller.currentQueueIndex.value, 0);
+    });
+
+    test('normalizes selected and confirmed ids before confirmation check', () {
+      final rawItem = _queueItem(' 1 ', sourceId: '1');
+      final currentItem = _queueItem('1', sourceId: '1');
+      final controller = _playerController();
+      controller.selectionState.value = PlaybackSelectionState(
+        queue: [rawItem],
+        selectedItem: rawItem,
+        selectedIndex: 0,
+      );
+      controller.runtimeState.value = PlaybackRuntimeState(
+        queue: [currentItem],
+        currentSong: currentItem,
+        currentIndex: 0,
+      );
+
+      expect(controller.isSelectionConfirmed, isTrue);
     });
 
     test('normalizes current download ids before syncing queue item', () async {

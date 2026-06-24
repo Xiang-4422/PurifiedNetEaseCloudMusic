@@ -5,6 +5,17 @@ import 'package:flutter/material.dart';
 @visibleForTesting
 const double exploreFilterStripCacheExtent = 360;
 
+/// 探索页筛选项辅助语义标签。
+String exploreFilterChipSemanticsLabel({
+  required String label,
+  required bool selected,
+  required String semanticAction,
+}) {
+  final resolvedLabel = label.trim().isEmpty ? '未命名筛选项' : label.trim();
+  final resolvedAction = semanticAction.trim().isEmpty ? '选择筛选项' : semanticAction.trim();
+  return selected ? '$resolvedAction：$resolvedLabel，已选中' : '$resolvedAction：$resolvedLabel';
+}
+
 /// 探索页横向筛选条。
 class ExploreFilterStrip<T> extends StatelessWidget {
   /// 创建横向筛选条。
@@ -15,6 +26,7 @@ class ExploreFilterStrip<T> extends StatelessWidget {
     required this.labelOf,
     required this.isSelected,
     required this.onSelected,
+    this.semanticAction = '选择筛选项',
   });
 
   /// 筛选项集合。
@@ -31,6 +43,9 @@ class ExploreFilterStrip<T> extends StatelessWidget {
 
   /// 选择筛选项。
   final void Function(T item) onSelected;
+
+  /// 筛选项辅助语义动作名。
+  final String semanticAction;
 
   @override
   Widget build(BuildContext context) {
@@ -49,18 +64,35 @@ class ExploreFilterStrip<T> extends StatelessWidget {
         itemBuilder: (context, index) {
           final item = items[index];
           final selected = isSelected(item);
-          return GestureDetector(
-            onTap: () => onSelected(item),
-            child: Container(
-              alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.headerHeight / 4,
+          final label = labelOf(item);
+          final semanticsLabel = exploreFilterChipSemanticsLabel(
+            label: label,
+            selected: selected,
+            semanticAction: semanticAction,
+          );
+          return Tooltip(
+            message: semanticsLabel,
+            child: Semantics(
+              button: true,
+              selected: selected,
+              label: semanticsLabel,
+              child: ExcludeSemantics(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => onSelected(item),
+                  child: Container(
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppDimensions.headerHeight / 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: selected ? Colors.black12 : Colors.transparent,
+                      borderRadius: BorderRadius.circular(AppDimensions.headerHeight / 2),
+                    ),
+                    child: Text(label),
+                  ),
+                ),
               ),
-              decoration: BoxDecoration(
-                color: selected ? Colors.black12 : Colors.transparent,
-                borderRadius: BorderRadius.circular(AppDimensions.headerHeight / 2),
-              ),
-              child: Text(labelOf(item)),
             ),
           );
         },

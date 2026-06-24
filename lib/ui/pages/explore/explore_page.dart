@@ -43,6 +43,12 @@ class ExplorePageView extends GetView<ExplorePageController> {
     final tagStripHeight = (34 * layoutMetrics.textScale).clamp(34.0, 44.0).toDouble();
     return Obx(() {
       if (controller.loading.isTrue) return const LoadingView();
+      final allTagSelected = controller.curTag.value == "全部";
+      final allTagLabel = exploreFilterChipSemanticsLabel(
+        label: '全部',
+        selected: allTagSelected,
+        semanticAction: '选择歌单标签',
+      );
       return AppSmartRefresher(
         controller: controller.refreshController,
         enablePullUp: true,
@@ -62,20 +68,31 @@ class ExplorePageView extends GetView<ExplorePageController> {
               children: [
                 const Header('歌单广场', padding: AppDimensions.paddingSmall),
                 Expanded(child: Container()),
-                GestureDetector(
-                  onTap: () {
-                    if (controller.curTag.value != "全部") {
-                      controller.curTag.value = "全部";
-                      controller.updatePlayLists();
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppDimensions.headerHeight / 4),
-                    decoration: BoxDecoration(
-                      color: controller.curTag.value == "全部" ? Colors.black.withAlpha(24) : Colors.transparent,
-                      borderRadius: BorderRadius.circular(9999),
+                Tooltip(
+                  message: allTagLabel,
+                  child: Semantics(
+                    button: true,
+                    selected: allTagSelected,
+                    label: allTagLabel,
+                    child: ExcludeSemantics(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          if (controller.curTag.value != "全部") {
+                            controller.curTag.value = "全部";
+                            controller.updatePlayLists();
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: AppDimensions.headerHeight / 4),
+                          decoration: BoxDecoration(
+                            color: allTagSelected ? Colors.black.withAlpha(24) : Colors.transparent,
+                            borderRadius: BorderRadius.circular(9999),
+                          ),
+                          child: const Text("全部"),
+                        ),
+                      ),
                     ),
-                    child: const Text("全部"),
                   ),
                 )
               ],
@@ -92,6 +109,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                       height: tagStripHeight,
                       labelOf: (categoryName) => categoryName,
                       isSelected: (categoryName) => controller.curTagCategoryName.value == categoryName,
+                      semanticAction: '选择歌单分类',
                       onSelected: (categoryName) => controller.curTagCategoryName.value = categoryName,
                     ),
                     ExploreFilterStrip<String>(
@@ -101,6 +119,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                       height: tagStripHeight,
                       labelOf: (tag) => tag,
                       isSelected: (tag) => controller.curTag.value == tag,
+                      semanticAction: '选择歌单标签',
                       onSelected: (tag) {
                         controller.curTag.value = tag;
                         controller.updatePlayLists();
@@ -147,6 +166,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                       height: AppDimensions.headerHeight * 2 / 3,
                       labelOf: (categoryName) => categoryName,
                       isSelected: (categoryName) => controller.curTopPlayListCategoryName.value == categoryName,
+                      semanticAction: '选择榜单分类',
                       onSelected: controller.changeCurTopPlayListCategory,
                     ),
                     ExploreFilterStrip(
@@ -154,6 +174,7 @@ class ExplorePageView extends GetView<ExplorePageController> {
                       height: AppDimensions.headerHeight * 2 / 3,
                       labelOf: (playlist) => playlist.name,
                       isSelected: (playlist) => controller.curTopPlayListName.value == playlist.name,
+                      semanticAction: '选择榜单',
                       onSelected: controller.changeCurTopPlayList,
                     ),
                   ],

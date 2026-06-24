@@ -2852,6 +2852,9 @@ void main() {
         if (!dataSource.contains('String _normalizedTrackId(String trackId)')) 'drift playback history data source does not define track id normalization',
         if (!dataSource.contains('MusicResourceId.toNeteaseEntityId(trackId.trim())')) 'drift playback history data source does not normalize track ids through MusicResourceId',
         if (!dataSource.contains('trackId: drift.Value(normalizedTrackId)')) 'drift playback history data source can write raw track ids',
+        if (!queueStore.contains('String _normalizedCurrentSongId(String currentSongId)')) 'queue store does not normalize current song ids before restore/history writes',
+        if (!queueStore.contains('final normalizedCurrentSongId = _normalizedCurrentSongId(currentSongId);')) 'queue store can still branch on raw current song ids',
+        if (!queueStore.contains('if (normalizedCurrentSongId.isEmpty)')) 'queue store can still write blank current song ids',
         if (_containsAny(controllerFile, const [
           'PlayerController',
           'PlaybackQueueService',
@@ -2860,7 +2863,7 @@ void main() {
           'currentSongState',
         ]))
           '${_relativePath(controllerFile)} derives history from current playback state',
-        if (!queueStore.contains('await _repository.recordPlayedTrack(currentSongId);')) 'queue store does not record confirmed current song',
+        if (!queueStore.contains('await _repository.recordPlayedTrack(normalizedCurrentSongId);')) 'queue store does not record confirmed current song with normalized id',
         if (!strip.contains('final recentTracks = controller.recentTracks.toList')) 'recent playback strip does not render controller history',
         if (_containsAny(stripFile, const [
           'activeQueue',

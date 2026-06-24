@@ -57,15 +57,23 @@ class PlaybackQueueStore {
     String currentSongId, {
     Duration? position,
   }) async {
+    final normalizedCurrentSongId = _normalizedCurrentSongId(currentSongId);
+    if (normalizedCurrentSongId.isEmpty) {
+      return;
+    }
     await _repository.updateRestoreState(
-      currentSongId: currentSongId,
+      currentSongId: normalizedCurrentSongId,
       position: position,
     );
-    await _repository.recordPlayedTrack(currentSongId);
+    await _repository.recordPlayedTrack(normalizedCurrentSongId);
   }
 
   /// 保存当前播放进度。
   Future<void> savePosition(Duration position) {
     return _repository.updateRestorePosition(position);
+  }
+
+  String _normalizedCurrentSongId(String currentSongId) {
+    return currentSongId.trim();
   }
 }

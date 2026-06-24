@@ -29,6 +29,27 @@ void main() {
       expect(repository.savedPositions, [Duration.zero]);
       expect(repository.recordedTrackIds, ['netease:2']);
     });
+
+    test('saveCurrentSong normalizes id before persistence and history', () async {
+      final repository = _FakePlaybackRepository();
+      final store = PlaybackQueueStore(repository: repository);
+
+      await store.saveCurrentSong(' netease:3 ');
+
+      expect(repository.savedCurrentSongIds, ['netease:3']);
+      expect(repository.recordedTrackIds, ['netease:3']);
+    });
+
+    test('saveCurrentSong ignores blank ids', () async {
+      final repository = _FakePlaybackRepository();
+      final store = PlaybackQueueStore(repository: repository);
+
+      await store.saveCurrentSong('   ', position: Duration.zero);
+
+      expect(repository.savedCurrentSongIds, isEmpty);
+      expect(repository.savedPositions, isEmpty);
+      expect(repository.recordedTrackIds, isEmpty);
+    });
   });
 }
 

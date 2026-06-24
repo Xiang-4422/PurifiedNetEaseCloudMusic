@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:bujuan/core/entities/music_resource_id.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/core/entities/user_library_kinds.dart';
@@ -528,13 +529,10 @@ class UserLibraryController extends GetxController {
   }
 
   String _resolveSongSourceId(PlaybackQueueItem song) {
-    if (song.sourceId.isNotEmpty) {
-      return song.sourceId;
-    }
-    if (song.id.startsWith('netease:')) {
-      return song.id.substring('netease:'.length);
-    }
-    return song.id;
+    final sourceId = song.sourceId.trim();
+    return MusicResourceId.toNeteaseSourceId(
+      sourceId.isNotEmpty ? sourceId : song.id,
+    );
   }
 
   void _clearScopedState() {

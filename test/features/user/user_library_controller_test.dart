@@ -685,6 +685,43 @@ void main() {
       expect(controller.likedSongs.map((song) => song.title), ['Fresh liked song']);
     });
 
+    test('keeps liked songs loaded when source ids are prefixed and trimmed', () async {
+      final repository = _FakeUserRepository();
+      var fetchCount = 0;
+      repository.fetchSongsByIdsWithArgs = ({required ids, required likedSongIds}) {
+        fetchCount++;
+        return Future.value([_song('101', title: 'Unexpected reload')]);
+      };
+      final sessionController = UserSessionController(
+        repository: repository,
+        sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
+        saveLoginFlag: (_) async {},
+        canRestoreCachedSession: () => true,
+      );
+      sessionController.userInfo.value = const UserSessionData(
+        userId: 'user-1',
+        nickname: 'User',
+        avatarUrl: '',
+      );
+      final controller = UserLibraryController(
+        repository: repository,
+        sessionAccess: _sessionAccess(sessionController),
+      );
+      controller.likedSongIds.add(101);
+      controller.likedSongs.add(
+        _song(
+          '101',
+          title: 'Cached liked song',
+          sourceId: ' netease:101 ',
+        ),
+      );
+
+      await controller.ensureLikedSongsLoaded();
+
+      expect(fetchCount, 0);
+      expect(controller.likedSongs.map((song) => song.title), ['Cached liked song']);
+    });
+
     test('ignores scoped local data completion after close', () async {
       final repository = _FakeUserRepository();
       final sessionController = UserSessionController(
@@ -883,10 +920,14 @@ class _FakeUserRepository implements UserRepository {
   }
 }
 
-PlaybackQueueItem _song(String id, {required String title}) {
+PlaybackQueueItem _song(
+  String id, {
+  required String title,
+  String? sourceId,
+}) {
   return PlaybackQueueItem(
     id: 'netease:$id',
-    sourceId: id,
+    sourceId: sourceId ?? id,
     title: title,
     albumTitle: null,
     artistNames: const [],

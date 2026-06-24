@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:bujuan/ui/pages/user/widgets/quick_start_card_rail.dart';
+import 'package:bujuan/ui/pages/user/widgets/recent_playback_strip.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -25,6 +26,33 @@ void main() {
         isEnabled: false,
       ),
       '快速入口（当前不可用）',
+    );
+  });
+
+  test('recent playback cards expose stable semantics labels', () {
+    expect(
+      recentPlaybackTileSemanticsLabel(
+        title: ' Song ',
+        artist: ' Artist ',
+        isCurrent: false,
+      ),
+      '播放最近播放：Song - Artist',
+    );
+    expect(
+      recentPlaybackTileSemanticsLabel(
+        title: 'Current',
+        artist: null,
+        isCurrent: true,
+      ),
+      '当前播放：Current - 未知艺人',
+    );
+    expect(
+      recentPlaybackTileSemanticsLabel(
+        title: '  ',
+        artist: '  ',
+        isCurrent: false,
+      ),
+      '播放最近播放：未知歌曲 - 未知艺人',
     );
   });
 
@@ -259,6 +287,14 @@ void main() {
     expect(recentPlaybackSource, contains('height: _recentPlaybackStripHeight'));
     expect(recentPlaybackSource, contains('width: _recentPlaybackTileWidth'));
     expect(recentPlaybackSource, contains('cacheExtent: _recentPlaybackCacheExtent'));
+    expect(recentPlaybackSource, contains('recentPlaybackTileSemanticsLabel('));
+    expect(recentPlaybackSource, contains('Semantics('));
+    expect(recentPlaybackSource, contains('button: true'));
+    expect(recentPlaybackSource, contains('selected: isCurrent'));
+    expect(recentPlaybackSource, contains('onTap: () => unawaited(onTap())'));
+    expect(recentPlaybackSource, contains('Tooltip('));
+    expect(recentPlaybackSource, contains('excludeFromSemantics: true'));
+    expect(recentPlaybackSource, contains('ExcludeSemantics('));
     expect(source, contains('standard_personal_home_page.dart'));
     expect(source, contains('square_personal_home_page.dart'));
     expect(source, isNot(contains('frequent_playlist_section.dart')));
@@ -306,7 +342,7 @@ void main() {
     expect(quickStartSource, contains('ArtworkPathResolver.resolvePlaybackArtwork'));
     expect(recentPlaybackSource, contains('ArtworkPathResolver.resolvePlaybackArtwork'));
     expect(recentPlaybackSource, contains('SimpleExtendedImage('));
-    expect(recentPlaybackSource, contains('SimpleExtendedImage(\n                    artworkPath,'));
+    expect(recentPlaybackSource, matches(RegExp(r'SimpleExtendedImage\(\s*artworkPath,')));
     expect(recentPlaybackSource, isNot(contains('artworkPath.isEmpty')));
     expect(todayPageSource, contains('class TodayPageView extends GetView<RecommendationController>'));
     expect(todayPageSource, contains('final songs = controller.todayRecommendSongs'));

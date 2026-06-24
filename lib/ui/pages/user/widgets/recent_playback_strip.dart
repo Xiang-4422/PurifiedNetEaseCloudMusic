@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/recent_playback_controller.dart';
@@ -89,6 +91,11 @@ class _RecentPlaybackTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final semanticsLabel = recentPlaybackTileSemanticsLabel(
+      title: song.title,
+      artist: song.artist,
+      isCurrent: isCurrent,
+    );
     final artworkPath = ArtworkPathResolver.resolveDisplayPath(
       ArtworkPathResolver.resolvePlaybackArtwork(
         artworkUrl: song.artworkUrl,
@@ -104,64 +111,94 @@ class _RecentPlaybackTile extends StatelessWidget {
 
     return SizedBox(
       width: _recentPlaybackTileWidth,
-      child: Material(
-        color: backgroundColor,
-        borderRadius: AppDimensions.borderRadiusMedium,
-        child: InkWell(
-          borderRadius: AppDimensions.borderRadiusMedium,
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(AppDimensions.paddingSmall / 2),
-            child: Row(
-              children: [
-                SizedBox.square(
-                  dimension: 52,
-                  child: SimpleExtendedImage(
-                    artworkPath,
-                    width: 52,
-                    height: 52,
-                    cacheWidth: 120,
-                    borderRadius: AppDimensions.borderRadiusMedium,
-                  ),
-                ),
-                const SizedBox(width: AppDimensions.paddingSmall),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+      child: Semantics(
+        button: true,
+        selected: isCurrent,
+        label: semanticsLabel,
+        onTap: () => unawaited(onTap()),
+        child: Tooltip(
+          message: semanticsLabel,
+          excludeFromSemantics: true,
+          child: ExcludeSemantics(
+            child: Material(
+              color: backgroundColor,
+              borderRadius: AppDimensions.borderRadiusMedium,
+              child: InkWell(
+                borderRadius: AppDimensions.borderRadiusMedium,
+                onTap: onTap,
+                child: Padding(
+                  padding: const EdgeInsets.all(AppDimensions.paddingSmall / 2),
+                  child: Row(
                     children: [
-                      Text(
-                        song.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          color: colorScheme.onSurface,
-                          fontWeight: FontWeight.w600,
+                      SizedBox.square(
+                        dimension: 52,
+                        child: SimpleExtendedImage(
+                          artworkPath,
+                          width: 52,
+                          height: 52,
+                          cacheWidth: 120,
+                          borderRadius: AppDimensions.borderRadiusMedium,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        song.artist ?? '未知艺人',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: colorScheme.onSurface.withValues(alpha: 0.58),
+                      const SizedBox(width: AppDimensions.paddingSmall),
+                      Expanded(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _recentPlaybackValue(song.title, fallback: '未知歌曲'),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                color: colorScheme.onSurface,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _recentPlaybackValue(song.artist, fallback: '未知艺人'),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: colorScheme.onSurface.withValues(alpha: 0.58),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                      if (isCurrent)
+                        Icon(
+                          TablerIcons.player_play_filled,
+                          size: AppDimensions.iconSizeSmall,
+                          color: colorScheme.primary,
+                        ),
                     ],
                   ),
                 ),
-                if (isCurrent)
-                  Icon(
-                    TablerIcons.player_play_filled,
-                    size: AppDimensions.iconSizeSmall,
-                    color: colorScheme.primary,
-                  ),
-              ],
+              ),
             ),
           ),
         ),
       ),
     );
   }
+}
+
+/// 生成最近播放卡片的辅助语义标签。
+@visibleForTesting
+String recentPlaybackTileSemanticsLabel({
+  required String title,
+  required String? artist,
+  required bool isCurrent,
+}) {
+  final resolvedTitle = _recentPlaybackValue(title, fallback: '未知歌曲');
+  final resolvedArtist = _recentPlaybackValue(artist, fallback: '未知艺人');
+  final prefix = isCurrent ? '当前播放' : '播放最近播放';
+  return '$prefix：$resolvedTitle - $resolvedArtist';
+}
+
+String _recentPlaybackValue(String? value, {required String fallback}) {
+  final trimmed = value?.trim();
+  return trimmed == null || trimmed.isEmpty ? fallback : trimmed;
 }

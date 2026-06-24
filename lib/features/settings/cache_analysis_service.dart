@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:bujuan/core/entities/local_resource_entry.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/util/local_file_path_normalizer.dart';
+import 'package:bujuan/core/util/retained_file_cleaner.dart';
 import 'package:bujuan/data/music_data/music_data_repository.dart';
 import 'package:bujuan/data/music_data/sources/local/resources/local_resource_index_repository.dart';
 import 'package:path_provider/path_provider.dart';
@@ -300,13 +301,10 @@ class CacheAnalysisService {
     Directory directory, {
     Set<String> retainedPaths = const {},
   }) async {
-    if (directory.existsSync()) {
-      await _deleteUnretainedDirectoryFiles(
-        directory,
-        retainedPaths: retainedPaths,
-      );
-    }
-    await directory.create(recursive: true);
+    await RetainedFileCleaner.clearDirectory(
+      directory,
+      retainedPaths: retainedPaths,
+    );
   }
 
   Future<void> _clearIndexedResourceCacheDirectory(
@@ -321,9 +319,12 @@ class CacheAnalysisService {
       shouldRemove: (resource) => resource.origin == origin,
     );
     for (final resource in cacheResources) {
-      await _deleteFileUnlessRetained(resource.path, retainedPaths);
+      await RetainedFileCleaner.deleteFileUnlessRetained(
+        resource.path,
+        retainedPaths,
+      );
     }
-    await _deleteUnretainedDirectoryFiles(
+    await RetainedFileCleaner.deleteUnretainedDirectoryFiles(
       directory,
       retainedPaths: retainedPaths,
     );
@@ -357,48 +358,6 @@ class CacheAnalysisService {
 
   Future<Set<String>> _indexedResourcePaths() async {
     return _retainedResourcePaths(await _resourceIndexRepository.listResources());
-  }
-
-  Future<void> _deleteFileUnlessRetained(
-    String path,
-    Set<String> retainedPaths,
-  ) async {
-    final localPath = LocalFilePathNormalizer.normalize(path);
-    if (localPath.isEmpty || retainedPaths.contains(localPath)) {
-      return;
-    }
-    final file = File(localPath);
-    if (!file.existsSync()) {
-      return;
-    }
-    try {
-      await file.delete();
-    } catch (_) {}
-  }
-
-  Future<void> _deleteUnretainedDirectoryFiles(
-    Directory directory, {
-    required Set<String> retainedPaths,
-  }) async {
-    if (!directory.existsSync()) {
-      return;
-    }
-    final childDirectories = <Directory>[];
-    await for (final entity in directory.list(recursive: true, followLinks: false)) {
-      if (entity is File) {
-        await _deleteFileUnlessRetained(entity.path, retainedPaths);
-      } else if (entity is Directory) {
-        childDirectories.add(entity);
-      }
-    }
-    childDirectories.sort(
-      (left, right) => right.path.length.compareTo(left.path.length),
-    );
-    for (final childDirectory in childDirectories) {
-      try {
-        await childDirectory.delete();
-      } catch (_) {}
-    }
   }
 
   String _resourceFilePath(LocalResourceEntry resource) {

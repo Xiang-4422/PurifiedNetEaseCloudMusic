@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_lyrics.dart';
-import 'package:bujuan/core/util/local_file_path_normalizer.dart';
+import 'package:bujuan/core/util/retained_file_cleaner.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -177,16 +177,10 @@ class DownloadFileStore {
     required Set<String> retainedPaths,
   }) async {
     final rootDirectory = await _rootDirectory('cache');
-    if (!rootDirectory.existsSync()) {
-      return;
-    }
-    await _deleteUnretainedDirectoryFiles(
+    await RetainedFileCleaner.clearDirectory(
       rootDirectory,
       retainedPaths: retainedPaths,
     );
-    if (!rootDirectory.existsSync()) {
-      await rootDirectory.create(recursive: true);
-    }
   }
 
   Future<void> _cleanupOrphanTemporaryFilesInRoot(String childName) async {
@@ -202,39 +196,6 @@ class DownloadFileStore {
         continue;
       }
       await entity.delete();
-    }
-  }
-
-  Future<void> _deleteUnretainedDirectoryFiles(
-    Directory directory, {
-    required Set<String> retainedPaths,
-  }) async {
-    final normalizedRetainedPaths = <String>{};
-    for (final retainedPath in retainedPaths) {
-      final path = LocalFilePathNormalizer.normalize(retainedPath);
-      if (path.isNotEmpty) {
-        normalizedRetainedPaths.add(path);
-      }
-    }
-    final childDirectories = <Directory>[];
-    await for (final entity in directory.list(recursive: true, followLinks: false)) {
-      if (entity is File) {
-        final path = LocalFilePathNormalizer.normalize(entity.path);
-        if (path.isEmpty || normalizedRetainedPaths.contains(path)) {
-          continue;
-        }
-        await deleteFileIfExists(path);
-      } else if (entity is Directory) {
-        childDirectories.add(entity);
-      }
-    }
-    childDirectories.sort(
-      (left, right) => right.path.length.compareTo(left.path.length),
-    );
-    for (final childDirectory in childDirectories) {
-      try {
-        await childDirectory.delete();
-      } catch (_) {}
     }
   }
 

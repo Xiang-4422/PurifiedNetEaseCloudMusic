@@ -78,6 +78,7 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
   /// 底部播放面板控制器。
   PanelController bottomPanelController = PanelController();
   AnimationController? _bottomPanelAnimationController;
+  Future<void>? _miniPlayerExpandInFlight;
 
   /// 底部播放面板是否完全关闭。
   RxBool bottomPanelFullyClosed = true.obs;
@@ -149,14 +150,38 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
   }
 
   /// 从 mini player 打开底部播放面板，并记录高频控制反馈耗时。
-  Future<void> openBottomPanelFromMiniPlayer() async {
+  Future<void> openBottomPanelFromMiniPlayer() {
+    final pending = _miniPlayerExpandInFlight;
+    if (pending != null) {
+      return _recordMiniPlayerExpandFeedback(
+        coalesced: true,
+        action: () => pending,
+      );
+    }
+    late final Future<void> command;
+    command = _recordMiniPlayerExpandFeedback(
+      coalesced: false,
+      action: openBottomPanel,
+    ).whenComplete(() {
+      if (identical(_miniPlayerExpandInFlight, command)) {
+        _miniPlayerExpandInFlight = null;
+      }
+    });
+    _miniPlayerExpandInFlight = command;
+    return command;
+  }
+
+  Future<void> _recordMiniPlayerExpandFeedback({
+    required bool coalesced,
+    required Future<void> Function() action,
+  }) async {
     final stopwatch = PerformanceLogger.start();
     final wasAttached = bottomPanelController.isAttached;
     final wasOpened = bottomPanelFullyOpened.value;
     Object? commandError;
     var opened = false;
     try {
-      await openBottomPanel();
+      await action();
       opened = wasAttached;
     } catch (error) {
       commandError = error;
@@ -169,6 +194,7 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
           attached: wasAttached,
           alreadyOpened: wasOpened,
           opened: opened,
+          coalesced: coalesced,
           error: commandError,
         ),
       );
@@ -642,20 +668,24 @@ String miniPlayerExpandFeedbackMetricDetails({
   required bool attached,
   required bool alreadyOpened,
   required bool opened,
+  bool coalesced = false,
   Object? error,
 }) {
   final result = error != null
       ? 'error'
-      : alreadyOpened
-          ? 'already_open'
-          : opened
-              ? 'success'
-              : 'skipped';
+      : coalesced
+          ? 'coalesced'
+          : alreadyOpened
+              ? 'already_open'
+              : opened
+                  ? 'success'
+                  : 'skipped';
   final details = 'action=expand result=$result attached=$attached alreadyOpened=$alreadyOpened';
+  final coalescedDetails = coalesced ? '$details coalesced=true' : details;
   if (error == null) {
-    return details;
+    return coalescedDetails;
   }
-  return '$details error=${error.runtimeType}';
+  return '$coalescedDetails error=${error.runtimeType}';
 }
 
 void _reportShellBackgroundError(

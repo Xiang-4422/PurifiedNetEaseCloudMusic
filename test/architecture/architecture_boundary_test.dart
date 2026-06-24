@@ -2809,7 +2809,8 @@ void main() {
         if (!repository.contains('String _normalizedTrackId(String trackId)')) 'playback repository does not normalize recent history track ids',
         if (!repository.contains('final normalizedTrackId = _normalizedTrackId(trackId);')) 'playback repository records raw recent history track ids',
         if (!repository.contains('if (_isBlankTrackId(normalizedTrackId))')) 'playback repository does not reject blank recent history track ids',
-        if (!dataSource.contains('final normalizedTrackId = trackId.trim();')) 'drift playback history data source does not normalize track ids',
+        if (!dataSource.contains('String _normalizedTrackId(String trackId)')) 'drift playback history data source does not define track id normalization',
+        if (!dataSource.contains('MusicResourceId.toNeteaseEntityId(trackId.trim())')) 'drift playback history data source does not normalize track ids through MusicResourceId',
         if (!dataSource.contains('trackId: drift.Value(normalizedTrackId)')) 'drift playback history data source can write raw track ids',
         if (_containsAny(controllerFile, const [
           'PlayerController',

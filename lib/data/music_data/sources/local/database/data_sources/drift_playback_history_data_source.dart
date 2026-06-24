@@ -1,3 +1,4 @@
+import 'package:bujuan/core/entities/music_resource_id.dart';
 import 'package:bujuan/data/music_data/sources/local/database/drift_database.dart';
 import 'package:drift/drift.dart' as drift;
 
@@ -15,7 +16,7 @@ class DriftPlaybackHistoryDataSource implements PlaybackHistoryDataSource {
     String trackId, {
     DateTime? playedAt,
   }) {
-    final normalizedTrackId = trackId.trim();
+    final normalizedTrackId = _normalizedTrackId(trackId);
     if (normalizedTrackId.isEmpty) {
       return Future<void>.value();
     }
@@ -58,5 +59,9 @@ class DriftPlaybackHistoryDataSource implements PlaybackHistoryDataSource {
       return;
     }
     await (_database.delete(_database.playbackHistoryEntries)..where((tbl) => tbl.trackId.isIn(staleTrackIds))).go();
+  }
+
+  String _normalizedTrackId(String trackId) {
+    return MusicResourceId.toNeteaseEntityId(trackId.trim());
   }
 }

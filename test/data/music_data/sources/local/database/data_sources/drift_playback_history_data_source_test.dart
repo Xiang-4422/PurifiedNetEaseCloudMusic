@@ -57,17 +57,30 @@ void main() {
 
     test('normalizes track ids before writing history rows', () async {
       await dataSource.recordPlayedTrack(
-        '  netease:1  ',
+        '  1  ',
         playedAt: DateTime.fromMillisecondsSinceEpoch(1000),
       );
       await dataSource.recordPlayedTrack(
-        '   ',
+        'netease:1',
+        playedAt: DateTime.fromMillisecondsSinceEpoch(3000),
+      );
+      await dataSource.recordPlayedTrack(
+        ' local:2 ',
         playedAt: DateTime.fromMillisecondsSinceEpoch(2000),
+      );
+      await dataSource.recordPlayedTrack(
+        '   ',
+        playedAt: DateTime.fromMillisecondsSinceEpoch(4000),
       );
 
       final trackIds = await dataSource.loadRecentTrackIds(limit: 10);
+      final rows = await database.select(database.playbackHistoryEntries).get();
 
-      expect(trackIds, ['netease:1']);
+      expect(trackIds, ['netease:1', 'local:2']);
+      expect(rows.map((row) => row.trackId).toSet(), {
+        'netease:1',
+        'local:2',
+      });
     });
 
     test('prunes older history entries', () async {

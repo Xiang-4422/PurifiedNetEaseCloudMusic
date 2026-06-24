@@ -198,9 +198,14 @@ class _PlaylistActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final isEnabled = onPressed != null;
     return _PlaylistActionButtonSurface(
       color: color,
       child: IconButton(
+        tooltip: playlistPlayActionLabel(
+          label: label,
+          isEnabled: isEnabled,
+        ),
         onPressed: onPressed,
         icon: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -240,6 +245,7 @@ class _PlaylistSubscribeButton extends StatelessWidget {
     return _PlaylistActionButtonSurface(
       color: color,
       child: IconButton(
+        tooltip: playlistSubscribeControlLabel(isSubscribed: isSubscribed),
         color: Colors.red,
         padding: EdgeInsets.zero,
         onPressed: onPressed,
@@ -250,6 +256,25 @@ class _PlaylistSubscribeButton extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 生成歌单播放动作按钮的辅助语义标签。
+@visibleForTesting
+String playlistPlayActionLabel({
+  required String label,
+  required bool isEnabled,
+}) {
+  final resolvedLabel = label.trim().isEmpty ? '播放歌单' : label.trim();
+  if (isEnabled) {
+    return resolvedLabel;
+  }
+  return '$resolvedLabel（等待歌曲加载）';
+}
+
+/// 生成歌单收藏按钮的辅助语义标签。
+@visibleForTesting
+String playlistSubscribeControlLabel({required bool isSubscribed}) {
+  return isSubscribed ? '取消收藏歌单' : '收藏歌单';
 }
 
 class _PlaylistActionButtonSurface extends StatelessWidget {

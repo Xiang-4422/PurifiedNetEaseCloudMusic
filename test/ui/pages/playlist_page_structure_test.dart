@@ -1,8 +1,35 @@
 import 'dart:io';
 
+import 'package:bujuan/ui/pages/playlist/widgets/playlist_header_sliver.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('playlist header action labels stay stable', () {
+    expect(
+      playlistPlayActionLabel(
+        label: ' 顺序播放 ',
+        isEnabled: true,
+      ),
+      '顺序播放',
+    );
+    expect(
+      playlistPlayActionLabel(
+        label: '随机播放',
+        isEnabled: false,
+      ),
+      '随机播放（等待歌曲加载）',
+    );
+    expect(
+      playlistPlayActionLabel(
+        label: '  ',
+        isEnabled: false,
+      ),
+      '播放歌单（等待歌曲加载）',
+    );
+    expect(playlistSubscribeControlLabel(isSubscribed: false), '收藏歌单');
+    expect(playlistSubscribeControlLabel(isSubscribed: true), '取消收藏歌单');
+  });
+
   test('playlist page delegates header and status presentation to local widgets', () {
     final source = File('lib/ui/pages/playlist/playlist_page_view.dart').readAsStringSync();
     final contentSource = File(
@@ -62,6 +89,10 @@ void main() {
     expect(source, contains('TablerIcons.heart'));
     expect(source, contains(r"'歌单·${trackCount ?? loadedTrackCount}首'"));
     expect(source, contains('canPlayLoadedPlaylist'));
+    expect(source, contains('playlistPlayActionLabel('));
+    expect(source, contains('playlistSubscribeControlLabel('));
+    expect(source, contains('tooltip: playlistPlayActionLabel('));
+    expect(source, contains('tooltip: playlistSubscribeControlLabel('));
   });
 
   test('playlist status slivers keep skeleton and footer copy outside page state', () {

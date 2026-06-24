@@ -421,8 +421,8 @@ void main() {
       expect(controller.state.value.error, isNull);
     });
 
-    test('builds playback queue items with latest liked song ids', () {
-      var likedSongIds = <int>[101];
+    test('builds playback queue items with normalized latest liked song ids', () {
+      var likedSongIds = <int>[202, 101, 202];
       final controller = RadioDetailController(
         radioId: 'radio-1',
         userId: 'user-1',
@@ -437,7 +437,7 @@ void main() {
 
       expect(controller.queueItems.single.isLiked, isTrue);
 
-      likedSongIds = <int>[];
+      likedSongIds = <int>[202];
 
       expect(controller.queueItems.single.isLiked, isFalse);
     });

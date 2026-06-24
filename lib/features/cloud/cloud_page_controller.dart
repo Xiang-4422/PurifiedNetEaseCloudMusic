@@ -45,7 +45,7 @@ class CloudPageController {
     try {
       cachedSongs = await _repository.loadCachedSongs(
         userId: _userId,
-        likedSongIds: _likedSongIds(),
+        likedSongIds: _likedSongIdsSnapshot(),
       );
     } catch (_) {
       if (!_isCurrentRequest(generation)) {
@@ -119,7 +119,7 @@ class CloudPageController {
         userId: _userId,
         offset: _offset,
         limit: pageSize,
-        likedSongIds: _likedSongIds(),
+        likedSongIds: _likedSongIdsSnapshot(),
       );
       if (!_isCurrentRequest(generation)) {
         return true;
@@ -156,7 +156,7 @@ class CloudPageController {
         userId: _userId,
         offset: 0,
         limit: pageSize,
-        likedSongIds: _likedSongIds(),
+        likedSongIds: _likedSongIdsSnapshot(),
       );
       if (!_isCurrentRequest(generation)) {
         return true;
@@ -213,6 +213,10 @@ class CloudPageController {
 
   static String _normalizedUserId(String userId) {
     return userId.trim();
+  }
+
+  List<int> _likedSongIdsSnapshot() {
+    return _likedSongIds().toSet().toList()..sort();
   }
 
   void _setStateIfCurrent(

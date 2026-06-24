@@ -40,7 +40,7 @@ class RadioDetailController {
   List<PlaybackQueueItem> get queueItems {
     return RadioPlaybackQueueItemMapper.fromPrograms(
       state.value.items,
-      likedSongIds: _likedSongIds(),
+      likedSongIds: _likedSongIdsSnapshot(),
     );
   }
 
@@ -218,5 +218,9 @@ class RadioDetailController {
 
   static String _normalizedUserId(String userId) {
     return userId.trim();
+  }
+
+  List<int> _likedSongIdsSnapshot() {
+    return _likedSongIds().toSet().toList()..sort();
   }
 }

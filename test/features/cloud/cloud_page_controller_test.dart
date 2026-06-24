@@ -126,8 +126,8 @@ void main() {
       expect(controller.state.value.error, isNull);
     });
 
-    test('uses latest liked song ids for each cache and remote request', () async {
-      var likedSongIds = <int>[1];
+    test('uses normalized latest liked song ids for each cache and remote request', () async {
+      var likedSongIds = <int>[2, 1, 2];
       final repository = _FakeCloudRepository(
         fetchCloudSongs: () => Future.value(
           CloudSongPage(
@@ -145,14 +145,14 @@ void main() {
       addTearDown(controller.dispose);
 
       await controller.loadInitial();
-      likedSongIds = <int>[2, 3];
+      likedSongIds = <int>[3, 2, 3];
       await controller.refresh();
 
       expect(repository.cachedLikedSongRequests, [
-        [1],
+        [1, 2],
       ]);
       expect(repository.fetchLikedSongRequests, [
-        [1],
+        [1, 2],
         [2, 3],
       ]);
     });

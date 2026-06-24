@@ -453,7 +453,7 @@ class _FakePlaybackSourceResolver implements PlaybackSourceResolver {
   }) async {
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
-      url: 'url-${item.id}',
+      url: _testUrl(item.id),
     );
   }
 
@@ -504,7 +504,7 @@ class _FailThenResolveSourceResolver implements PlaybackSourceResolver {
     }
     return PlaybackResolvedSource(
       kind: PlaybackResolvedSourceKind.url,
-      url: 'url-${item.id}',
+      url: _testUrl(item.id),
     );
   }
 
@@ -516,6 +516,10 @@ class _FailThenResolveSourceResolver implements PlaybackSourceResolver {
   }) {
     return resolve(item, preferHighQuality: preferHighQuality);
   }
+}
+
+String _testUrl(String id) {
+  return 'https://example.com/audio/${Uri.encodeComponent(id.trim())}.mp3';
 }
 
 class _FakePlaybackQueueStore implements PlaybackQueueStore {

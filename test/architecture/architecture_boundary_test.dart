@@ -3402,6 +3402,10 @@ void main() {
         if (body.contains('HomeShellController.to')) '${_relativePath(bodyFile)} reads home shell globally',
         if (drawerSection.contains('HomeShellController.to')) '${_relativePath(bodyFile)} drawer main screen reads home shell globally',
         if (menuSection.contains('HomeShellController.to')) '${_relativePath(bodyFile)} menu view reads home shell globally',
+        if (drawerSection.contains('extends GetView<ShellController>')) '${_relativePath(bodyFile)} drawer main screen still binds shell controller through GetView',
+        if (menuSection.contains('extends GetView<ShellController>')) '${_relativePath(bodyFile)} menu view still binds shell controller through GetView',
+        if (drawerSection.contains('Get.find<ShellController>')) '${_relativePath(bodyFile)} drawer main screen reads shell controller globally',
+        if (menuSection.contains('Get.find<ShellController>')) '${_relativePath(bodyFile)} menu view reads shell controller globally',
         if (!body.contains('final homeShellController = HomeShellScope.of(context)')) '${_relativePath(bodyFile)} does not read home shell from local scope',
         if (!home.contains('final appHomeControllers = Get.find<AppHomeControllerBundle>()')) '${_relativePath(homeFile)} does not resolve app home controller bundle at shell boundary',
         if (home.contains('Get.find<HomeShellController>')) '${_relativePath(homeFile)} reads home shell controller globally',
@@ -3409,10 +3413,13 @@ void main() {
         if (!bootstrap.contains('homeShellController: Get.find<HomeShellController>()')) 'feature bootstrap does not inject home shell controller into app home bundle',
         if (!home.contains('HomeShellScope(')) '${_relativePath(homeFile)} does not provide home shell scope',
         if (!home.contains('homeShellController: homeShellController')) '${_relativePath(homeFile)} does not inject home shell into scope',
-        if (!body.contains('MenuView(homeShellController: homeShellController)')) '${_relativePath(bodyFile)} does not inject home shell into menu',
+        if (!body.contains('MenuView(')) '${_relativePath(bodyFile)} does not compose drawer menu',
+        if (!body.contains('shellController: controller')) '${_relativePath(bodyFile)} does not inject shell controller into drawer local widgets',
         if (!body.contains('DrawerMainScreenView(')) '${_relativePath(bodyFile)} does not compose drawer main screen',
         if (!body.contains('homeShellController: homeShellController')) '${_relativePath(bodyFile)} does not inject home shell into main screen',
+        if (!drawerSection.contains('required this.shellController')) '${_relativePath(bodyFile)} drawer main screen does not receive shell controller',
         if (!drawerSection.contains('required this.homeShellController')) '${_relativePath(bodyFile)} drawer main screen does not receive home shell controller',
+        if (!menuSection.contains('required this.shellController')) '${_relativePath(bodyFile)} menu view does not receive shell controller',
         if (!menuSection.contains('required this.homeShellController')) '${_relativePath(bodyFile)} menu view does not receive home shell controller',
         if (body.contains('CoffeePageView') || body.contains('coffee_page.dart')) '${_relativePath(bodyFile)} restores a non-listening coffee page to shell body',
         if (shellController.contains('HomeShellPageKind.coffee')) '${_relativePath(shellControllerFile)} restores coffee as a shell page kind',
@@ -3465,6 +3472,7 @@ void main() {
         if (!body.contains('userLibraryController: personalHomeControllers.userLibraryController')) '${_relativePath(bodyFile)} does not inject user library controller',
         if (!body.contains('recentPlaybackController: personalHomeControllers.recentPlaybackController')) '${_relativePath(bodyFile)} does not inject recent playback controller',
         if (!body.contains('playerController: personalHomeControllers.playerController')) '${_relativePath(bodyFile)} does not inject player controller',
+        if (!body.contains('shellController: shellController')) '${_relativePath(bodyFile)} does not inject shell controller into personal page',
       ];
 
       expect(

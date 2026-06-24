@@ -52,8 +52,12 @@ class AppBodyPageView extends GetView<ShellController> {
             androidCloseOnBackTap: true,
             dragOffset: context.width,
 
-            menuScreen: MenuView(homeShellController: homeShellController),
+            menuScreen: MenuView(
+              shellController: controller,
+              homeShellController: homeShellController,
+            ),
             mainScreen: DrawerMainScreenView(
+              shellController: controller,
               homeShellController: homeShellController,
               personalHomeControllers: personalHomeControllers,
             ),
@@ -65,13 +69,17 @@ class AppBodyPageView extends GetView<ShellController> {
 }
 
 /// 侧边抽屉主屏幕，按首页 tab 组合各 feature 页面。
-class DrawerMainScreenView extends GetView<ShellController> {
+class DrawerMainScreenView extends StatelessWidget {
   /// 创建侧边抽屉主屏幕。
   const DrawerMainScreenView({
+    required this.shellController,
     required this.homeShellController,
     required this.personalHomeControllers,
     Key? key,
   }) : super(key: key);
+
+  /// 壳层控制器，向个人首页提供播放面板等 shell 动作。
+  final ShellController shellController;
 
   /// 首页壳层控制器，提供页面定义和抽屉状态。
   final HomeShellController homeShellController;
@@ -88,7 +96,7 @@ class DrawerMainScreenView extends GetView<ShellController> {
             recentPlaybackController: personalHomeControllers.recentPlaybackController,
             homeContentController: personalHomeControllers.homeContentController,
             userLibraryController: personalHomeControllers.userLibraryController,
-            shellController: controller,
+            shellController: shellController,
           ),
         );
       case HomeShellPageKind.settings:
@@ -126,12 +134,16 @@ class DrawerMainScreenView extends GetView<ShellController> {
 }
 
 /// 左侧竖向菜单视图，负责切换首页主屏幕页。
-class MenuView extends GetView<ShellController> {
+class MenuView extends StatelessWidget {
   /// 创建左侧菜单视图。
   const MenuView({
+    required this.shellController,
     required this.homeShellController,
     super.key,
   });
+
+  /// 壳层控制器，提供抽屉头像展示状态。
+  final ShellController shellController;
 
   /// 首页壳层控制器，提供菜单状态和分页控制器。
   final HomeShellController homeShellController;
@@ -156,7 +168,7 @@ class MenuView extends GetView<ShellController> {
             icon: Obx(
               () => SimpleExtendedImage.avatar(
                 ArtworkPathResolver.resolveDisplayPath(
-                  controller.menuAvatarUrl,
+                  shellController.menuAvatarUrl,
                 ),
                 shape: BoxShape.circle,
               ),

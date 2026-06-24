@@ -130,9 +130,13 @@ class PlaylistDao {
     UserPlaylistListKind kind, {
     String? keyword,
   }) async {
+    final normalizedUserId = _normalizedUserId(userId);
+    if (_isBlankUserId(normalizedUserId)) {
+      return const <PlaylistSummaryData>[];
+    }
     final refs = await (_database.select(_database.userPlaylistListRefs)
           ..where(
-            (tbl) => tbl.userId.equals(userId) & tbl.listKind.equals(kind.name),
+            (tbl) => tbl.userId.equals(normalizedUserId) & tbl.listKind.equals(kind.name),
           )
           ..orderBy([(tbl) => drift.OrderingTerm.asc(tbl.sortOrder)]))
         .get();
@@ -147,8 +151,12 @@ class PlaylistDao {
     String userId,
     String keyword,
   ) async {
+    final normalizedUserId = _normalizedUserId(userId);
+    if (_isBlankUserId(normalizedUserId)) {
+      return const <PlaylistSummaryData>[];
+    }
     final refs = await (_database.select(_database.userPlaylistListRefs)
-          ..where((tbl) => tbl.userId.equals(userId))
+          ..where((tbl) => tbl.userId.equals(normalizedUserId))
           ..orderBy([(tbl) => drift.OrderingTerm.asc(tbl.sortOrder)]))
         .get();
     return _loadPlaylistSummariesFromRefs(
@@ -163,29 +171,34 @@ class PlaylistDao {
     UserPlaylistListKind kind,
     List<PlaylistSummaryData> items,
   ) async {
+    final normalizedUserId = _normalizedUserId(userId);
+    if (_isBlankUserId(normalizedUserId)) {
+      return;
+    }
+    final normalizedItems = _normalizedPlaylistSummaries(items);
     await _database.transaction(() async {
       await (_database.delete(_database.userPlaylistListRefs)
             ..where(
-              (tbl) => tbl.userId.equals(userId) & tbl.listKind.equals(kind.name),
+              (tbl) => tbl.userId.equals(normalizedUserId) & tbl.listKind.equals(kind.name),
             ))
           .go();
-      if (items.isEmpty) {
+      if (normalizedItems.isEmpty) {
         return;
       }
       final now = DateTime.now().millisecondsSinceEpoch;
       await _database.batch((batch) {
         batch.insertAllOnConflictUpdate(
           _database.playlists,
-          _playlistSummaryCompanions(items),
+          _playlistSummaryCompanions(normalizedItems),
         );
         batch.insertAll(
           _database.userPlaylistListRefs,
-          items
+          normalizedItems
               .asMap()
               .entries
               .map(
                 (entry) => db.UserPlaylistListRefsCompanion.insert(
-                  userId: userId,
+                  userId: normalizedUserId,
                   listKind: kind.name,
                   playlistId: MusicResourceId.toNeteaseEntityId(entry.value.id),
                   sortOrder: entry.key,
@@ -205,23 +218,25 @@ class PlaylistDao {
     List<PlaylistSummaryData> items, {
     required int startOrder,
   }) async {
-    if (items.isEmpty) {
+    final normalizedUserId = _normalizedUserId(userId);
+    final normalizedItems = _normalizedPlaylistSummaries(items);
+    if (_isBlankUserId(normalizedUserId) || normalizedItems.isEmpty) {
       return;
     }
     final now = DateTime.now().millisecondsSinceEpoch;
     await _database.batch((batch) {
       batch.insertAllOnConflictUpdate(
         _database.playlists,
-        _playlistSummaryCompanions(items),
+        _playlistSummaryCompanions(normalizedItems),
       );
       batch.insertAllOnConflictUpdate(
         _database.userPlaylistListRefs,
-        items
+        normalizedItems
             .asMap()
             .entries
             .map(
               (entry) => db.UserPlaylistListRefsCompanion(
-                userId: drift.Value(userId),
+                userId: drift.Value(normalizedUserId),
                 listKind: drift.Value(kind.name),
                 playlistId: drift.Value(MusicResourceId.toNeteaseEntityId(entry.value.id)),
                 sortOrder: drift.Value(startOrder + entry.key),
@@ -268,6 +283,35 @@ class PlaylistDao {
             trackCount: drift.Value(item.trackCount),
           ),
         )
+        .toList();
+  }
+
+  String _normalizedUserId(String userId) {
+    return userId.trim();
+  }
+
+  bool _isBlankUserId(String userId) {
+    return userId.isEmpty;
+  }
+
+  String _normalizedPlaylistEntityId(String playlistId) {
+    return MusicResourceId.toNeteaseEntityId(playlistId.trim());
+  }
+
+  bool _isBlankPlaylistEntityId(String playlistId) {
+    return playlistId.isEmpty;
+  }
+
+  List<PlaylistSummaryData> _normalizedPlaylistSummaries(
+    List<PlaylistSummaryData> items,
+  ) {
+    return items
+        .map(
+          (item) => item.copyWith(
+            id: _normalizedPlaylistEntityId(item.id),
+          ),
+        )
+        .where((item) => !_isBlankPlaylistEntityId(item.id))
         .toList();
   }
 

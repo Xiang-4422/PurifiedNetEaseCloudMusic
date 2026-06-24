@@ -69,5 +69,55 @@ void main() {
       expect(allItems.map((item) => item.id), ['1', '2']);
       expect(searchItems.map((item) => item.id), ['2']);
     });
+
+    test('normalizes scoped playlist list keys at dao boundary', () async {
+      await dataSource.replacePlaylistItems(
+        ' user ',
+        UserPlaylistListKind.userPlaylists,
+        const [
+          PlaylistSummaryData(id: ' 1 ', title: 'Daily Mix'),
+          PlaylistSummaryData(id: ' ', title: 'Blank Playlist'),
+        ],
+      );
+      await dataSource.appendPlaylistItems(
+        'user',
+        UserPlaylistListKind.userPlaylists,
+        const [
+          PlaylistSummaryData(id: ' netease:2 ', title: 'Evening Focus'),
+        ],
+        startOrder: 1,
+      );
+      await dataSource.replacePlaylistItems(
+        ' ',
+        UserPlaylistListKind.recommended,
+        const [
+          PlaylistSummaryData(id: '3', title: 'Blank User Playlist'),
+        ],
+      );
+
+      final normalized = await dataSource.loadPlaylistItems(
+        'user',
+        UserPlaylistListKind.userPlaylists,
+      );
+      final spaced = await dataSource.loadPlaylistItems(
+        ' user ',
+        UserPlaylistListKind.userPlaylists,
+      );
+      final blank = await dataSource.loadPlaylistItems(
+        ' ',
+        UserPlaylistListKind.recommended,
+      );
+      final searchItems = await dataSource.searchPlaylistItems(' user ', 'Focus');
+      final playlistRows = await database.select(database.playlists).get();
+
+      expect(normalized.map((item) => item.id), ['1', '2']);
+      expect(spaced.map((item) => item.id), ['1', '2']);
+      expect(blank, isEmpty);
+      expect(searchItems.map((item) => item.id), ['2']);
+      expect(playlistRows.map((row) => row.playlistId).toSet(), {
+        'netease:1',
+        'netease:2',
+      });
+    });
   });
 }

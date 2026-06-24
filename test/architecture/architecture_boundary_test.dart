@@ -3460,6 +3460,9 @@ void main() {
       final trackListDaoFile = File(
         '${projectRoot.path}/lib/data/music_data/sources/local/database/dao/user_track_list_dao.dart',
       );
+      final playlistDaoFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/database/dao/playlist_dao.dart',
+      );
       final subscriptionDaoFile = File(
         '${projectRoot.path}/lib/data/music_data/sources/local/database/dao/user_playlist_subscription_dao.dart',
       );
@@ -3471,6 +3474,7 @@ void main() {
       );
       final profileDao = profileDaoFile.readAsStringSync();
       final trackListDao = trackListDaoFile.readAsStringSync();
+      final playlistDao = playlistDaoFile.readAsStringSync();
       final subscriptionDao = subscriptionDaoFile.readAsStringSync();
       final syncMarkerDao = syncMarkerDaoFile.readAsStringSync();
       final radioDao = radioDaoFile.readAsStringSync();
@@ -3484,6 +3488,12 @@ void main() {
         if (!trackListDao.contains('userId: normalizedUserId')) '${_relativePath(trackListDaoFile)} can still insert raw replacement user ids',
         if (!trackListDao.contains('userId: drift.Value(normalizedUserId)')) '${_relativePath(trackListDaoFile)} can still upsert raw user ids',
         if (!trackListDao.contains('trackId: drift.Value(normalizedTrackId)')) '${_relativePath(trackListDaoFile)} can still upsert raw track ids',
+        if (!playlistDao.contains('String _normalizedUserId(String userId)')) '${_relativePath(playlistDaoFile)} does not normalize user playlist list user ids',
+        if (!playlistDao.contains('String _normalizedPlaylistEntityId(String playlistId)')) '${_relativePath(playlistDaoFile)} does not normalize user playlist ids',
+        if (!playlistDao.contains('List<PlaylistSummaryData> _normalizedPlaylistSummaries(')) '${_relativePath(playlistDaoFile)} does not normalize user playlist summaries through a helper',
+        if (!playlistDao.contains('userId: normalizedUserId')) '${_relativePath(playlistDaoFile)} can still insert raw user playlist list user ids',
+        if (!playlistDao.contains('userId: drift.Value(normalizedUserId)')) '${_relativePath(playlistDaoFile)} can still upsert raw user playlist list user ids',
+        if (!playlistDao.contains('id: _normalizedPlaylistEntityId(item.id)')) '${_relativePath(playlistDaoFile)} can still write raw user playlist ids',
         if (!subscriptionDao.contains('String _normalizedUserId(String userId)')) '${_relativePath(subscriptionDaoFile)} does not normalize subscription user ids',
         if (!subscriptionDao.contains('String _normalizedPlaylistId(String playlistId)')) '${_relativePath(subscriptionDaoFile)} does not normalize subscription playlist ids',
         if (!subscriptionDao.contains('userId: drift.Value(normalizedUserId)')) '${_relativePath(subscriptionDaoFile)} can still write raw subscription user ids',

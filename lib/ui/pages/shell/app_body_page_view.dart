@@ -167,6 +167,7 @@ class MenuView extends GetView<ShellController> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           IconButton(
+            tooltip: drawerProfileActionLabel(),
             padding: EdgeInsets.zero,
             icon: Obx(
               () => SimpleExtendedImage.avatar(
@@ -212,7 +213,13 @@ class MenuView extends GetView<ShellController> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: List.generate(menus.length, (index) {
+                        final menu = menus[index];
+                        final isCurrent = homeShellController.curHomePageIndex.value == index;
                         return IconButton(
+                          tooltip: drawerMenuActionLabel(
+                            title: menu.title,
+                            isCurrent: isCurrent,
+                          ),
                           onPressed: () {
                             final pageController = homeShellController.homePageController;
                             if (!pageController.hasClients) {
@@ -230,9 +237,9 @@ class MenuView extends GetView<ShellController> {
                             );
                           },
                           icon: Icon(
-                            menus[index].icon,
+                            menu.icon,
                             size: AppDimensions.albumMinSize * 2 / 3,
-                            color: homeShellController.curHomePageIndex.value == index ? Theme.of(context).primaryColor : Theme.of(context).iconTheme.color,
+                            color: isCurrent ? Theme.of(context).primaryColor : Theme.of(context).iconTheme.color,
                           ),
                         );
                       }),
@@ -247,4 +254,23 @@ class MenuView extends GetView<ShellController> {
       ),
     );
   }
+}
+
+/// 生成抽屉头像入口的辅助语义标签。
+@visibleForTesting
+String drawerProfileActionLabel() {
+  return '打开个人资料';
+}
+
+/// 生成抽屉菜单切换按钮的辅助语义标签。
+@visibleForTesting
+String drawerMenuActionLabel({
+  required String title,
+  required bool isCurrent,
+}) {
+  final resolvedTitle = title.trim().isEmpty ? '页面' : title.trim();
+  if (isCurrent) {
+    return '$resolvedTitle（当前页面）';
+  }
+  return '切换到$resolvedTitle';
 }

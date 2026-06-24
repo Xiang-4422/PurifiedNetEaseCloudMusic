@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bujuan/ui/pages/shell/app_body_page_view.dart';
 import 'package:bujuan/ui/pages/user/today_page_view.dart';
 import 'package:bujuan/ui/pages/user/user_setting_view.dart';
 import 'package:bujuan/ui/pages/user/widgets/quick_start_card_rail.dart';
@@ -55,6 +56,31 @@ void main() {
         isCurrent: false,
       ),
       '播放最近播放：未知歌曲 - 未知艺人',
+    );
+  });
+
+  test('drawer menu exposes stable action labels', () {
+    expect(drawerProfileActionLabel(), '打开个人资料');
+    expect(
+      drawerMenuActionLabel(
+        title: ' 发现 ',
+        isCurrent: false,
+      ),
+      '切换到发现',
+    );
+    expect(
+      drawerMenuActionLabel(
+        title: '个人中心',
+        isCurrent: true,
+      ),
+      '个人中心（当前页面）',
+    );
+    expect(
+      drawerMenuActionLabel(
+        title: '  ',
+        isCurrent: false,
+      ),
+      '切换到页面',
     );
   });
 
@@ -262,6 +288,8 @@ void main() {
       contains('recentPlaybackController: personalHomeControllers.recentPlaybackController'),
     );
     expect(appBodySource, contains('MenuView(homeShellController: homeShellController)'));
+    expect(appBodySource, contains('tooltip: drawerProfileActionLabel()'));
+    expect(appBodySource, contains('tooltip: drawerMenuActionLabel('));
   });
 
   test('user playlist library page lists account playlists without data source access', () {

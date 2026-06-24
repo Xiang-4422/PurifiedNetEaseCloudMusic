@@ -239,7 +239,7 @@ class ExplorePageController extends GetxController {
       hasCachedData = true;
     }
     final playlistId = curTopPlayListId.value;
-    final likedSongIds = List<int>.of(_likedSongIds());
+    final likedSongIds = _likedSongIdsSnapshot();
     final currentUserId = _currentUserIdSnapshot();
     if (await _loadCachedRankingPlayListSongs(
       playlistId: playlistId,
@@ -374,7 +374,7 @@ class ExplorePageController extends GetxController {
   Future<ExplorePlaylistPlaybackPlan> resolvePlaylistPlayback(
     PlaylistSummaryData playlist,
   ) async {
-    final likedSongIds = List<int>.of(_likedSongIds());
+    final likedSongIds = _likedSongIdsSnapshot();
     final index = await _playlistRepository.fetchPlaylistIndex(
       playlist.id,
       likedSongIds: likedSongIds,
@@ -400,7 +400,7 @@ class ExplorePageController extends GetxController {
       return;
     }
     final playlistId = curTopPlayListId.value;
-    final likedSongIds = List<int>.of(_likedSongIds());
+    final likedSongIds = _likedSongIdsSnapshot();
     final userId = _currentUserIdSnapshot();
     final generation = offset == 0 ? ++_rankingSongsRequestGeneration : _rankingSongsRequestGeneration;
     if (offset == 0 && !force) {
@@ -620,7 +620,7 @@ class ExplorePageController extends GetxController {
   }
 
   bool _sameLikedSongIds(List<int> requestedLikedSongIds) {
-    final currentLikedSongIds = _likedSongIds();
+    final currentLikedSongIds = _likedSongIdsSnapshot();
     if (requestedLikedSongIds.length != currentLikedSongIds.length) {
       return false;
     }
@@ -634,6 +634,10 @@ class ExplorePageController extends GetxController {
 
   String _currentUserIdSnapshot() {
     return _normalizedCurrentUserId(_currentUserId());
+  }
+
+  List<int> _likedSongIdsSnapshot() {
+    return _likedSongIds().toSet().toList()..sort();
   }
 
   String _normalizedCurrentUserId(String userId) {

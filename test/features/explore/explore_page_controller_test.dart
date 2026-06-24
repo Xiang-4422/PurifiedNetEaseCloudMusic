@@ -202,8 +202,43 @@ void main() {
       expect(controller.curTopPlayListSongs.map((song) => song.id), ['remote-song']);
     });
 
+    test('normalizes liked song ids before ranking cache and stale checks', () async {
+      var likedSongIds = <int>[202, 101, 202];
+      final songLoad = Completer<List<PlaybackQueueItem>>();
+      final playlistRepository = _FakePlaylistRepository(
+        fetchSongsHandler: ({
+          required String playlistId,
+          required List<int> likedSongIds,
+          required int offset,
+          required int limit,
+        }) {
+          return songLoad.future;
+        },
+      );
+      final controller = _buildController(
+        playlistRepository: playlistRepository,
+        likedSongIds: () => likedSongIds,
+      );
+      addTearDown(controller.onClose);
+      controller.curTopPlayListId.value = 'ranking-1';
+
+      final load = controller.updateRankingPlayListSongs();
+      await _waitUntil(() => playlistRepository.fetchLikedSongRequests.isNotEmpty);
+      likedSongIds = <int>[101, 202];
+      songLoad.complete([_song('remote-song')]);
+      await load;
+
+      expect(playlistRepository.loadLocalDetailLikedSongRequests, [
+        [101, 202],
+      ]);
+      expect(playlistRepository.fetchLikedSongRequests, [
+        [101, 202],
+      ]);
+      expect(controller.curTopPlayListSongs.map((song) => song.id), ['remote-song']);
+    });
+
     test('resolves playlist playback plan with latest liked song ids', () async {
-      var likedSongIds = <int>[101];
+      var likedSongIds = <int>[101, 101];
       final playlistRepository = _FakePlaylistRepository(
         playlistIndex: const PlaylistIndexData(
           id: 'playlist-1',
@@ -230,7 +265,7 @@ void main() {
       final firstPlan = await controller.resolvePlaylistPlayback(
         const PlaylistSummaryData(id: 'playlist-1', title: 'Playlist 1'),
       );
-      likedSongIds = <int>[202, 303];
+      likedSongIds = <int>[303, 202, 202];
       final secondPlan = await controller.resolvePlaylistPlayback(
         const PlaylistSummaryData(id: 'playlist-1', title: 'Playlist 1'),
       );
@@ -446,6 +481,7 @@ class _FakePlaylistRepository implements PlaylistRepository {
   })? fetchSongsHandler;
   final List<List<int>> indexLikedSongRequests = <List<int>>[];
   final List<List<int>> fetchLikedSongRequests = <List<int>>[];
+  final List<List<int>> loadLocalDetailLikedSongRequests = <List<int>>[];
   final List<String> fetchPlaylistIndexNames = <String>[];
   final List<String?> loadLocalDetailUserIds = <String?>[];
 
@@ -500,6 +536,7 @@ class _FakePlaylistRepository implements PlaylistRepository {
     required List<int> likedSongIds,
     required String? currentUserId,
   }) async {
+    loadLocalDetailLikedSongRequests.add(List<int>.from(likedSongIds));
     loadLocalDetailUserIds.add(currentUserId);
     final error = cachedDetailError;
     if (error != null) {

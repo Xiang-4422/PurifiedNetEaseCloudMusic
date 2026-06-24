@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:bujuan/core/time/date_time_formatter.dart';
 import 'package:flutter/material.dart';
 
 const _fallbackPlaybackProgressTotal = Duration(seconds: 10);
@@ -98,6 +99,26 @@ Duration clampPlaybackProgressPosition({
     return total;
   }
   return position;
+}
+
+/// 生成播放进度的完整辅助语义标签。
+String playbackProgressSemanticsLabel({
+  required Duration position,
+  required Duration? total,
+}) {
+  final safeTotal = safePlaybackProgressTotal(total);
+  final safePosition = clampPlaybackProgressPosition(
+    position: position,
+    total: safeTotal,
+  );
+  final positionLabel = DateTimeFormatter.durationStamp(
+    safePosition.inMilliseconds,
+  );
+  if (total == null || total <= Duration.zero) {
+    return '播放进度：$positionLabel / 未知时长';
+  }
+  final totalLabel = DateTimeFormatter.durationStamp(safeTotal.inMilliseconds);
+  return '播放进度：$positionLabel / $totalLabel';
 }
 
 class _CircularProgressPainter extends CustomPainter {

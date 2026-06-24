@@ -2,6 +2,7 @@ import 'package:bujuan/core/entities/playback_mode.dart';
 import 'package:bujuan/core/entities/playback_order_mode.dart';
 import 'package:bujuan/core/entities/playback_repeat_mode.dart';
 import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_playback_controls.dart';
+import 'package:bujuan/ui/widgets/common/progress/circular_playback_progress.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

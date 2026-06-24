@@ -170,15 +170,26 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                                   if ((currentSong.duration?.inMilliseconds ?? 0) > 0)
                                     Obx(() {
                                       final currentDuration = playerController.currentPositionState.value;
-                                      return CircularPlaybackProgress(
-                                        progress: playbackProgressFraction(
-                                          position: currentDuration,
-                                          total: currentSong.duration,
+                                      final progressLabel = playbackProgressSemanticsLabel(
+                                        position: currentDuration,
+                                        total: currentSong.duration,
+                                      );
+                                      return Tooltip(
+                                        message: progressLabel,
+                                        excludeFromSemantics: true,
+                                        child: Semantics(
+                                          label: progressLabel,
+                                          child: CircularPlaybackProgress(
+                                            progress: playbackProgressFraction(
+                                              position: currentDuration,
+                                              total: currentSong.duration,
+                                            ),
+                                            size: AppDimensions.albumMinSize,
+                                            strokeWidth: 2,
+                                            progressColor: settingsController.panelWidgetColor.value,
+                                            backgroundColor: settingsController.panelWidgetColor.value.withAlpha(50),
+                                          ),
                                         ),
-                                        size: AppDimensions.albumMinSize,
-                                        strokeWidth: 2,
-                                        progressColor: settingsController.panelWidgetColor.value,
-                                        backgroundColor: settingsController.panelWidgetColor.value.withAlpha(50),
                                       );
                                     }),
                                   // 播放按钮

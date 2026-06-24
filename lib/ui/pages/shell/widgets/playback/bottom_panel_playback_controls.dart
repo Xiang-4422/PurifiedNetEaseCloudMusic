@@ -3,7 +3,6 @@ import 'package:blurrycontainer/blurrycontainer.dart';
 import 'package:bujuan/core/entities/playback_mode.dart';
 import 'package:bujuan/core/entities/playback_order_mode.dart';
 import 'package:bujuan/core/entities/playback_repeat_mode.dart';
-import 'package:bujuan/core/time/date_time_formatter.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/settings/settings_controller.dart';
@@ -233,27 +232,6 @@ String playbackLikeControlLabel({required bool isLiked}) {
 @visibleForTesting
 String playbackPlayPauseControlLabel({required bool isPlaying}) {
   return isPlaying ? '暂停' : '播放';
-}
-
-/// 生成播放进度条的辅助语义标签。
-@visibleForTesting
-String playbackProgressSemanticsLabel({
-  required Duration position,
-  required Duration? total,
-}) {
-  final safeTotal = safePlaybackProgressTotal(total);
-  final safePosition = clampPlaybackProgressPosition(
-    position: position,
-    total: safeTotal,
-  );
-  final positionLabel = DateTimeFormatter.durationStamp(
-    safePosition.inMilliseconds,
-  );
-  if (total == null || total <= Duration.zero) {
-    return '播放进度：$positionLabel / 未知时长';
-  }
-  final totalLabel = DateTimeFormatter.durationStamp(safeTotal.inMilliseconds);
-  return '播放进度：$positionLabel / $totalLabel';
 }
 
 /// 生成音质按钮的辅助语义标签。

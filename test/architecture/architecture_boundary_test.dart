@@ -1508,6 +1508,28 @@ void main() {
       );
     });
 
+    test('selection UI side effects normalize item ids before delayed work', () {
+      final coordinatorFile = File(
+        '${projectRoot.path}/lib/features/playback/playback_selection_ui_effect_coordinator.dart',
+      );
+      final coordinator = coordinatorFile.readAsStringSync();
+      final violations = <String>[
+        if (!coordinator.contains('String _normalizedItemId(String itemId)')) '${_relativePath(coordinatorFile)} does not define selection item id normalization',
+        if (!coordinator.contains('final selectedSongId = _normalizedItemId(selection.selectedItem.id);')) '${_relativePath(coordinatorFile)} can still schedule UI side effects from raw selected item id',
+        if (!coordinator.contains('if (selectedSongId.isEmpty || selection.selectedIndex < 0)')) '${_relativePath(coordinatorFile)} can still schedule delayed UI side effects for blank selected ids',
+        if (!coordinator.contains("final key = '\${selection.selectionVersion}:\$selectedSongId';")) '${_relativePath(coordinatorFile)} can still deduplicate selection UI work by raw id',
+        if (!coordinator.contains('isStillCurrent: (trackId) => _isSelectedItem(latestSelection(), trackId)')) '${_relativePath(coordinatorFile)} does not use normalized still-current checks',
+        if (!coordinator.contains('if (!_isSelectedItem(latestSelection(), selectedSongId))')) '${_relativePath(coordinatorFile)} can still cancel delayed UI work through raw id comparison',
+        if (!coordinator.contains('final nextLyricState = await _lyricsPresenter.loadLyrics(selectedSong);')) '${_relativePath(coordinatorFile)} can still load lyrics with raw selected item id',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'selection UI 副作用会延迟加载歌词、取色和封面预热，调度、去重、stale 判断和 presenter 入参都必须使用规范化歌曲 id。',
+      );
+    });
+
     test('playback queue ownership does not flow back from audio adapter', () {
       final selectionFile = File(
         '${projectRoot.path}/lib/features/playback/application/playback_selection_service.dart',

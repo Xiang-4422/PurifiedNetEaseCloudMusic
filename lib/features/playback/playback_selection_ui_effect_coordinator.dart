@@ -1,3 +1,4 @@
+import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/playback/playback_artwork_presenter.dart';
 import 'package:bujuan/features/playback/lyrics/lyrics_reader_model.dart';
 import 'package:bujuan/features/playback/application/current_track_side_effect_coordinator.dart';
@@ -38,17 +39,18 @@ class PlaybackSelectionUiEffectCoordinator {
     }) syncLyricState,
     required void Function() preloadImages,
   }) {
-    if (!selection.hasSelection) {
+    final selectedSongId = _normalizedItemId(selection.selectedItem.id);
+    if (selectedSongId.isEmpty || selection.selectedIndex < 0) {
       return;
     }
-    final selectedSong = selection.selectedItem;
-    final key = '${selection.selectionVersion}:${selectedSong.id}';
+    final selectedSong = _normalizedQueueItem(selection.selectedItem);
+    final key = '${selection.selectionVersion}:$selectedSongId';
     if (_lastSelectionUiSideEffectKey == key) {
       return;
     }
     _lastSelectionUiSideEffectKey = key;
     PlaybackPerformanceLogger.log(
-      'selectionUi.schedule version=${selection.selectionVersion} id=${selectedSong.id} index=${selection.selectedIndex} queue=${selection.queue.length}',
+      'selectionUi.schedule version=${selection.selectionVersion} id=$selectedSongId index=${selection.selectedIndex} queue=${selection.queue.length}',
     );
     syncLyricState(
       lines: const [],
@@ -58,17 +60,22 @@ class PlaybackSelectionUiEffectCoordinator {
     _sideEffectCoordinator.schedule(
       channel: 'playback-ui-lyric-artwork',
       delay: const Duration(milliseconds: 180),
-      trackId: selectedSong.id,
-      isStillCurrent: (trackId) => latestSelection().selectedItem.id == trackId,
+      trackId: selectedSongId,
+      isStillCurrent: (trackId) => _isSelectedItem(latestSelection(), trackId),
       run: () async {
         final stopwatch = PlaybackPerformanceLogger.start();
         preloadImages();
-        await _updateAlbumColor(selection, latestSelection);
-        if (latestSelection().selectedItem.id != selectedSong.id) {
+        await _updateAlbumColor(
+          selection,
+          latestSelection,
+          selectedSong: selectedSong,
+          selectedSongId: selectedSongId,
+        );
+        if (!_isSelectedItem(latestSelection(), selectedSongId)) {
           PlaybackPerformanceLogger.elapsed(
             'selectionUi.cancelAfterColor',
             stopwatch,
-            details: 'id=${selectedSong.id}',
+            details: 'id=$selectedSongId',
           );
           return;
         }
@@ -77,14 +84,14 @@ class PlaybackSelectionUiEffectCoordinator {
         PlaybackPerformanceLogger.elapsed(
           'selectionUi.loadLyrics',
           lyricStopwatch,
-          details: 'id=${selectedSong.id} lines=${nextLyricState.lines.length}',
+          details: 'id=$selectedSongId lines=${nextLyricState.lines.length}',
           warnAfterMs: 4,
         );
-        if (latestSelection().selectedItem.id != selectedSong.id) {
+        if (!_isSelectedItem(latestSelection(), selectedSongId)) {
           PlaybackPerformanceLogger.elapsed(
             'selectionUi.cancelAfterLyrics',
             stopwatch,
-            details: 'id=${selectedSong.id}',
+            details: 'id=$selectedSongId',
           );
           return;
         }
@@ -96,7 +103,7 @@ class PlaybackSelectionUiEffectCoordinator {
         PlaybackPerformanceLogger.elapsed(
           'selectionUi.run',
           stopwatch,
-          details: 'id=${selectedSong.id}',
+          details: 'id=$selectedSongId',
           warnAfterMs: 4,
         );
       },
@@ -105,26 +112,30 @@ class PlaybackSelectionUiEffectCoordinator {
 
   Future<void> _updateAlbumColor(
     PlaybackSelectionState selection,
-    PlaybackSelectionState Function() latestSelection,
-  ) async {
+    PlaybackSelectionState Function() latestSelection, {
+    required PlaybackQueueItem selectedSong,
+    required String selectedSongId,
+  }) async {
     try {
       final stopwatch = PlaybackPerformanceLogger.start();
-      final color = _artworkPresenter.peekCachedDominantColor(selection.selectedItem);
+      final color = _artworkPresenter.peekCachedDominantColor(selectedSong);
       if (color != null) {
         _applyDominantColor(color);
         PlaybackPerformanceLogger.log(
-          'selectionUi.applyAlbumColor.cacheHit id=${selection.selectedItem.id}',
+          'selectionUi.applyAlbumColor.cacheHit id=$selectedSongId',
         );
       }
       _scheduleColorPrewarm(
         selection,
         latestSelection,
+        selectedItem: selectedSong,
+        selectedItemId: selectedSongId,
         resolveCurrentColor: color == null,
       );
       PlaybackPerformanceLogger.elapsed(
         'selectionUi.updateAlbumColor',
         stopwatch,
-        details: 'id=${selection.selectedItem.id} cacheHit=${color != null} queue=${selection.queue.length}',
+        details: 'id=$selectedSongId cacheHit=${color != null} queue=${selection.queue.length}',
         warnAfterMs: 1,
       );
     } catch (_) {
@@ -135,23 +146,24 @@ class PlaybackSelectionUiEffectCoordinator {
   void _scheduleColorPrewarm(
     PlaybackSelectionState selection,
     PlaybackSelectionState Function() latestSelection, {
+    required PlaybackQueueItem selectedItem,
+    required String selectedItemId,
     required bool resolveCurrentColor,
   }) {
     final queue = selection.queue;
     final currentIndex = selection.selectedIndex;
-    final selectedItem = selection.selectedItem;
     _sideEffectCoordinator.schedule(
       channel: 'playback-ui-color-prewarm',
       delay: const Duration(milliseconds: 350),
-      trackId: selectedItem.id,
-      isStillCurrent: (trackId) => latestSelection().selectedItem.id == trackId,
+      trackId: selectedItemId,
+      isStillCurrent: (trackId) => _isSelectedItem(latestSelection(), trackId),
       run: () async {
         if (resolveCurrentColor) {
           final resolvedColor = await _artworkPresenter.resolveDominantColor(selectedItem);
-          if (resolvedColor != null && latestSelection().selectedItem.id == selectedItem.id) {
+          if (resolvedColor != null && _isSelectedItem(latestSelection(), selectedItemId)) {
             _applyDominantColor(resolvedColor);
             PlaybackPerformanceLogger.log(
-              'selectionUi.applyAlbumColor.resolved id=${selectedItem.id}',
+              'selectionUi.applyAlbumColor.resolved id=$selectedItemId',
             );
           }
         }
@@ -163,6 +175,23 @@ class PlaybackSelectionUiEffectCoordinator {
         );
       },
     );
+  }
+
+  bool _isSelectedItem(PlaybackSelectionState selection, String itemId) {
+    final normalizedItemId = _normalizedItemId(itemId);
+    return normalizedItemId.isNotEmpty && _normalizedItemId(selection.selectedItem.id) == normalizedItemId;
+  }
+
+  PlaybackQueueItem _normalizedQueueItem(PlaybackQueueItem item) {
+    final normalizedItemId = _normalizedItemId(item.id);
+    if (normalizedItemId == item.id) {
+      return item;
+    }
+    return item.copyWith(id: normalizedItemId);
+  }
+
+  String _normalizedItemId(String itemId) {
+    return itemId.trim();
   }
 
   /// 取消挂起的 selection UI 副作用。

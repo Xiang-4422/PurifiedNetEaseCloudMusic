@@ -106,6 +106,52 @@ void main() {
       expect(artworkPresenter.resolveCallCount, 1);
       expect(appliedColors, [Colors.blue]);
     });
+
+    test('normalizes selected item id before stale checks and presenters', () async {
+      final artworkPresenter = _FakeArtworkPresenter(
+        cachedColor: Colors.green,
+      );
+      final lyricsPresenter = _FakeLyricsPresenter();
+      final appliedColors = <Color>[];
+      final rawSelection = PlaybackSelectionState(
+        queue: [_item(' 1 ')],
+        selectedItem: _item(' 1 '),
+        selectedIndex: 0,
+        selectionVersion: 1,
+      );
+      final latestSelection = PlaybackSelectionState(
+        queue: [_item('1')],
+        selectedItem: _item('1'),
+        selectedIndex: 0,
+        selectionVersion: 1,
+      );
+      final coordinator = PlaybackSelectionUiEffectCoordinator(
+        sideEffectCoordinator: CurrentTrackSideEffectCoordinator(),
+        lyricsPresenter: lyricsPresenter,
+        artworkPresenter: artworkPresenter,
+        applyDominantColor: appliedColors.add,
+      );
+
+      coordinator.schedule(
+        selection: rawSelection,
+        latestSelection: () => latestSelection,
+        syncLyricState: ({
+          List<LyricsLineModel>? lines,
+          int? currentIndex,
+          bool? hasTranslatedLyrics,
+        }) {},
+        preloadImages: () {},
+      );
+
+      await Future<void>.delayed(const Duration(milliseconds: 240));
+
+      expect(appliedColors, [Colors.green]);
+      expect(artworkPresenter.peekedItemIds, ['1']);
+      expect(lyricsPresenter.loadedItemIds, ['1']);
+
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      expect(artworkPresenter.prewarmCallCount, 1);
+    });
   });
 }
 
@@ -121,9 +167,14 @@ class _FakeArtworkPresenter implements PlaybackArtworkPresenter {
   final Future<void> prewarmFuture;
   int prewarmCallCount = 0;
   int resolveCallCount = 0;
+  final List<String> peekedItemIds = <String>[];
+  final List<String> resolvedItemIds = <String>[];
 
   @override
-  Color? peekCachedDominantColor(PlaybackQueueItem item) => cachedColor;
+  Color? peekCachedDominantColor(PlaybackQueueItem item) {
+    peekedItemIds.add(item.id);
+    return cachedColor;
+  }
 
   @override
   Future<void> prewarmQueueDominantColors({
@@ -141,6 +192,7 @@ class _FakeArtworkPresenter implements PlaybackArtworkPresenter {
   @override
   Future<Color?> resolveDominantColor(PlaybackQueueItem item) async {
     resolveCallCount++;
+    resolvedItemIds.add(item.id);
     return resolvedColor ?? cachedColor;
   }
 
@@ -161,10 +213,12 @@ class _FakeArtworkPresenter implements PlaybackArtworkPresenter {
 
 class _FakeLyricsPresenter implements PlaybackLyricsPresenter {
   int loadCallCount = 0;
+  final List<String> loadedItemIds = <String>[];
 
   @override
   Future<PlaybackLyricState> loadLyrics(PlaybackQueueItem currentSong) async {
     loadCallCount++;
+    loadedItemIds.add(currentSong.id);
     return PlaybackLyricState(
       lines: [
         LyricsLineModel()

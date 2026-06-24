@@ -15,9 +15,13 @@ class ResourceDao {
     String trackId,
     LocalResourceKind kind,
   ) async {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return null;
+    }
     final row = await (_database.select(_database.localResourceEntries)
           ..where(
-            (tbl) => tbl.trackId.equals(trackId) & tbl.kind.equals(kind.name),
+            (tbl) => tbl.trackId.equals(normalizedTrackId) & tbl.kind.equals(kind.name),
           ))
         .getSingleOrNull();
     if (row == null) {
@@ -28,8 +32,12 @@ class ResourceDao {
 
   /// 获取指定歌曲的全部资源。
   Future<List<LocalResourceEntry>> getTrackResources(String trackId) async {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return const [];
+    }
     final rows = await (_database.select(_database.localResourceEntries)
-          ..where((tbl) => tbl.trackId.equals(trackId))
+          ..where((tbl) => tbl.trackId.equals(normalizedTrackId))
           ..orderBy([
             (tbl) => drift.OrderingTerm.asc(tbl.kind),
           ]))
@@ -41,7 +49,7 @@ class ResourceDao {
   Future<Map<String, List<LocalResourceEntry>>> getTrackResourcesByIds(
     Iterable<String> trackIds,
   ) async {
-    final ids = trackIds.toSet().toList();
+    final ids = _candidateTrackIds(trackIds);
     if (ids.isEmpty) {
       return const {};
     }
@@ -90,17 +98,21 @@ class ResourceDao {
   }
 
   /// 保存资源。
-  Future<void> saveResource(LocalResourceEntry entry) {
-    return _database.into(_database.localResourceEntries).insertOnConflictUpdate(
+  Future<void> saveResource(LocalResourceEntry entry) async {
+    final normalizedEntry = _normalizedResourceForSave(entry);
+    if (_isBlankTrackId(normalizedEntry.trackId)) {
+      return;
+    }
+    await _database.into(_database.localResourceEntries).insertOnConflictUpdate(
           LocalResourceEntriesCompanion(
-            trackId: drift.Value(entry.trackId),
-            kind: drift.Value(entry.kind.name),
-            path: drift.Value(entry.path),
-            origin: drift.Value(entry.origin.name),
-            sizeBytes: drift.Value(entry.sizeBytes),
-            createdAtMs: drift.Value(entry.createdAt.millisecondsSinceEpoch),
+            trackId: drift.Value(normalizedEntry.trackId),
+            kind: drift.Value(normalizedEntry.kind.name),
+            path: drift.Value(normalizedEntry.path),
+            origin: drift.Value(normalizedEntry.origin.name),
+            sizeBytes: drift.Value(normalizedEntry.sizeBytes),
+            createdAtMs: drift.Value(normalizedEntry.createdAt.millisecondsSinceEpoch),
             lastAccessedAtMs: drift.Value(
-              entry.lastAccessedAt.millisecondsSinceEpoch,
+              normalizedEntry.lastAccessedAt.millisecondsSinceEpoch,
             ),
           ),
         );
@@ -112,9 +124,13 @@ class ResourceDao {
     LocalResourceKind kind, {
     required DateTime accessedAt,
   }) {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return Future<void>.value();
+    }
     return (_database.update(_database.localResourceEntries)
           ..where(
-            (tbl) => tbl.trackId.equals(trackId) & tbl.kind.equals(kind.name),
+            (tbl) => tbl.trackId.equals(normalizedTrackId) & tbl.kind.equals(kind.name),
           ))
         .write(
       LocalResourceEntriesCompanion(
@@ -125,21 +141,54 @@ class ResourceDao {
 
   /// 删除指定资源。
   Future<void> removeResource(String trackId, LocalResourceKind kind) {
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return Future<void>.value();
+    }
     return (_database.delete(_database.localResourceEntries)
           ..where(
-            (tbl) => tbl.trackId.equals(trackId) & tbl.kind.equals(kind.name),
+            (tbl) => tbl.trackId.equals(normalizedTrackId) & tbl.kind.equals(kind.name),
           ))
         .go();
   }
 
   /// 删除指定歌曲的全部资源。
   Future<void> removeTrackResources(String trackId) {
-    return (_database.delete(_database.localResourceEntries)..where((tbl) => tbl.trackId.equals(trackId))).go();
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (_isBlankTrackId(normalizedTrackId)) {
+      return Future<void>.value();
+    }
+    return (_database.delete(_database.localResourceEntries)..where((tbl) => tbl.trackId.equals(normalizedTrackId))).go();
   }
 
   /// 删除指定来源的全部资源。
   Future<void> removeResourcesByOrigin(TrackResourceOrigin origin) {
     return (_database.delete(_database.localResourceEntries)..where((tbl) => tbl.origin.equals(origin.name))).go();
+  }
+
+  LocalResourceEntry _normalizedResourceForSave(LocalResourceEntry entry) {
+    return entry.copyWith(trackId: _normalizedTrackId(entry.trackId));
+  }
+
+  List<String> _candidateTrackIds(Iterable<String> trackIds) {
+    final seen = <String>{};
+    final result = <String>[];
+    for (final trackId in trackIds) {
+      final normalizedTrackId = _normalizedTrackId(trackId);
+      if (_isBlankTrackId(normalizedTrackId) || !seen.add(normalizedTrackId)) {
+        continue;
+      }
+      result.add(normalizedTrackId);
+    }
+    return result;
+  }
+
+  String _normalizedTrackId(String trackId) {
+    return trackId.trim();
+  }
+
+  bool _isBlankTrackId(String trackId) {
+    return trackId.isEmpty;
   }
 
   LocalResourceEntry _mapRow(LocalResourceEntrie row) {

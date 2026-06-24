@@ -1935,6 +1935,30 @@ void main() {
       );
     });
 
+    test('resource dao normalizes persisted local resource ids', () {
+      final daoFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/local/database/dao/resource_dao.dart',
+      );
+      final dao = daoFile.readAsStringSync();
+      final violations = <String>[
+        if (!dao.contains('String _normalizedTrackId(String trackId)')) '${_relativePath(daoFile)} does not normalize track ids',
+        if (!dao.contains('bool _isBlankTrackId(String trackId)')) '${_relativePath(daoFile)} does not guard blank track ids',
+        if (!dao.contains('List<String> _candidateTrackIds(Iterable<String> trackIds)')) '${_relativePath(daoFile)} does not normalize batch resource lookups',
+        if (!dao.contains('LocalResourceEntry _normalizedResourceForSave(LocalResourceEntry entry)')) '${_relativePath(daoFile)} does not normalize resources before persistence',
+        if (!dao.contains('final normalizedTrackId = _normalizedTrackId(trackId);')) '${_relativePath(daoFile)} can still query, touch, or delete resources by raw track ids',
+        if (!dao.contains('final normalizedEntry = _normalizedResourceForSave(entry);')) '${_relativePath(daoFile)} can still save raw resource track ids',
+        if (!dao.contains('trackId: drift.Value(normalizedEntry.trackId)')) '${_relativePath(daoFile)} can still write raw resource track ids',
+        if (!dao.contains('tbl.trackId.equals(normalizedTrackId)')) '${_relativePath(daoFile)} can still read, touch, or delete raw resource track ids',
+        if (!dao.contains('entry.copyWith(trackId: _normalizedTrackId(entry.trackId))')) '${_relativePath(daoFile)} can still persist unnormalized resource entries',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'local_resource_entries 是播放和下载共享的最终资源事实表，DAO 边界必须归一曲目 id 并拒绝空白 key。',
+      );
+    });
+
     test('setting sections receive settings controller boundary', () {
       final pageFile = File(
         '${projectRoot.path}/lib/ui/pages/settings/setting_page.dart',

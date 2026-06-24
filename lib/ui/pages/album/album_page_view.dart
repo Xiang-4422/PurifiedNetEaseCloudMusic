@@ -20,6 +20,19 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 
 import 'package:get/get.dart';
 
+/// 专辑页头部播放按钮提示文案。
+@visibleForTesting
+String albumPlayButtonTooltip({
+  required String title,
+  required int songCount,
+}) {
+  if (songCount <= 0) {
+    return '专辑暂无歌曲';
+  }
+  final resolvedTitle = title.trim().isEmpty ? '当前专辑' : title.trim();
+  return '播放专辑：$resolvedTitle';
+}
+
 /// 专辑详情页面，展示专辑信息和专辑歌曲。
 class AlbumPageView extends StatefulWidget {
   /// 创建专辑详情页面。
@@ -89,6 +102,11 @@ class _AlbumPageViewState extends State<AlbumPageView> {
       );
     }
     final layoutMetrics = AdaptiveLayoutMetrics.of(context);
+    final canPlayAlbum = albumSongs.isNotEmpty;
+    final playTooltip = albumPlayButtonTooltip(
+      title: album.title,
+      songCount: albumSongs.length,
+    );
 
     return RefreshIndicator(
       onRefresh: () => _refreshAlbumDetail(showLoadingState: false),
@@ -148,18 +166,21 @@ class _AlbumPageViewState extends State<AlbumPageView> {
                     BlurryContainer(
                       padding: EdgeInsets.zero,
                       borderRadius: BorderRadius.circular(9999),
-                      color: Colors.red,
+                      color: Colors.red.withValues(alpha: canPlayAlbum ? 1 : 0.45),
                       child: IconButton(
-                          icon: const Icon(
-                            TablerIcons.player_play_filled,
-                            color: Colors.white,
-                          ),
-                          onPressed: () => _playerController.playPlaylist(
-                                albumSongs,
-                                0,
-                                playListName: album.title,
-                                playListNameHeader: "专辑",
-                              )),
+                        tooltip: playTooltip,
+                        color: Colors.white,
+                        disabledColor: Colors.white.withValues(alpha: 0.45),
+                        icon: const Icon(TablerIcons.player_play_filled),
+                        onPressed: canPlayAlbum
+                            ? () => _playerController.playPlaylist(
+                                  albumSongs,
+                                  0,
+                                  playListName: album.title,
+                                  playListNameHeader: "专辑",
+                                )
+                            : null,
+                      ),
                     ),
                   ],
                 ),

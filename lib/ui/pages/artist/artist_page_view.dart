@@ -28,6 +28,19 @@ import 'package:get/get.dart';
 @visibleForTesting
 const double artistHotAlbumCacheExtent = 360;
 
+/// 歌手页头部播放按钮提示文案。
+@visibleForTesting
+String artistPlayButtonTooltip({
+  required String name,
+  required int songCount,
+}) {
+  if (songCount <= 0) {
+    return '歌手暂无歌曲';
+  }
+  final resolvedName = name.trim().isEmpty ? '当前歌手' : name.trim();
+  return '播放歌手热门歌曲：$resolvedName';
+}
+
 /// 歌手页热门专辑年份展示文案。
 @visibleForTesting
 String artistHotAlbumYearLabel(int? publishTime) {
@@ -124,6 +137,11 @@ class _ArtistPageViewState extends State<ArtistPageView> {
     final layoutMetrics = AdaptiveLayoutMetrics.of(context);
     // 计算专辑宽度：
     double albumWidth = (context.width - AppDimensions.paddingMedium * 3) / 2.5;
+    final canPlayArtist = topSongs.isNotEmpty;
+    final playTooltip = artistPlayButtonTooltip(
+      name: artist.name,
+      songCount: topSongs.length,
+    );
 
     return RefreshIndicator(
       onRefresh: () => _refreshArtistDetail(showLoadingState: false),
@@ -185,18 +203,21 @@ class _ArtistPageViewState extends State<ArtistPageView> {
                       BlurryContainer(
                         padding: EdgeInsets.zero,
                         borderRadius: BorderRadius.circular(9999),
-                        color: Colors.red,
+                        color: Colors.red.withValues(alpha: canPlayArtist ? 1 : 0.45),
                         child: IconButton(
-                            icon: const Icon(
-                              TablerIcons.player_play_filled,
-                              color: Colors.white,
-                            ),
-                            onPressed: () => _playerController.playPlaylist(
-                                  topSongs,
-                                  0,
-                                  playListName: artist.name,
-                                  playListNameHeader: "歌手",
-                                )),
+                          tooltip: playTooltip,
+                          color: Colors.white,
+                          disabledColor: Colors.white.withValues(alpha: 0.45),
+                          icon: const Icon(TablerIcons.player_play_filled),
+                          onPressed: canPlayArtist
+                              ? () => _playerController.playPlaylist(
+                                    topSongs,
+                                    0,
+                                    playListName: artist.name,
+                                    playListNameHeader: "歌手",
+                                  )
+                              : null,
+                        ),
                       )
                     ],
                   ),

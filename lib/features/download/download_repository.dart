@@ -35,6 +35,7 @@ class DownloadRepository {
     DownloadTaskStateStore? taskStateStore,
     DownloadBackgroundErrorHandler? onBackgroundError,
   })  : _musicDataRepository = musicDataRepository,
+        _resourceIndexRepository = resourceIndexRepository,
         _taskQueue = taskQueue ?? DownloadTaskQueue(),
         _fileStore = fileStore ?? DownloadFileStore(dio: dio),
         _resourceWriter = resourceWriter ??
@@ -60,6 +61,7 @@ class DownloadRepository {
             );
 
   final MusicDataRepository _musicDataRepository;
+  final LocalResourceIndexRepository _resourceIndexRepository;
   final DownloadTaskQueue _taskQueue;
   final DownloadFileStore _fileStore;
   final DownloadResourceWriter _resourceWriter;
@@ -235,8 +237,13 @@ class DownloadRepository {
   }
 
   /// 清理播放缓存资源。
-  Future<void> clearPlaybackCache() {
-    return _musicDataRepository.removePlaybackCache();
+  Future<void> clearPlaybackCache() async {
+    await _musicDataRepository.removePlaybackCache();
+    await _fileStore.clearPlaybackCacheFiles(
+      retainedPaths: _resourcePaths(
+        await _resourceIndexRepository.listResources(),
+      ),
+    );
   }
 
   bool _isBlankTrackId(String trackId) {
@@ -245,5 +252,16 @@ class DownloadRepository {
 
   String _normalizedTrackId(String trackId) {
     return trackId.trim();
+  }
+
+  Set<String> _resourcePaths(List<LocalResourceEntry> resources) {
+    final paths = <String>{};
+    for (final resource in resources) {
+      final path = LocalFilePathNormalizer.normalize(resource.path);
+      if (path.isNotEmpty) {
+        paths.add(path);
+      }
+    }
+    return paths;
   }
 }

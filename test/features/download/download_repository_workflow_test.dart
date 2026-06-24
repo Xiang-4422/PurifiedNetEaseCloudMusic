@@ -175,6 +175,52 @@ void main() {
       expect(File(resourceWriter.savedPlaybackCacheAudioPaths.single).existsSync(), isFalse);
     });
 
+    test('clears playback cache directory after clearing playback cache resource indexes', () async {
+      final retainedAudio = File('${tempDirectory.path}/retained.mp3');
+      await retainedAudio.writeAsBytes([1, 2, 3]);
+      final playbackOnlyAudio = File('${tempDirectory.path}/playback-only.mp3');
+      await playbackOnlyAudio.writeAsBytes([1, 2, 3]);
+      final resourceIndexRepository = _FakeLocalResourceIndexRepository(
+        resources: [
+          _resource(
+            trackId: '1',
+            path: retainedAudio.path,
+            origin: TrackResourceOrigin.playbackCache,
+          ),
+          _resource(
+            trackId: '2',
+            path: retainedAudio.uri.replace(queryParameters: {'token': 'legacy'}).toString(),
+            origin: TrackResourceOrigin.managedDownload,
+          ),
+          _resource(
+            trackId: '3',
+            path: playbackOnlyAudio.path,
+            origin: TrackResourceOrigin.playbackCache,
+          ),
+        ],
+      );
+      late final _FakeMusicDataRepository musicDataRepository;
+      musicDataRepository = _FakeMusicDataRepository(
+        onRemovePlaybackCache: () => resourceIndexRepository.removeResourcesByOrigin(
+          TrackResourceOrigin.playbackCache,
+        ),
+      );
+      final fileStore = _FakeDownloadFileStore(tempDirectory);
+      final repository = _buildRepository(
+        taskDataSource: _FakeDownloadTaskDataSource(),
+        fileStore: fileStore,
+        resourceWriter: _FakeDownloadResourceWriter(saveManagedResult: true),
+        musicDataRepository: musicDataRepository,
+        resourceIndexRepository: resourceIndexRepository,
+      );
+
+      await repository.clearPlaybackCache();
+
+      expect(musicDataRepository.removePlaybackCacheCount, 1);
+      expect(fileStore.clearPlaybackCacheFilesCount, 1);
+      expect(fileStore.clearPlaybackCacheRetainedPaths, {retainedAudio.path});
+    });
+
     test('redownloads when only a completed task remains without resource index', () async {
       final taskDataSource = _FakeDownloadTaskDataSource(
         tasks: [
@@ -389,11 +435,12 @@ DownloadRepository _buildRepository({
   required DownloadFileStore fileStore,
   required DownloadResourceWriter resourceWriter,
   _FakeMusicDataRepository? musicDataRepository,
+  LocalResourceIndexRepository? resourceIndexRepository,
 }) {
   return DownloadRepository(
     musicDataRepository: musicDataRepository ?? _FakeMusicDataRepository(),
     taskDataSource: taskDataSource,
-    resourceIndexRepository: _UnusedLocalResourceIndexRepository(),
+    resourceIndexRepository: resourceIndexRepository ?? _UnusedLocalResourceIndexRepository(),
     fileStore: fileStore,
     resourceWriter: resourceWriter,
   );
@@ -410,10 +457,13 @@ DownloadTask _task(String trackId, DownloadTaskStatus status) {
 class _FakeMusicDataRepository implements MusicDataRepository {
   _FakeMusicDataRepository({
     this.resources = const TrackResourceBundle(),
+    this.onRemovePlaybackCache,
   });
 
   final TrackResourceBundle resources;
+  final Future<void> Function()? onRemovePlaybackCache;
   int playbackUrlCallCount = 0;
+  int removePlaybackCacheCount = 0;
   final Track _track = const Track(
     id: '1',
     sourceType: SourceType.netease,
@@ -459,6 +509,12 @@ class _FakeMusicDataRepository implements MusicDataRepository {
   Future<TrackLyrics?> getLyrics(String trackId) async => null;
 
   @override
+  Future<void> removePlaybackCache() async {
+    removePlaybackCacheCount++;
+    await onRemovePlaybackCache?.call();
+  }
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -466,6 +522,8 @@ class _FakeDownloadFileStore extends DownloadFileStore {
   _FakeDownloadFileStore(this.rootDirectory) : super(dio: Dio());
 
   final Directory rootDirectory;
+  int clearPlaybackCacheFilesCount = 0;
+  Set<String> clearPlaybackCacheRetainedPaths = const {};
 
   @override
   Future<DownloadDirectories> ensureDownloadDirectories() async {
@@ -518,6 +576,14 @@ class _FakeDownloadFileStore extends DownloadFileStore {
     TrackLyrics? lyrics,
   ) async {
     return null;
+  }
+
+  @override
+  Future<void> clearPlaybackCacheFiles({
+    required Set<String> retainedPaths,
+  }) async {
+    clearPlaybackCacheFilesCount++;
+    clearPlaybackCacheRetainedPaths = retainedPaths;
   }
 
   Future<Directory> _ensureChildDirectory(String name) async {
@@ -711,6 +777,34 @@ class _FakeDownloadTaskDataSource implements DownloadTaskDataSource {
 }
 
 class _UnusedLocalResourceIndexRepository implements LocalResourceIndexRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FakeLocalResourceIndexRepository implements LocalResourceIndexRepository {
+  _FakeLocalResourceIndexRepository({required List<LocalResourceEntry> resources}) : _resources = [...resources];
+
+  final List<LocalResourceEntry> _resources;
+
+  @override
+  Future<List<LocalResourceEntry>> listResources({
+    Set<TrackResourceOrigin>? origins,
+    Set<LocalResourceKind>? kinds,
+  }) async {
+    return _resources.where(
+      (resource) {
+        final originMatches = origins == null || origins.isEmpty || origins.contains(resource.origin);
+        final kindMatches = kinds == null || kinds.isEmpty || kinds.contains(resource.kind);
+        return originMatches && kindMatches;
+      },
+    ).toList();
+  }
+
+  @override
+  Future<void> removeResourcesByOrigin(TrackResourceOrigin origin) async {
+    _resources.removeWhere((resource) => resource.origin == origin);
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

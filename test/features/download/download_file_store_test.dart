@@ -78,6 +78,27 @@ void main() {
       expect(retainedDownloadFile.existsSync(), isTrue);
       expect(retainedCacheFile.existsSync(), isTrue);
     });
+
+    test('clears playback cache files while keeping retained resource paths', () async {
+      final fileStore = DownloadFileStore();
+      final cacheAudioDirectory = Directory('${supportDirectory.path}/zmusic/cache/audio')..createSync(recursive: true);
+      final nestedCacheDirectory = Directory('${supportDirectory.path}/zmusic/cache/lyrics/nested')..createSync(recursive: true);
+      final retainedAudio = await File('${cacheAudioDirectory.path}/retained.mp3').writeAsBytes([1, 2, 3]);
+      final orphanAudio = await File('${cacheAudioDirectory.path}/orphan.mp3').writeAsBytes([1, 2, 3]);
+      final orphanLyrics = await File('${nestedCacheDirectory.path}/orphan.lrc').writeAsBytes([1, 2, 3]);
+
+      await fileStore.clearPlaybackCacheFiles(
+        retainedPaths: {
+          retainedAudio.uri.replace(queryParameters: {'token': 'legacy'}).toString(),
+        },
+      );
+
+      expect(retainedAudio.existsSync(), isTrue);
+      expect(orphanAudio.existsSync(), isFalse);
+      expect(orphanLyrics.existsSync(), isFalse);
+      expect(cacheAudioDirectory.existsSync(), isTrue);
+      expect(nestedCacheDirectory.existsSync(), isFalse);
+    });
   });
 }
 

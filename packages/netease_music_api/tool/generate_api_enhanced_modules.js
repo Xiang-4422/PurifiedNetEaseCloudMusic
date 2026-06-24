@@ -18,38 +18,13 @@ const rawDir = resolvePathArg(
   '--raw-dir=',
   path.join(packageDir, 'lib/src/endpoints/raw'),
 )
+const specialCoveragePath = resolvePathArg(
+  '--special-coverage=',
+  path.join(__dirname, 'api_enhanced_special_coverage.json'),
+)
 const checkMode = process.argv.includes('--check')
 const staleGeneratedFiles = []
-
-const specialModules = new Set([
-  'api',
-  'eapi_decrypt',
-  'decrypt',
-  'avatar_upload',
-  'playlist_cover_update',
-  'cloud',
-  'cloud_import',
-  'cloud_upload_token',
-  'cloud_upload_complete',
-  'voice_upload',
-  'inner_version',
-  'login_qr_create',
-  'playlist_track_all',
-  'playlist_tracks',
-  'related_playlist',
-  'scrobble',
-  'song_url_match',
-  'song_url_ncmget',
-  'song_url_v1_302',
-  'audio_match',
-  'register_anonimous',
-  'register_xeapikey',
-  'song_url_v1',
-  'vip_sign_history',
-  'vip_tasks_v1',
-  'top_list',
-  'scrobble_v1',
-])
+const manualSpecialModules = loadManualSpecialModules(specialCoveragePath)
 
 const supportedCrypto = new Set(['', 'weapi', 'eapi', 'linuxapi', 'api', 'query', 'xeapi'])
 
@@ -59,6 +34,43 @@ function resolvePathArg(prefix, fallback) {
     return fallback
   }
   return path.resolve(repoRoot, arg.slice(prefix.length))
+}
+
+function isRecord(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+}
+
+function loadManualSpecialModules(filePath) {
+  const coverage = JSON.parse(fs.readFileSync(filePath, 'utf8'))
+  if (!isRecord(coverage)) {
+    throw new Error(`Special coverage must be an object: ${filePath}`)
+  }
+
+  const modules = new Set()
+  function addStringArray(key) {
+    if (!Array.isArray(coverage[key])) {
+      throw new Error(`Special coverage ${key} must be an array: ${filePath}`)
+    }
+    for (const item of coverage[key]) {
+      if (typeof item !== 'string' || item.trim().length === 0) {
+        throw new Error(`Special coverage ${key} entries must be non-empty strings: ${filePath}`)
+      }
+      modules.add(item.trim())
+    }
+  }
+
+  addStringArray('nodeOracle')
+  addStringArray('dartBehavior')
+  if (!isRecord(coverage.limited)) {
+    throw new Error(`Special coverage limited must be an object: ${filePath}`)
+  }
+  for (const module of Object.keys(coverage.limited)) {
+    if (module.trim().length === 0) {
+      throw new Error(`Special coverage limited module keys must be non-empty strings: ${filePath}`)
+    }
+    modules.add(module.trim())
+  }
+  return modules
 }
 
 function camel(name) {
@@ -141,7 +153,7 @@ function moduleEntry(fileName) {
     pathTemplate,
     crypto,
     httpMethod: /method\s*:\s*['"]GET['"]/i.test(source) || /method\s*=\s*['"]GET['"]/i.test(source) ? 'GET' : 'POST',
-    special: specialModules.has(module) || pathTemplate === '' || !supportedCrypto.has(crypto),
+    special: manualSpecialModules.has(module) || pathTemplate === '' || !supportedCrypto.has(crypto),
   }
 }
 

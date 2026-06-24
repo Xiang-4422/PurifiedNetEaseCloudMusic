@@ -127,6 +127,48 @@ void main() {
       );
     });
 
+    test('generator derives manual special modules from coverage config', () async {
+      final repoRoot = _findRepoRoot();
+      final tempDir = await Directory.systemTemp.createTemp('api-enhanced-generator-special-');
+      addTearDown(() {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      });
+      final generatedDir = Directory('${tempDir.path}/generated');
+      final rawDir = Directory('${tempDir.path}/raw');
+      final sourceCoverage = _jsonMap(jsonDecode(_findSpecialCoverageStatusFile().readAsStringSync()));
+      final nodeOracle = List<Object?>.from(sourceCoverage['nodeOracle'] as List)..add('album');
+      final coverageFile = File('${tempDir.path}/api_enhanced_special_coverage.json')
+        ..writeAsStringSync(
+          jsonEncode({
+            ...sourceCoverage,
+            'nodeOracle': nodeOracle,
+          }),
+        );
+
+      final result = await Process.run(
+        'node',
+        [
+          '${repoRoot.path}/packages/netease_music_api/tool/generate_api_enhanced_modules.js',
+          '--generated-dir=${generatedDir.path}',
+          '--raw-dir=${rawDir.path}',
+          '--special-coverage=${coverageFile.path}',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(
+        result.exitCode,
+        0,
+        reason: '${result.stdout}\n${result.stderr}',
+      );
+      final manifest = File('${generatedDir.path}/api_enhanced_modules.g.dart').readAsStringSync();
+
+      expect(_manifestSpecialFlag(manifest, 'album'), isTrue);
+      expect(_manifestSpecialFlag(manifest, 'album_detail'), isFalse);
+    });
+
     test('coverage report keeps upstream module and special status complete', () async {
       final repoRoot = _findRepoRoot();
       final packageJson = _jsonMap(jsonDecode(File('${repoRoot.path}/third_party/api-enhanced/package.json').readAsStringSync()));
@@ -5818,6 +5860,16 @@ Map<String, String> _documentedSdkDifferences(String docs) {
           (match) => MapEntry(match.group(1)!, match.group(2)!.trim()),
         ),
   );
+}
+
+bool _manifestSpecialFlag(String source, String module) {
+  final match = RegExp(
+    "module: '${RegExp.escape(module)}',[\\s\\S]*?special: (true|false)",
+  ).firstMatch(source);
+  if (match == null) {
+    throw StateError('Cannot find generated manifest module: $module');
+  }
+  return match.group(1) == 'true';
 }
 
 File _findSpecialCoverageStatusFile() {

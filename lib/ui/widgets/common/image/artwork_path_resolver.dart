@@ -26,21 +26,22 @@ class ArtworkPathResolver {
     Iterable<PlaybackQueueItem> fallbackItems = const <PlaybackQueueItem>[],
   }) {
     for (final item in fallbackItems) {
-      final localArtworkPath = item.localArtworkPath ?? '';
-      if (_isLocalPath(localArtworkPath)) {
+      final localArtworkPath = _localPath(item.localArtworkPath);
+      if (localArtworkPath.isNotEmpty) {
         return localArtworkPath;
       }
-      final image = item.artworkUrl ?? '';
-      if (_isLocalPath(image)) {
+      final image = _localPath(item.artworkUrl);
+      if (image.isNotEmpty) {
         return image;
       }
     }
-    if (artworkUrl?.isNotEmpty == true) {
-      return artworkUrl;
+    final explicitArtwork = _displayPathOrNull(artworkUrl);
+    if (explicitArtwork != null) {
+      return explicitArtwork;
     }
     for (final item in fallbackItems) {
-      final image = item.artworkUrl ?? '';
-      if (_isRemoteHttpArtwork(image)) {
+      final image = _remoteHttpArtwork(item.artworkUrl);
+      if (image != null) {
         return image;
       }
     }
@@ -50,13 +51,14 @@ class ArtworkPathResolver {
   /// 页面已经有明确封面时，优先保持该封面稳定。
   ///
   /// 适用于歌单、专辑等详情页的主视觉，避免列表歌曲加载后用第一首歌封面临时
-  /// 替换页面封面。只有页面封面为空时才退回到 [fallbackItems]。
+  /// 替换页面封面。只有页面封面为空或不可展示时才退回到 [fallbackItems]。
   static String? resolveExplicitArtwork(
     String? artworkUrl, {
     Iterable<PlaybackQueueItem> fallbackItems = const <PlaybackQueueItem>[],
   }) {
-    if (artworkUrl?.isNotEmpty == true) {
-      return artworkUrl;
+    final explicitArtwork = _displayPathOrNull(artworkUrl);
+    if (explicitArtwork != null) {
+      return explicitArtwork;
     }
     return resolvePreferredArtwork(
       artworkUrl,
@@ -72,16 +74,36 @@ class ArtworkPathResolver {
     required String? artworkUrl,
     required String? localArtworkPath,
   }) {
-    if (_isLocalPath(localArtworkPath)) {
-      return localArtworkPath;
+    final localPath = _localPath(localArtworkPath);
+    if (localPath.isNotEmpty) {
+      return localPath;
     }
-    if (_isLocalPath(artworkUrl)) {
-      return artworkUrl;
+    final imageLocalPath = _localPath(artworkUrl);
+    if (imageLocalPath.isNotEmpty) {
+      return imageLocalPath;
     }
-    if (artworkUrl?.isNotEmpty == true) {
-      return artworkUrl;
+    final remoteArtwork = _remoteHttpArtwork(artworkUrl);
+    if (remoteArtwork != null) {
+      return remoteArtwork;
     }
-    return localArtworkPath?.isNotEmpty == true ? localArtworkPath : null;
+    return null;
+  }
+
+  static String? _displayPathOrNull(String? artworkPath) {
+    final displayPath = resolveDisplayPath(artworkPath);
+    return displayPath.isEmpty ? null : displayPath;
+  }
+
+  static String _localPath(String? artworkPath) {
+    return LocalFilePathNormalizer.normalize(artworkPath);
+  }
+
+  static String? _remoteHttpArtwork(String? artworkPath) {
+    final rawPath = artworkPath?.trim() ?? '';
+    if (_isRemoteHttpArtwork(rawPath)) {
+      return ImageUrlNormalizer.normalize(rawPath);
+    }
+    return null;
   }
 
   /// 把 nullable 封面路径收敛成图片组件可直接接收的字符串。
@@ -93,7 +115,7 @@ class ArtworkPathResolver {
     if (rawPath.isEmpty) {
       return '';
     }
-    final localPath = LocalFilePathNormalizer.normalize(rawPath);
+    final localPath = _localPath(rawPath);
     if (localPath.isNotEmpty) {
       return localPath;
     }
@@ -101,14 +123,6 @@ class ArtworkPathResolver {
       return ImageUrlNormalizer.normalize(rawPath);
     }
     return '';
-  }
-
-  /// 判断路径是否已经是本地资源。
-  ///
-  /// 普通文件路径、合法 `file://` 和 Windows 盘符路径视为本地。
-  /// HTTP(S) URL 交给本地图片缓存处理，其它 URI 不参与本地优先。
-  static bool _isLocalPath(String? artworkPath) {
-    return LocalFilePathNormalizer.normalize(artworkPath).isNotEmpty;
   }
 
   static bool _isRemoteHttpArtwork(String? artworkPath) {

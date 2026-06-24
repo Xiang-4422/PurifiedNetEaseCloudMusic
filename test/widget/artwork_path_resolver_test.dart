@@ -7,7 +7,7 @@ void main() {
   group('ArtworkPathResolver', () {
     test('keeps explicit page artwork before local fallback item artwork', () {
       final artwork = ArtworkPathResolver.resolveExplicitArtwork(
-        'https://example.com/playlist.jpg',
+        'https://example.com/playlist.jpg?param=200y200&token=keep',
         fallbackItems: const [
           PlaybackQueueItem(
             id: '1',
@@ -28,13 +28,19 @@ void main() {
         ],
       );
 
-      expect(artwork, 'https://example.com/playlist.jpg');
+      expect(artwork, 'https://example.com/playlist.jpg?token=keep');
     });
 
     test('falls back to item artwork when explicit page artwork is missing', () {
+      final fileUri = Uri(
+        scheme: 'file',
+        host: 'localhost',
+        path: '/local/song.jpg',
+        queryParameters: {'token': 'cached'},
+      ).toString();
       final artwork = ArtworkPathResolver.resolveExplicitArtwork(
         null,
-        fallbackItems: const [
+        fallbackItems: [
           PlaybackQueueItem(
             id: '1',
             sourceId: '1',
@@ -44,7 +50,7 @@ void main() {
             artistIds: [],
             duration: null,
             artworkUrl: null,
-            localArtworkPath: '/local/song.jpg',
+            localArtworkPath: fileUri,
             mediaType: MediaType.playlist,
             playbackUrl: null,
             lyricKey: null,
@@ -69,7 +75,7 @@ void main() {
             artistNames: [],
             artistIds: [],
             duration: null,
-            artworkUrl: 'https://example.com/song.jpg',
+            artworkUrl: 'https://example.com/song.jpg?param=200y200&token=keep',
             localArtworkPath: null,
             mediaType: MediaType.playlist,
             playbackUrl: null,
@@ -80,7 +86,7 @@ void main() {
         ],
       );
 
-      expect(artwork, 'https://example.com/song.jpg');
+      expect(artwork, 'https://example.com/song.jpg?token=keep');
     });
 
     test('ignores non-http fallback artwork when page artwork is missing', () {
@@ -162,6 +168,16 @@ void main() {
       );
 
       expect(artwork, 'https://example.com/song.jpg');
+    });
+
+    test('uses placeholder when playback artwork only has unsafe uri', () {
+      expect(
+        ArtworkPathResolver.resolvePlaybackArtwork(
+          artworkUrl: null,
+          localArtworkPath: 'ftp://example.com/song.jpg',
+        ),
+        isNull,
+      );
     });
 
     test('normalizes local display file uri before image rendering', () {

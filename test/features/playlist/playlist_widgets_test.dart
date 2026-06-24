@@ -143,6 +143,37 @@ void main() {
       );
     });
 
+    test('PlayListWidget semantic labels use title and track count', () {
+      expect(
+        playListCardSemanticsLabel(
+          title: ' Playlist ',
+          trackCount: 12,
+        ),
+        '打开歌单：Playlist - 12首',
+      );
+      expect(
+        playListCardSemanticsLabel(
+          title: ' ',
+          trackCount: 0,
+        ),
+        '打开歌单：未命名歌单',
+      );
+      expect(
+        playListCardPlayButtonTooltip(
+          title: ' Playlist ',
+          isPlaying: false,
+        ),
+        '播放歌单：Playlist',
+      );
+      expect(
+        playListCardPlayButtonTooltip(
+          title: 'Playlist',
+          isPlaying: true,
+        ),
+        '正在播放歌单：Playlist',
+      );
+    });
+
     testWidgets('SongItem exposes a stable playback semantic label', (tester) async {
       final semantics = tester.ensureSemantics();
       try {
@@ -168,6 +199,36 @@ void main() {
         final data = node.getSemanticsData();
         expect(data.flagsCollection.isButton, isTrue);
         expect(data.hasAction(SemanticsAction.tap), isTrue);
+      } finally {
+        semantics.dispose();
+      }
+    });
+
+    testWidgets('PlayListWidget exposes card and playback semantics', (tester) async {
+      final semantics = tester.ensureSemantics();
+      try {
+        await tester.pumpWidget(
+          _wrap(
+            SizedBox(
+              width: 360,
+              child: PlayListWidget(
+                playLists: const [
+                  PlaylistSummaryData(
+                    id: '1',
+                    title: 'Playlist',
+                    trackCount: 12,
+                  ),
+                ],
+                albumCountInWidget: 2,
+                albumMargin: 10,
+                onPlayPlaylist: (_) async {},
+              ),
+            ),
+          ),
+        );
+
+        expect(find.bySemanticsLabel('打开歌单：Playlist - 12首'), findsOneWidget);
+        expect(find.byTooltip('播放歌单：Playlist'), findsOneWidget);
       } finally {
         semantics.dispose();
       }

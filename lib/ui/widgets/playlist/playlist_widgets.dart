@@ -16,6 +16,27 @@ import 'package:lottie/lottie.dart';
 /// 首页和资料库横向歌单轨道的预缓存边界。
 const double playlistRailCacheExtent = 360;
 
+/// 歌单卡片辅助语义标签。
+String playListCardSemanticsLabel({
+  required String title,
+  int? trackCount,
+}) {
+  final resolvedTitle = title.trim().isEmpty ? '未命名歌单' : title.trim();
+  if (trackCount == null || trackCount <= 0) {
+    return '打开歌单：$resolvedTitle';
+  }
+  return '打开歌单：$resolvedTitle - $trackCount首';
+}
+
+/// 歌单卡片播放按钮提示文案。
+String playListCardPlayButtonTooltip({
+  required String title,
+  required bool isPlaying,
+}) {
+  final resolvedTitle = title.trim().isEmpty ? '未命名歌单' : title.trim();
+  return isPlaying ? '正在播放歌单：$resolvedTitle' : '播放歌单：$resolvedTitle';
+}
+
 class _PlaylistWidgetMetrics {
   const _PlaylistWidgetMetrics();
 
@@ -178,89 +199,132 @@ class PlayListWidget extends StatelessWidget {
                     (context, index) {
                       final playlist = playLists[index];
                       final playButtonSize = metrics.playButtonSize(albumWidth);
+                      final isCurrentPlaylist = isPlaying && playingPlaylistName == playlist.title;
+                      final openLabel = playListCardSemanticsLabel(
+                        title: playlist.title,
+                        trackCount: playlist.trackCount,
+                      );
+                      final playLabel = playListCardPlayButtonTooltip(
+                        title: playlist.title,
+                        isPlaying: isCurrentPlaylist,
+                      );
                       return Padding(
                         padding: EdgeInsets.only(right: albumMargin),
-                        child: GestureDetector(
-                          onTap: () {
-                            context.router.push(
-                              gr.PlayListRouteView(
-                                playlistId: playlist.id,
-                                playlistName: playlist.title,
-                                coverUrl: playlist.coverUrl,
-                                trackCount: playlist.trackCount,
-                              ),
-                            );
-                          },
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SizedBox.square(
-                                dimension: albumWidth,
-                                child: Stack(
-                                  alignment: Alignment.bottomRight,
-                                  children: [
-                                    Positioned.fill(
-                                      child: SimpleExtendedImage.avatar(
-                                        width: albumWidth,
-                                        height: albumWidth,
-                                        shape: BoxShape.rectangle,
-                                        borderRadius: BorderRadius.circular(albumMargin),
-                                        ArtworkPathResolver.resolveDisplayPath(
-                                          playlist.coverUrl,
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox.square(
-                                      dimension: playButtonSize,
-                                      child: Visibility(
-                                        visible: isPlaying && playingPlaylistName == playlist.title,
-                                        replacement: IconButton(
-                                          padding: EdgeInsets.zero,
-                                          iconSize: playButtonSize * 0.58,
-                                          onPressed: onPlayPlaylist == null
-                                              ? null
-                                              : () => onPlayPlaylist!(
-                                                    playlist,
-                                                  ),
-                                          icon: const Icon(
-                                            TablerIcons.player_play_filled,
-                                            color: Colors.white,
+                        child: Tooltip(
+                          message: openLabel,
+                          child: Semantics(
+                            button: true,
+                            label: openLabel,
+                            onTap: () {
+                              context.router.push(
+                                gr.PlayListRouteView(
+                                  playlistId: playlist.id,
+                                  playlistName: playlist.title,
+                                  coverUrl: playlist.coverUrl,
+                                  trackCount: playlist.trackCount,
+                                ),
+                              );
+                            },
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () {
+                                context.router.push(
+                                  gr.PlayListRouteView(
+                                    playlistId: playlist.id,
+                                    playlistName: playlist.title,
+                                    coverUrl: playlist.coverUrl,
+                                    trackCount: playlist.trackCount,
+                                  ),
+                                );
+                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox.square(
+                                    dimension: albumWidth,
+                                    child: Stack(
+                                      alignment: Alignment.bottomRight,
+                                      children: [
+                                        Positioned.fill(
+                                          child: ExcludeSemantics(
+                                            child: SimpleExtendedImage.avatar(
+                                              width: albumWidth,
+                                              height: albumWidth,
+                                              shape: BoxShape.rectangle,
+                                              borderRadius: BorderRadius.circular(albumMargin),
+                                              ArtworkPathResolver.resolveDisplayPath(
+                                                playlist.coverUrl,
+                                              ),
+                                            ),
                                           ),
                                         ),
-                                        child: Lottie.asset(
-                                          AppAssets.lottieMusicPlaying,
-                                          width: playButtonSize,
-                                          height: playButtonSize,
+                                        SizedBox.square(
+                                          dimension: playButtonSize,
+                                          child: Visibility(
+                                            visible: isCurrentPlaylist,
+                                            replacement: IconButton(
+                                              tooltip: playLabel,
+                                              padding: EdgeInsets.zero,
+                                              iconSize: playButtonSize * 0.58,
+                                              onPressed: onPlayPlaylist == null
+                                                  ? null
+                                                  : () => onPlayPlaylist!(
+                                                        playlist,
+                                                      ),
+                                              icon: const Icon(
+                                                TablerIcons.player_play_filled,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            child: Tooltip(
+                                              message: playLabel,
+                                              child: Semantics(
+                                                label: playLabel,
+                                                liveRegion: true,
+                                                child: ExcludeSemantics(
+                                                  child: Lottie.asset(
+                                                    AppAssets.lottieMusicPlaying,
+                                                    width: playButtonSize,
+                                                    height: playButtonSize,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(height: metrics.cardGap(albumWidth)),
+                                  ExcludeSemantics(
+                                    child: Text(
+                                      playlist.title,
+                                      maxLines: showSongCount ? 1 : 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: metrics.cardTitleFontSize(albumWidth),
+                                        height: 1.15,
+                                      ),
+                                    ),
+                                  ),
+                                  if (showSongCount)
+                                    ExcludeSemantics(
+                                      child: Text(
+                                        playlist.trackCount == null || playlist.trackCount == 0 ? '' : '${playlist.trackCount}首',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: context.textTheme.bodySmall?.copyWith(
+                                          fontSize: metrics.cardSubtitleFontSize(
+                                            albumWidth,
+                                          ),
+                                          height: 1.2,
                                         ),
                                       ),
                                     ),
-                                  ],
-                                ),
+                                ],
                               ),
-                              SizedBox(height: metrics.cardGap(albumWidth)),
-                              Text(
-                                playlist.title,
-                                maxLines: showSongCount ? 1 : 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: metrics.cardTitleFontSize(albumWidth),
-                                  height: 1.15,
-                                ),
-                              ),
-                              if (showSongCount)
-                                Text(
-                                  playlist.trackCount == null || playlist.trackCount == 0 ? '' : '${playlist.trackCount}首',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: context.textTheme.bodySmall?.copyWith(
-                                    fontSize: metrics.cardSubtitleFontSize(
-                                      albumWidth,
-                                    ),
-                                    height: 1.2,
-                                  ),
-                                ),
-                            ],
+                            ),
                           ),
                         ),
                       );

@@ -605,6 +605,31 @@ void main() {
       );
     });
 
+    test('netease radio mapper normalizes remote radio and program ids', () {
+      final mapperFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/netease/mappers/netease_radio_mapper.dart',
+      );
+      final mapper = mapperFile.readAsStringSync();
+      final violations = <String>[
+        if (!mapper.contains('final radioId = _normalizedRadioId(radio.id);')) '${_relativePath(mapperFile)} still maps radio ids without normalization',
+        if (!mapper.contains('id: radioId')) '${_relativePath(mapperFile)} can still write raw radio ids',
+        if (!mapper.contains('radios.where((radio) => _normalizedRadioId(radio.id).isNotEmpty)')) '${_relativePath(mapperFile)} can still batch-map blank radio ids',
+        if (!mapper.contains('final programId = _normalizedProgramId(program.id);')) '${_relativePath(mapperFile)} still maps program ids without normalization',
+        if (!mapper.contains('id: programId')) '${_relativePath(mapperFile)} can still write raw program ids',
+        if (!mapper.contains('mainTrackId: _normalizedMainTrackId(program.mainTrackId)')) '${_relativePath(mapperFile)} can still write raw program main track ids',
+        if (!mapper.contains('programs.where((program) => _normalizedProgramId(program.id).isNotEmpty)')) '${_relativePath(mapperFile)} can still batch-map blank program ids',
+        if (!mapper.contains('String _normalizedRadioId(String id)')) '${_relativePath(mapperFile)} does not define radio id normalization',
+        if (!mapper.contains('String _normalizedProgramId(String id)')) '${_relativePath(mapperFile)} does not define program id normalization',
+        if (!mapper.contains('String _normalizedMainTrackId(Object? id)')) '${_relativePath(mapperFile)} does not define main track id normalization',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '网易云播客电台和节目进入领域数据前必须规范化电台 id、节目 id 和主曲目 id，空白节目或电台 id 不能进入本地缓存和播放队列入口。',
+      );
+    });
+
     test('netease playlist mapper normalizes remote playlist and track ids', () {
       final mapperFile = File(
         '${projectRoot.path}/lib/data/music_data/sources/netease/mappers/netease_playlist_mapper.dart',

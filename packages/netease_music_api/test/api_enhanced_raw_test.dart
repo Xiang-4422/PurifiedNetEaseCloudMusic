@@ -236,6 +236,7 @@ void main() {
       expect(report['manifestMapUnknownModules'], isEmpty);
       expect(report['manifestMapEntryMismatches'], isEmpty);
       expect(report['manifestMapOrderMismatches'], isEmpty);
+      expect(report['manifestUpstreamMetadataMismatches'], isEmpty);
       expect(report['specialCoverageInvalidEntries'], isEmpty);
       expect(report['specialCoverageDuplicateEntries'], isEmpty);
       expect(report['specialCoverageOrderMismatches'], isEmpty);
@@ -432,6 +433,7 @@ void main() {
           'upstreamDirty',
           'manifestUpstreamVersion',
           'manifestUpstreamCommit',
+          'manifestUpstreamMetadataMismatches',
           'upstreamModuleFileCount',
           'moduleCount',
           'normalModuleCount',
@@ -468,6 +470,7 @@ void main() {
         }),
       );
       expect(report['specialCoverageStatusByModule'], isA<Map<String, dynamic>>());
+      expect(report['manifestUpstreamMetadataMismatches'], isA<List<dynamic>>());
       expect(report['specialCoverageStatusCounts'], isA<Map<String, dynamic>>());
       expect(report['runtimeOptionStatusByName'], isA<Map<String, dynamic>>());
       expect(report['runtimeOptionStatusCounts'], isA<Map<String, dynamic>>());
@@ -545,6 +548,7 @@ void main() {
       expect(markdown, contains('- schema version: 1'));
       expect(markdown, contains('- version: $apiEnhancedUpstreamVersion'));
       expect(markdown, contains('- commit: $apiEnhancedUpstreamCommit'));
+      expect(markdown, contains('- upstream metadata mismatches: 0'));
       expect(markdown, contains('- modules: ${apiEnhancedModules.length}'));
       expect(markdown, contains('## Public Facade'));
       expect(markdown, contains('- missing exports: none'));
@@ -604,6 +608,55 @@ void main() {
         expect(markdown, contains(tableRow), reason: difference['module'].toString());
       }
       expect(markdown, contains('unblockmusic-utils'));
+    });
+
+    test('coverage report detects stale upstream module metadata in manifest', () async {
+      final repoRoot = _findRepoRoot();
+      final tempDir = await Directory.systemTemp.createTemp(
+        'api-enhanced-stale-manifest-',
+      );
+      addTearDown(() {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      });
+      final manifestFile = File('${tempDir.path}/api_enhanced_modules.g.dart');
+      final source = File(
+        '${repoRoot.path}/packages/netease_music_api/lib/src/generated/api_enhanced_modules.g.dart',
+      ).readAsStringSync();
+      final staleSource = source.replaceAll(
+        "pathTemplate: '/api/artist/albums/\\\${query.id}',",
+        "pathTemplate: '/api/artist/albums/stale',",
+      );
+      expect(staleSource, isNot(source));
+      manifestFile.writeAsStringSync(staleSource);
+
+      final result = await Process.run(
+        'node',
+        [
+          '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js',
+          '--json',
+          '--generated-manifest=${manifestFile.path}',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(result.exitCode, isNot(0), reason: '${result.stdout}\n${result.stderr}');
+      final report = _jsonMap(jsonDecode(result.stdout as String));
+      final mismatches = _jsonMapList(
+        report['manifestUpstreamMetadataMismatches'],
+      );
+      final artistAlbumPathMismatch = mismatches.singleWhere(
+        (item) => item['module'] == 'artist_album' && item['field'] == 'pathTemplate',
+      );
+      expect(artistAlbumPathMismatch['manifest'], '/api/artist/albums/stale');
+      expect(artistAlbumPathMismatch['upstream'], r'/api/artist/albums/${query.id}');
+      expect(
+        _jsonMapList(report['sdkDifferences']).where(
+          (item) => item['module'] == 'artist_album' && item['status'] == 'manifest_upstream_metadata_mismatch',
+        ),
+        hasLength(1),
+      );
     });
 
     test('coverage report rejects malformed special coverage config', () async {

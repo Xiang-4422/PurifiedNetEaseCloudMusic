@@ -38,6 +38,7 @@ const jsonOutput = process.argv.includes('--json')
 const markdownOutput = process.argv.includes('--markdown')
 const coverageReportSchemaVersion = 1
 const generatedManifestSupportedCrypto = new Set(['weapi', 'eapi', 'linuxapi', 'api', 'xeapi'])
+const upstreamManifestSupportedCrypto = new Set(['', 'weapi', 'eapi', 'linuxapi', 'api', 'query', 'xeapi'])
 const generatedManifestSupportedHttpMethods = new Set(['GET', 'POST'])
 const expectedPublicApiExports = [
   'src/client/netease_api.dart',
@@ -64,12 +65,49 @@ function parseConstString(source, name) {
   return new RegExp(`const\\s+String\\s+${name}\\s*=\\s*'([^']*)';`).exec(source)?.[1] || null
 }
 
+function parseDartSingleQuotedString(value) {
+  if (typeof value !== 'string') {
+    return value
+  }
+  let result = ''
+  for (let index = 0; index < value.length; index += 1) {
+    const char = value[index]
+    if (char !== '\\' || index + 1 >= value.length) {
+      result += char
+      continue
+    }
+    index += 1
+    const escaped = value[index]
+    switch (escaped) {
+      case 'n':
+        result += '\n'
+        break
+      case 'r':
+        result += '\r'
+        break
+      case "'":
+        result += "'"
+        break
+      case '$':
+        result += '$'
+        break
+      case '\\':
+        result += '\\'
+        break
+      default:
+        result += escaped
+        break
+    }
+  }
+  return result
+}
+
 function parseManifestEntry(block, context) {
-  const module = block.match(/module: '([^']+)'/)?.[1]
-  const methodName = block.match(/methodName: '([^']+)'/)?.[1]
-  const pathTemplate = block.match(/pathTemplate: '((?:\\'|[^'])*)'/)?.[1]
-  const crypto = block.match(/crypto: '([^']*)'/)?.[1]
-  const httpMethod = block.match(/httpMethod: '([^']+)'/)?.[1]
+  const module = parseDartSingleQuotedString(block.match(/module: '((?:\\.|[^'])+)'/)?.[1])
+  const methodName = parseDartSingleQuotedString(block.match(/methodName: '((?:\\.|[^'])+)'/)?.[1])
+  const pathTemplate = parseDartSingleQuotedString(block.match(/pathTemplate: '((?:\\.|[^'])*)'/)?.[1])
+  const crypto = parseDartSingleQuotedString(block.match(/crypto: '((?:\\.|[^'])*)'/)?.[1])
+  const httpMethod = parseDartSingleQuotedString(block.match(/httpMethod: '((?:\\.|[^'])+)'/)?.[1])
   if (!module) {
     throw new Error(`Cannot parse module entry from ${context}: ${block}`)
   }
@@ -107,12 +145,51 @@ function loadManifest() {
   }
 }
 
-function loadUpstreamModules() {
+function camel(name) {
+  return name.replace(/_([a-z0-9])/g, (_, char) => char.toUpperCase())
+}
+
+function manualSpecialModulesFromCoverage(coverage) {
+  const modules = new Set([
+    ...stringSetFrom(coverage.nodeOracle),
+    ...stringSetFrom(coverage.dartBehavior),
+  ])
+  if (isRecord(coverage.limited)) {
+    for (const module of Object.keys(coverage.limited)) {
+      const trimmed = module.trim()
+      if (trimmed.length > 0) {
+        modules.add(trimmed)
+      }
+    }
+  }
+  return modules
+}
+
+function upstreamModuleEntry(fileName, manualSpecialModules) {
+  const module = fileName.replace(/\.js$/, '')
+  const source = fs.readFileSync(path.join(upstreamModuleDir, fileName), 'utf8')
+  const requestPaths = [
+    ...source.matchAll(/request\(\s*`([^`]+)`|request\(\s*['"]([^'"]+)/g),
+  ].map((match) => match[1] || match[2])
+  const cryptoMatch = source.match(/createOption\(\s*query\s*,\s*['"]([^'"]+)['"]/)
+  const pathTemplate = requestPaths[0] || ''
+  const crypto = module === 'api' ? 'query' : cryptoMatch ? cryptoMatch[1] : 'eapi'
+  return {
+    module,
+    methodName: camel(module),
+    pathTemplate,
+    crypto,
+    httpMethod: /method\s*:\s*['"]GET['"]/i.test(source) || /method\s*=\s*['"]GET['"]/i.test(source) ? 'GET' : 'POST',
+    special: manualSpecialModules.has(module) || pathTemplate === '' || !upstreamManifestSupportedCrypto.has(crypto),
+  }
+}
+
+function loadUpstreamModuleEntries(manualSpecialModules) {
   return fs
     .readdirSync(upstreamModuleDir)
     .filter((file) => file.endsWith('.js'))
-    .map((file) => file.replace(/\.js$/, ''))
     .sort()
+    .map((file) => upstreamModuleEntry(file, manualSpecialModules))
 }
 
 function loadOracleFixtures() {
@@ -593,6 +670,28 @@ function validateManifestMapEntries(entries, mapEntries) {
   return mismatches.sort((left, right) => `${left.module}:${left.field}`.localeCompare(`${right.module}:${right.field}`))
 }
 
+function findManifestUpstreamMetadataMismatches(entries, upstreamEntries) {
+  const upstreamByModule = new Map(upstreamEntries.map((entry) => [entry.module, entry]))
+  const mismatches = []
+  for (const entry of entries) {
+    const upstreamEntry = upstreamByModule.get(entry.module)
+    if (!upstreamEntry) {
+      continue
+    }
+    for (const field of ['methodName', 'pathTemplate', 'crypto', 'httpMethod', 'special']) {
+      if (entry[field] !== upstreamEntry[field]) {
+        mismatches.push({
+          module: entry.module,
+          field,
+          manifest: entry[field],
+          upstream: upstreamEntry[field],
+        })
+      }
+    }
+  }
+  return mismatches.sort((left, right) => `${left.module}:${left.field}`.localeCompare(`${right.module}:${right.field}`))
+}
+
 function facadeMethodCollisions(rawMethods, typedMethods) {
   const typedByName = new Map()
   for (const method of typedMethods) {
@@ -672,7 +771,9 @@ function validateSpecialCoverageOrder(coverage) {
 const upstreamPackage = readJson(upstreamPackagePath)
 const coverage = readJson(specialCoveragePath)
 const specialCoverage = isRecord(coverage) ? coverage : {}
-const upstreamModules = loadUpstreamModules()
+const manualSpecialModules = manualSpecialModulesFromCoverage(specialCoverage)
+const upstreamEntries = loadUpstreamModuleEntries(manualSpecialModules)
+const upstreamModules = upstreamEntries.map((entry) => entry.module)
 const manifest = loadManifest()
 const entries = manifest.entries
 const oracleFixtures = loadOracleFixtures()
@@ -736,6 +837,7 @@ const manifestMapMissingModules = sorted(manifestModules.filter((module) => !new
 const manifestMapUnknownModules = sorted(manifestMapKeys.filter((module) => !manifestModuleSet.has(module)))
 const manifestMapEntryMismatches = validateManifestMapEntries(entries, manifestMapEntries)
 const manifestMapOrderMismatches = orderMismatches(manifestMapKeys, manifestModules)
+const manifestUpstreamMetadataMismatches = findManifestUpstreamMetadataMismatches(entries, upstreamEntries)
 const manifestMissingUpstreamModules = sorted(upstreamModules.filter((module) => !manifestModuleSet.has(module)))
 const manifestUnknownUpstreamModules = sorted(manifestModules.filter((module) => !upstreamModuleSet.has(module)))
 const manifestUpstreamMismatches = [
@@ -928,6 +1030,14 @@ function buildSdkDifferences() {
       module: mismatch.expected || mismatch.actual || '<generated_manifest>',
       status: 'manifest_map_order_mismatch',
       reason: `Generated manifest map index ${mismatch.index} has ${mismatch.actual || '<missing>'}, expected ${mismatch.expected || '<missing>'}.`,
+      scope: 'generated_manifest',
+    })
+  }
+  for (const mismatch of manifestUpstreamMetadataMismatches) {
+    differences.push({
+      module: mismatch.module,
+      status: 'manifest_upstream_metadata_mismatch',
+      reason: `Generated manifest ${mismatch.field} ${mismatch.manifest ?? '<missing>'} does not match upstream ${mismatch.upstream ?? '<missing>'}.`,
       scope: 'generated_manifest',
     })
   }
@@ -1260,6 +1370,7 @@ const report = {
   manifestMapUnknownModules,
   manifestMapEntryMismatches,
   manifestMapOrderMismatches,
+  manifestUpstreamMetadataMismatches,
   specialCoverageInvalidEntries,
   specialCoverageDuplicateEntries,
   specialCoverageOrderMismatches,
@@ -1337,6 +1448,7 @@ const hasFailure =
   report.manifestMapUnknownModules.length > 0 ||
   report.manifestMapEntryMismatches.length > 0 ||
   report.manifestMapOrderMismatches.length > 0 ||
+  report.manifestUpstreamMetadataMismatches.length > 0 ||
   report.specialCoverageInvalidEntries.length > 0 ||
   report.specialCoverageDuplicateEntries.length > 0 ||
   report.specialCoverageOrderMismatches.length > 0 ||
@@ -1383,6 +1495,7 @@ function renderMarkdownReport(report) {
     `- dirty: ${report.upstreamDirty}`,
     `- manifest version: ${report.manifestUpstreamVersion || 'unknown'}`,
     `- manifest commit: ${report.manifestUpstreamCommit || 'unknown'}`,
+    `- upstream metadata mismatches: ${report.manifestUpstreamMetadataMismatches.length}`,
     '',
     '## Coverage',
     '',
@@ -1514,6 +1627,7 @@ if (jsonOutput) {
   console.log(`manifest map unknown modules: ${report.manifestMapUnknownModules.length}`)
   console.log(`manifest map entry mismatches: ${report.manifestMapEntryMismatches.length}`)
   console.log(`manifest map order mismatches: ${report.manifestMapOrderMismatches.length}`)
+  console.log(`manifest upstream metadata mismatches: ${report.manifestUpstreamMetadataMismatches.length}`)
   console.log(`special coverage invalid entries: ${report.specialCoverageInvalidEntries.length}`)
   console.log(`special coverage duplicate entries: ${report.specialCoverageDuplicateEntries.length}`)
   console.log(`special coverage order mismatches: ${report.specialCoverageOrderMismatches.length}`)

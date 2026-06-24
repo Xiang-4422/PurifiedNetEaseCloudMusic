@@ -1,10 +1,10 @@
 import 'dart:async';
 
-import 'package:bujuan/features/shell/shell_controller.dart';
+import 'package:bujuan/features/shell/mini_player_expand_coordinator.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  group('ShellController helpers', () {
+  group('MiniPlayerExpandCoordinator', () {
     test('builds mini player expand feedback metric details', () {
       expect(
         miniPlayerExpandFeedbackMetricDetails(
@@ -61,41 +61,43 @@ void main() {
     });
 
     test('coalesces concurrent mini player expand commands', () async {
-      final controller = _TestShellController();
+      final coordinator = MiniPlayerExpandCoordinator();
+      final openCalls = <Completer<void>>[];
 
-      final first = controller.openBottomPanelFromMiniPlayer();
-      final second = controller.openBottomPanelFromMiniPlayer();
+      Future<void> openPanel() {
+        final completer = Completer<void>();
+        openCalls.add(completer);
+        return completer.future;
+      }
+
+      final first = coordinator.open(
+        isAttached: () => true,
+        isFullyOpened: () => false,
+        openPanel: openPanel,
+      );
+      final second = coordinator.open(
+        isAttached: () => true,
+        isFullyOpened: () => false,
+        openPanel: openPanel,
+      );
       await Future<void>.delayed(Duration.zero);
 
-      expect(controller.openCount, 1);
+      expect(openCalls, hasLength(1));
 
-      controller.completeLatestOpen();
+      openCalls.last.complete();
       await Future.wait([first, second]);
 
-      final third = controller.openBottomPanelFromMiniPlayer();
+      final third = coordinator.open(
+        isAttached: () => true,
+        isFullyOpened: () => false,
+        openPanel: openPanel,
+      );
       await Future<void>.delayed(Duration.zero);
 
-      expect(controller.openCount, 2);
+      expect(openCalls, hasLength(2));
 
-      controller.completeLatestOpen();
+      openCalls.last.complete();
       await third;
     });
   });
-}
-
-class _TestShellController extends ShellController {
-  final List<Completer<void>> _openCompleters = <Completer<void>>[];
-
-  int get openCount => _openCompleters.length;
-
-  @override
-  Future<void> openBottomPanel() {
-    final completer = Completer<void>();
-    _openCompleters.add(completer);
-    return completer.future;
-  }
-
-  void completeLatestOpen() {
-    _openCompleters.last.complete();
-  }
 }

@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 
-import 'package:bujuan/core/diagnostics/performance_metric.dart';
 import 'package:bujuan/core/diagnostics/performance_logger.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
 import 'package:bujuan/features/playback/lyric_scroll_position.dart';
 import 'package:bujuan/features/shell/album_page_change_coordinator.dart';
 import 'package:bujuan/features/shell/home_shell_controller.dart';
+import 'package:bujuan/features/shell/mini_player_expand_coordinator.dart';
 import 'package:bujuan/features/shell/shell_background_task_runner.dart';
 import 'package:bujuan/features/user/user_session_controller.dart';
 import 'package:flutter/material.dart';
@@ -78,7 +78,7 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
   /// 底部播放面板控制器。
   PanelController bottomPanelController = PanelController();
   AnimationController? _bottomPanelAnimationController;
-  Future<void>? _miniPlayerExpandInFlight;
+  final MiniPlayerExpandCoordinator _miniPlayerExpandCoordinator = MiniPlayerExpandCoordinator();
 
   /// 底部播放面板是否完全关闭。
   RxBool bottomPanelFullyClosed = true.obs;
@@ -151,54 +151,11 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
 
   /// 从 mini player 打开底部播放面板，并记录高频控制反馈耗时。
   Future<void> openBottomPanelFromMiniPlayer() {
-    final pending = _miniPlayerExpandInFlight;
-    if (pending != null) {
-      return _recordMiniPlayerExpandFeedback(
-        coalesced: true,
-        action: () => pending,
-      );
-    }
-    late final Future<void> command;
-    command = _recordMiniPlayerExpandFeedback(
-      coalesced: false,
-      action: openBottomPanel,
-    ).whenComplete(() {
-      if (identical(_miniPlayerExpandInFlight, command)) {
-        _miniPlayerExpandInFlight = null;
-      }
-    });
-    _miniPlayerExpandInFlight = command;
-    return command;
-  }
-
-  Future<void> _recordMiniPlayerExpandFeedback({
-    required bool coalesced,
-    required Future<void> Function() action,
-  }) async {
-    final stopwatch = PerformanceLogger.start();
-    final wasAttached = bottomPanelController.isAttached;
-    final wasOpened = bottomPanelFullyOpened.value;
-    Object? commandError;
-    var opened = false;
-    try {
-      await action();
-      opened = wasAttached;
-    } catch (error) {
-      commandError = error;
-      rethrow;
-    } finally {
-      PerformanceLogger.elapsedMetric(
-        AppPerformanceMetrics.miniPlayerFeedback,
-        stopwatch,
-        details: miniPlayerExpandFeedbackMetricDetails(
-          attached: wasAttached,
-          alreadyOpened: wasOpened,
-          opened: opened,
-          coalesced: coalesced,
-          error: commandError,
-        ),
-      );
-    }
+    return _miniPlayerExpandCoordinator.open(
+      isAttached: () => bottomPanelController.isAttached,
+      isFullyOpened: () => bottomPanelFullyOpened.value,
+      openPanel: openBottomPanel,
+    );
   }
 
   /// 关闭底部播放面板。
@@ -660,32 +617,6 @@ class ShellController extends SuperController with GetTickerProviderStateMixin, 
       });
     }
   }
-}
-
-/// 生成 mini player 展开反馈指标的补充信息。
-@visibleForTesting
-String miniPlayerExpandFeedbackMetricDetails({
-  required bool attached,
-  required bool alreadyOpened,
-  required bool opened,
-  bool coalesced = false,
-  Object? error,
-}) {
-  final result = error != null
-      ? 'error'
-      : coalesced
-          ? 'coalesced'
-          : alreadyOpened
-              ? 'already_open'
-              : opened
-                  ? 'success'
-                  : 'skipped';
-  final details = 'action=expand result=$result attached=$attached alreadyOpened=$alreadyOpened';
-  final coalescedDetails = coalesced ? '$details coalesced=true' : details;
-  if (error == null) {
-    return coalescedDetails;
-  }
-  return '$coalescedDetails error=${error.runtimeType}';
 }
 
 void _reportShellBackgroundError(

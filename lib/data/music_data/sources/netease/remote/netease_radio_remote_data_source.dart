@@ -1,3 +1,4 @@
+import 'package:bujuan/core/entities/music_resource_id.dart';
 import 'package:netease_music_api/netease_music_api.dart';
 import 'package:bujuan/data/music_data/music_remote_data_sources.dart';
 import 'package:bujuan/data/music_data/sources/netease/mappers/netease_radio_mapper.dart';
@@ -37,8 +38,15 @@ class NeteaseRadioRemoteDataSource implements RadioRemoteDataSource {
     required int limit,
     required bool asc,
   }) async {
+    final normalizedRadioId = _normalizedRadioSourceId(radioId);
+    if (normalizedRadioId.isEmpty) {
+      return (
+        items: const <RadioProgramData>[],
+        itemCount: 0,
+      );
+    }
     final wrap = await _api.djProgramList(
-      radioId,
+      normalizedRadioId,
       offset: offset,
       limit: limit,
       asc: asc,
@@ -48,5 +56,13 @@ class NeteaseRadioRemoteDataSource implements RadioRemoteDataSource {
       items: NeteaseRadioMapper.fromProgramList(programs),
       itemCount: programs.length,
     );
+  }
+
+  String _normalizedRadioSourceId(String radioId) {
+    final sourceRadioId = MusicResourceId.toNeteaseSourceId(radioId).trim();
+    if (sourceRadioId.isEmpty || MusicResourceId.hasKnownPrefix(sourceRadioId)) {
+      return '';
+    }
+    return sourceRadioId;
   }
 }

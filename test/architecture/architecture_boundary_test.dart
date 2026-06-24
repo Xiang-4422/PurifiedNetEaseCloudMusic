@@ -650,11 +650,15 @@ void main() {
       );
     });
 
-    test('netease radio mapper normalizes remote radio and program ids', () {
+    test('netease radio boundary normalizes remote radio and program ids', () {
       final mapperFile = File(
         '${projectRoot.path}/lib/data/music_data/sources/netease/mappers/netease_radio_mapper.dart',
       );
+      final remoteFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/netease/remote/netease_radio_remote_data_source.dart',
+      );
       final mapper = mapperFile.readAsStringSync();
+      final remote = remoteFile.readAsStringSync();
       final violations = <String>[
         if (!mapper.contains('final radioId = _normalizedRadioId(radio.id);')) '${_relativePath(mapperFile)} still maps radio ids without normalization',
         if (!mapper.contains('id: radioId')) '${_relativePath(mapperFile)} can still write raw radio ids',
@@ -666,12 +670,17 @@ void main() {
         if (!mapper.contains('String _normalizedRadioId(String id)')) '${_relativePath(mapperFile)} does not define radio id normalization',
         if (!mapper.contains('String _normalizedProgramId(String id)')) '${_relativePath(mapperFile)} does not define program id normalization',
         if (!mapper.contains('String _normalizedMainTrackId(Object? id)')) '${_relativePath(mapperFile)} does not define main track id normalization',
+        if (!remote.contains('final normalizedRadioId = _normalizedRadioSourceId(radioId);')) '${_relativePath(remoteFile)} does not normalize radio id before SDK request',
+        if (!remote.contains('_api.djProgramList(\n      normalizedRadioId,')) '${_relativePath(remoteFile)} can still fetch radio programs with raw id',
+        if (!remote.contains('String _normalizedRadioSourceId(String radioId)')) '${_relativePath(remoteFile)} does not define radio source id normalization',
+        if (!remote.contains('MusicResourceId.toNeteaseSourceId(radioId).trim()')) '${_relativePath(remoteFile)} does not strip netease entity prefix before SDK request',
+        if (!remote.contains('sourceRadioId.isEmpty || MusicResourceId.hasKnownPrefix(sourceRadioId)')) '${_relativePath(remoteFile)} can still pass blank or non-netease radio ids to SDK',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: '网易云播客电台和节目进入领域数据前必须规范化电台 id、节目 id 和主曲目 id，空白节目或电台 id 不能进入本地缓存和播放队列入口。',
+        reason: '网易云播客电台和节目进入领域数据或 SDK 请求前必须规范化电台 id、节目 id 和主曲目 id，空白或非网易云 id 不能进入远端请求、本地缓存和播放队列入口。',
       );
     });
 

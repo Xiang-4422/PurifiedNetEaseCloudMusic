@@ -145,6 +145,12 @@ void main() {
       'cacheExtent: _topPanelSearchCacheExtent'.allMatches(resultsSource),
       hasLength(5),
     );
+    expect(
+      'prototypeItem:'.allMatches(resultsSource),
+      hasLength(5),
+    );
+    expect(resultsSource, contains('prototypeItem: const SongItem('));
+    expect(resultsSource, contains('prototypeItem: const UniversalListTile('));
   });
 
   test('top panel cancels stale search requests across widget lifecycle', () {

@@ -37,6 +37,9 @@ class TopPanelHotKeywordList extends StatelessWidget {
           onRetry: () => searchController.loadInitial(force: true),
           builder: (keywords) => ListView.builder(
             cacheExtent: _topPanelSearchCacheExtent,
+            prototypeItem: const UniversalListTile(
+              titleString: '搜索热词',
+            ),
             itemCount: keywords.length,
             padding: EdgeInsets.zero,
             itemBuilder: (context, index) {
@@ -85,6 +88,11 @@ class TopPanelSongSearchResult extends StatelessWidget {
           onRetry: searchController.retryCurrentSearch,
           builder: (list) => ListView.builder(
             cacheExtent: _topPanelSearchCacheExtent,
+            prototypeItem: const SongItem(
+              item: PlaybackQueueItem.empty(),
+              index: 0,
+              playListName: '搜索结果',
+            ),
             itemBuilder: (context, index) => SongItem(
               index: index,
               playlist: list,
@@ -124,6 +132,11 @@ class TopPanelPlaylistSearchResult extends StatelessWidget {
           onRetry: searchController.retryCurrentSearch,
           builder: (playlists) => ListView.builder(
             cacheExtent: _topPanelSearchCacheExtent,
+            prototypeItem: const UniversalListTile(
+              picUrl: '',
+              titleString: '搜索歌单',
+              subTitleString: '0首',
+            ),
             itemCount: playlists.length,
             itemBuilder: (context, index) => PlaylistSearchItem(
               playlist: playlists[index],
@@ -161,6 +174,11 @@ class TopPanelAlbumSearchResult extends StatelessWidget {
           onRetry: searchController.retryCurrentSearch,
           builder: (albums) => ListView.builder(
             cacheExtent: _topPanelSearchCacheExtent,
+            prototypeItem: const UniversalListTile(
+              picUrl: '',
+              titleString: '搜索专辑',
+              subTitleString: '0 首',
+            ),
             itemCount: albums.length,
             itemBuilder: (context, index) => AlbumSearchItem(
               album: albums[index],
@@ -198,6 +216,11 @@ class TopPanelArtistSearchResult extends StatelessWidget {
           onRetry: searchController.retryCurrentSearch,
           builder: (artists) => ListView.builder(
             cacheExtent: _topPanelSearchCacheExtent,
+            prototypeItem: const UniversalListTile(
+              picUrl: '',
+              titleString: '搜索歌手',
+              subTitleString: '歌手简介',
+            ),
             itemCount: artists.length,
             itemBuilder: (context, index) => ArtistSearchItem(
               artist: artists[index],

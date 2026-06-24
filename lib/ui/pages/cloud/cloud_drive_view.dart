@@ -86,6 +86,11 @@ class _CloudDriveViewState extends State<CloudDriveView> {
                 },
                 child: ListView.builder(
                   cacheExtent: cloudDriveListCacheExtent,
+                  prototypeItem: SongItem(
+                    item: state.items.isEmpty ? const PlaybackQueueItem.empty() : state.items.first,
+                    index: 0,
+                    playListName: "云盘音乐",
+                  ),
                   itemCount: state.items.length,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   physics: const ClampingScrollPhysics(),

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/radio_data.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
@@ -91,6 +92,11 @@ class _RadioDetailsViewState extends State<RadioDetailsView> {
             },
             child: ListView.builder(
               cacheExtent: radioProgramListCacheExtent,
+              prototypeItem: SongItem(
+                item: queueItems.isEmpty ? const PlaybackQueueItem.empty() : queueItems.first,
+                index: 0,
+                playListName: _radioName,
+              ),
               physics: const ClampingScrollPhysics(),
               itemBuilder: (context, index) {
                 return SongItem(

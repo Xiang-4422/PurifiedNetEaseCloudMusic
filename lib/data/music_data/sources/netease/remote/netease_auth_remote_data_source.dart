@@ -13,9 +13,10 @@ class NeteaseAuthRemoteDataSource implements AuthRemoteDataSource {
   @override
   Future<({bool success, String unikey, String? message})> createQrCodeKey() async {
     final result = await _api.loginQrCodeKey();
+    final normalizedUnikey = _normalizedUnikey(result.unikey);
     return (
-      success: result.code == 200,
-      unikey: result.unikey,
+      success: result.code == 200 && normalizedUnikey.isNotEmpty,
+      unikey: normalizedUnikey,
       message: result.message,
     );
   }
@@ -23,13 +24,21 @@ class NeteaseAuthRemoteDataSource implements AuthRemoteDataSource {
   /// 构建二维码登录地址。
   @override
   String buildQrCodeUrl(String unikey) {
-    return _api.loginQrCodeUrl(unikey);
+    final normalizedUnikey = _normalizedUnikey(unikey);
+    if (normalizedUnikey.isEmpty) {
+      return '';
+    }
+    return _api.loginQrCodeUrl(normalizedUnikey);
   }
 
   /// 检查二维码登录状态。
   @override
   Future<({int code, String? message})> checkQrCodeStatus(String unikey) async {
-    final result = await _api.loginQrCodeCheck(unikey);
+    final normalizedUnikey = _normalizedUnikey(unikey);
+    if (normalizedUnikey.isEmpty) {
+      return (code: 800, message: 'Expected a non-empty qr code key');
+    }
+    final result = await _api.loginQrCodeCheck(normalizedUnikey);
     return (code: result.code, message: result.message);
   }
 
@@ -43,5 +52,9 @@ class NeteaseAuthRemoteDataSource implements AuthRemoteDataSource {
       nickname: profile?.nickname ?? '',
       avatarUrl: profile?.avatarUrl ?? '',
     );
+  }
+
+  String _normalizedUnikey(String unikey) {
+    return unikey.trim();
   }
 }

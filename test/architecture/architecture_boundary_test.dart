@@ -840,6 +840,30 @@ void main() {
       );
     });
 
+    test('netease auth remote normalizes qr login keys', () {
+      final sourceFile = File(
+        '${projectRoot.path}/lib/data/music_data/sources/netease/remote/netease_auth_remote_data_source.dart',
+      );
+      final source = sourceFile.readAsStringSync();
+      final qrKeyNormalizationCount = RegExp(
+        r'final normalizedUnikey = _normalizedUnikey\(',
+      ).allMatches(source).length;
+      final violations = <String>[
+        if (qrKeyNormalizationCount < 3) '${_relativePath(sourceFile)} does not normalize qr keys at creation, url and status boundaries',
+        if (!source.contains('success: result.code == 200 && normalizedUnikey.isNotEmpty')) '${_relativePath(sourceFile)} can still treat blank qr keys as successful',
+        if (!source.contains('return _api.loginQrCodeUrl(normalizedUnikey)')) '${_relativePath(sourceFile)} can still build qr url with raw key',
+        if (!source.contains('_api.loginQrCodeCheck(normalizedUnikey)')) '${_relativePath(sourceFile)} can still check qr status with raw key',
+        if (!source.contains("return (code: 800, message: 'Expected a non-empty qr code key');")) '${_relativePath(sourceFile)} does not reject blank qr status checks locally',
+        if (!source.contains('String _normalizedUnikey(String unikey)')) '${_relativePath(sourceFile)} does not define qr key normalization',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '二维码登录 key 是登录轮询进入 SDK 的瞬时凭证，必须先归一并拒绝空白 key，不能让空 key 触发轮询请求。',
+      );
+    });
+
     test('main app imports netease api package through public facade', () {
       final violations = _dartFiles(libDirectory)
           .where(

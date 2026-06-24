@@ -156,7 +156,7 @@ function loadRawConvenienceMethods() {
   const source = fs.readFileSync(rawMethodsPath, 'utf8')
   return [
     ...source.matchAll(
-      /Future<dynamic>\s+([A-Za-z0-9_]+)\(Map<String,\s*dynamic>\s+query\)\s*=>\s*requestModule\('([^']+)'\s*,\s*query\);/g,
+      /Future<dynamic>\s+([A-Za-z0-9_]+)\s*\(\s*Map<String,\s*dynamic>\s+query\s*,?\s*\)\s*=>\s*requestModule\('([^']+)'\s*,\s*query\);/g,
     ),
   ].map((match) => ({
     methodName: match[1],
@@ -239,6 +239,14 @@ function gitOutput(args) {
 
 function sorted(values) {
   return [...values].sort()
+}
+
+function upperFirst(name) {
+  return name.length === 0 ? name : `${name[0].toUpperCase()}${name.slice(1)}`
+}
+
+function rawAliasName(methodName) {
+  return `raw${upperFirst(methodName)}`
 }
 
 function duplicateValues(values) {
@@ -668,7 +676,7 @@ const upstreamModules = loadUpstreamModules()
 const manifest = loadManifest()
 const entries = manifest.entries
 const oracleFixtures = loadOracleFixtures()
-const rawConvenienceMethods = loadRawConvenienceMethods()
+const rawConvenienceMethodEntries = loadRawConvenienceMethods()
 const typedFacadeMethods = loadTypedFacadeMethods()
 const rawDispatcherModules = loadRawDispatcherModules()
 const publicApiExports = loadPublicApiExports()
@@ -682,15 +690,26 @@ const oracleModules = new Set(oracleModuleList)
 const manifestModules = entries.map((entry) => entry.module)
 const manifestMethodNames = entries.map((entry) => entry.methodName)
 const manifestMethodNameByModule = new Map(entries.map((entry) => [entry.module, entry.methodName]))
+const rawConvenienceAliasMethods = rawConvenienceMethodEntries.filter((entry) => {
+  const manifestMethodName = manifestMethodNameByModule.get(entry.module)
+  return manifestMethodName && entry.methodName === rawAliasName(manifestMethodName)
+})
+const rawConvenienceMethods = rawConvenienceMethodEntries.filter((entry) => {
+  const manifestMethodName = manifestMethodNameByModule.get(entry.module)
+  return !(manifestMethodName && entry.methodName === rawAliasName(manifestMethodName))
+})
 const manifestMapEntries = manifest.mapEntries
 const manifestMapKeys = manifestMapEntries.map((entry) => entry.key)
 const rawConvenienceModules = rawConvenienceMethods.map((entry) => entry.module)
 const rawConvenienceMethodNames = rawConvenienceMethods.map((entry) => entry.methodName)
+const rawConvenienceAliasModules = rawConvenienceAliasMethods.map((entry) => entry.module)
+const rawConvenienceAliasMethodNames = rawConvenienceAliasMethods.map((entry) => entry.methodName)
 const publicApiExportSet = new Set(publicApiExports)
 const publicFacadeMixinSet = new Set(publicFacadeMixins)
 const upstreamModuleSet = new Set(upstreamModules)
 const manifestModuleSet = new Set(manifestModules)
 const rawConvenienceModuleSet = new Set(rawConvenienceModules)
+const rawConvenienceAliasModuleSet = new Set(rawConvenienceAliasModules)
 const normalModules = entries.filter((entry) => !entry.special).map((entry) => entry.module)
 const specialModules = entries.filter((entry) => entry.special).map((entry) => entry.module)
 const specialSet = new Set(specialModules)
@@ -751,6 +770,20 @@ const rawConvenienceMethodNameMismatches = rawConvenienceMethods
   }))
   .sort((left, right) => left.module.localeCompare(right.module))
 const rawConvenienceFacadeMethodCollisions = facadeMethodCollisions(rawConvenienceMethods, typedFacadeMethods)
+const rawConvenienceAliasMissingModules = sorted(manifestModules.filter((module) => !rawConvenienceAliasModuleSet.has(module)))
+const rawConvenienceAliasUnknownModules = sorted(rawConvenienceAliasModules.filter((module) => !manifestModuleSet.has(module)))
+const rawConvenienceAliasDuplicateModules = duplicateValues(rawConvenienceAliasModules)
+const rawConvenienceAliasDuplicateMethodNames = duplicateValues(rawConvenienceAliasMethodNames)
+const rawConvenienceAliasOrderMismatches = orderMismatches(rawConvenienceAliasModules, manifestModules)
+const rawConvenienceAliasMethodNameMismatches = rawConvenienceAliasMethods
+  .filter((entry) => manifestMethodNameByModule.has(entry.module) && rawAliasName(manifestMethodNameByModule.get(entry.module)) !== entry.methodName)
+  .map((entry) => ({
+    module: entry.module,
+    manifestMethodName: rawAliasName(manifestMethodNameByModule.get(entry.module)),
+    rawMethodName: entry.methodName,
+  }))
+  .sort((left, right) => left.module.localeCompare(right.module))
+const rawConvenienceAliasFacadeMethodCollisions = facadeMethodCollisions(rawConvenienceAliasMethods, typedFacadeMethods)
 const publicApiMissingExports = expectedPublicApiExports.filter((exportPath) => !publicApiExportSet.has(exportPath))
 const publicFacadeMissingMixins = expectedPublicFacadeMixins.filter((mixinName) => !publicFacadeMixinSet.has(mixinName))
 const normalMissingOracle = sorted(normalModules.filter((module) => !oracleModules.has(module)))
@@ -960,6 +993,62 @@ function buildSdkDifferences() {
       status: 'raw_convenience_method_name_mismatch',
       reason: `Generated raw convenience method name ${mismatch.rawMethodName} does not match manifest method name ${mismatch.manifestMethodName}.`,
       scope: 'raw_convenience_methods',
+    })
+  }
+  for (const module of rawConvenienceAliasMissingModules) {
+    differences.push({
+      module,
+      status: 'missing_raw_convenience_alias',
+      reason: 'Generated raw convenience aliases do not include this manifest module.',
+      scope: 'raw_convenience_aliases',
+    })
+  }
+  for (const module of rawConvenienceAliasUnknownModules) {
+    differences.push({
+      module,
+      status: 'unknown_raw_convenience_alias',
+      reason: 'Generated raw convenience aliases reference a module that is not in the manifest.',
+      scope: 'raw_convenience_aliases',
+    })
+  }
+  for (const module of rawConvenienceAliasDuplicateModules) {
+    differences.push({
+      module,
+      status: 'duplicate_raw_convenience_alias_module',
+      reason: 'Generated raw convenience aliases reference this module more than once.',
+      scope: 'raw_convenience_aliases',
+    })
+  }
+  for (const mismatch of rawConvenienceAliasOrderMismatches) {
+    differences.push({
+      module: mismatch.expected || mismatch.actual || '<raw_convenience_aliases>',
+      status: 'raw_convenience_alias_order_mismatch',
+      reason: `Generated raw convenience alias index ${mismatch.index} has ${mismatch.actual || '<missing>'}, expected ${mismatch.expected || '<missing>'}.`,
+      scope: 'raw_convenience_aliases',
+    })
+  }
+  for (const methodName of rawConvenienceAliasDuplicateMethodNames) {
+    differences.push({
+      module: '<raw_convenience_aliases>',
+      status: 'duplicate_raw_convenience_alias_name',
+      reason: `Generated raw convenience alias name ${methodName} appears more than once.`,
+      scope: 'raw_convenience_aliases',
+    })
+  }
+  for (const mismatch of rawConvenienceAliasMethodNameMismatches) {
+    differences.push({
+      module: mismatch.module,
+      status: 'raw_convenience_alias_name_mismatch',
+      reason: `Generated raw convenience alias name ${mismatch.rawMethodName} does not match expected alias ${mismatch.manifestMethodName}.`,
+      scope: 'raw_convenience_aliases',
+    })
+  }
+  for (const collision of rawConvenienceAliasFacadeMethodCollisions) {
+    differences.push({
+      module: collision.module,
+      status: 'raw_convenience_alias_facade_collision',
+      reason: `Generated raw convenience alias ${collision.methodName} is shadowed by typed facade methods: ${collision.typedFiles.join(', ')}.`,
+      scope: 'raw_convenience_aliases',
     })
   }
   for (const exportPath of publicApiMissingExports) {
@@ -1194,6 +1283,15 @@ const report = {
   rawConvenienceMethodNameMismatches,
   rawConvenienceFacadeMethodCollisionCount: rawConvenienceFacadeMethodCollisions.length,
   rawConvenienceFacadeMethodCollisions,
+  rawConvenienceAliasCount: rawConvenienceAliasMethods.length,
+  rawConvenienceAliasMissingModules,
+  rawConvenienceAliasUnknownModules,
+  rawConvenienceAliasDuplicateModules,
+  rawConvenienceAliasDuplicateMethodNames,
+  rawConvenienceAliasOrderMismatches,
+  rawConvenienceAliasMethodNameMismatches,
+  rawConvenienceAliasFacadeMethodCollisionCount: rawConvenienceAliasFacadeMethodCollisions.length,
+  rawConvenienceAliasFacadeMethodCollisions,
   publicApiExports,
   publicApiExpectedExports: expectedPublicApiExports,
   publicApiMissingExports,
@@ -1253,6 +1351,13 @@ const hasFailure =
   report.rawConvenienceDuplicateMethodNames.length > 0 ||
   report.rawConvenienceOrderMismatches.length > 0 ||
   report.rawConvenienceMethodNameMismatches.length > 0 ||
+  report.rawConvenienceAliasMissingModules.length > 0 ||
+  report.rawConvenienceAliasUnknownModules.length > 0 ||
+  report.rawConvenienceAliasDuplicateModules.length > 0 ||
+  report.rawConvenienceAliasDuplicateMethodNames.length > 0 ||
+  report.rawConvenienceAliasOrderMismatches.length > 0 ||
+  report.rawConvenienceAliasMethodNameMismatches.length > 0 ||
+  report.rawConvenienceAliasFacadeMethodCollisions.length > 0 ||
   report.publicApiMissingExports.length > 0 ||
   report.publicFacadeMissingMixins.length > 0 ||
   report.normalMissingOracle.length > 0 ||
@@ -1288,7 +1393,9 @@ function renderMarkdownReport(report) {
     `- node oracle scenarios: ${report.nodeOracleScenarioCount}`,
     `- node oracle fixtures: ${report.nodeOracleFixtureCount}`,
     `- raw convenience methods: ${report.rawConvenienceMethodCount}`,
+    `- raw convenience aliases: ${report.rawConvenienceAliasCount}`,
     `- raw convenience facade method collisions: ${report.rawConvenienceFacadeMethodCollisionCount}`,
+    `- raw convenience alias facade method collisions: ${report.rawConvenienceAliasFacadeMethodCollisionCount}`,
     '',
     '## Public Facade',
     '',
@@ -1318,6 +1425,12 @@ function renderMarkdownReport(report) {
   }
 
   lines.push(
+    '',
+    '## Raw Convenience Aliases',
+    '',
+    `- aliases: ${report.rawConvenienceAliasCount}`,
+    `- missing aliases: ${report.rawConvenienceAliasMissingModules.join(', ') || 'none'}`,
+    `- alias facade method collisions: ${report.rawConvenienceAliasFacadeMethodCollisionCount}`,
     '',
     '## Special Modules',
     '',
@@ -1422,6 +1535,14 @@ if (jsonOutput) {
   console.log(`raw convenience order mismatches: ${report.rawConvenienceOrderMismatches.length}`)
   console.log(`raw convenience method name mismatches: ${report.rawConvenienceMethodNameMismatches.length}`)
   console.log(`raw convenience facade method collisions: ${report.rawConvenienceFacadeMethodCollisionCount}`)
+  console.log(`raw convenience aliases: ${report.rawConvenienceAliasCount}`)
+  console.log(`raw convenience alias missing modules: ${report.rawConvenienceAliasMissingModules.length}`)
+  console.log(`raw convenience alias unknown modules: ${report.rawConvenienceAliasUnknownModules.length}`)
+  console.log(`raw convenience alias duplicate modules: ${report.rawConvenienceAliasDuplicateModules.length}`)
+  console.log(`raw convenience alias duplicate method names: ${report.rawConvenienceAliasDuplicateMethodNames.length}`)
+  console.log(`raw convenience alias order mismatches: ${report.rawConvenienceAliasOrderMismatches.length}`)
+  console.log(`raw convenience alias method name mismatches: ${report.rawConvenienceAliasMethodNameMismatches.length}`)
+  console.log(`raw convenience alias facade method collisions: ${report.rawConvenienceAliasFacadeMethodCollisionCount}`)
   console.log(`public api exports: ${report.publicApiExports.join(', ')}`)
   console.log(`public api missing exports: ${report.publicApiMissingExports.length}`)
   console.log(`public facade mixins: ${report.publicFacadeMixins.join(', ')}`)

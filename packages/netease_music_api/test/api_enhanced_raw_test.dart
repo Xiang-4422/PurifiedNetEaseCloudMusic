@@ -222,6 +222,15 @@ void main() {
         _stringSet(songDetailCollision['typedFiles']),
         {'packages/netease_music_api/lib/src/endpoints/play/api.dart'},
       );
+      expect(report['rawConvenienceAliasCount'], apiEnhancedModules.length);
+      expect(report['rawConvenienceAliasMissingModules'], isEmpty);
+      expect(report['rawConvenienceAliasUnknownModules'], isEmpty);
+      expect(report['rawConvenienceAliasDuplicateModules'], isEmpty);
+      expect(report['rawConvenienceAliasDuplicateMethodNames'], isEmpty);
+      expect(report['rawConvenienceAliasOrderMismatches'], isEmpty);
+      expect(report['rawConvenienceAliasMethodNameMismatches'], isEmpty);
+      expect(report['rawConvenienceAliasFacadeMethodCollisionCount'], 0);
+      expect(report['rawConvenienceAliasFacadeMethodCollisions'], isEmpty);
       expect(_stringSet(report['publicApiExpectedExports']), {
         'src/client/netease_api.dart',
         'src/client/netease_bean.dart',
@@ -401,6 +410,15 @@ void main() {
           'publicFacadeHasRawMixin',
           'rawConvenienceFacadeMethodCollisionCount',
           'rawConvenienceFacadeMethodCollisions',
+          'rawConvenienceAliasCount',
+          'rawConvenienceAliasMissingModules',
+          'rawConvenienceAliasUnknownModules',
+          'rawConvenienceAliasDuplicateModules',
+          'rawConvenienceAliasDuplicateMethodNames',
+          'rawConvenienceAliasOrderMismatches',
+          'rawConvenienceAliasMethodNameMismatches',
+          'rawConvenienceAliasFacadeMethodCollisionCount',
+          'rawConvenienceAliasFacadeMethodCollisions',
           'specialLimitedReasons',
           'runtimeSupportedReasons',
           'runtimeLimitedReasons',
@@ -416,7 +434,22 @@ void main() {
       expect(report['publicFacadeTypedMixinCount'], isA<int>());
       expect(report['publicFacadeHasRawMixin'], isA<bool>());
       expect(report['rawConvenienceFacadeMethodCollisionCount'], isA<int>());
+      expect(report['rawConvenienceAliasCount'], isA<int>());
+      expect(report['rawConvenienceAliasMissingModules'], isA<List<dynamic>>());
+      expect(report['rawConvenienceAliasUnknownModules'], isA<List<dynamic>>());
+      expect(report['rawConvenienceAliasDuplicateModules'], isA<List<dynamic>>());
+      expect(report['rawConvenienceAliasDuplicateMethodNames'], isA<List<dynamic>>());
+      expect(report['rawConvenienceAliasOrderMismatches'], isA<List<dynamic>>());
+      expect(report['rawConvenienceAliasMethodNameMismatches'], isA<List<dynamic>>());
+      expect(report['rawConvenienceAliasFacadeMethodCollisionCount'], isA<int>());
+      expect(report['rawConvenienceAliasFacadeMethodCollisions'], isA<List<dynamic>>());
       for (final collision in _jsonMapList(report['rawConvenienceFacadeMethodCollisions'])) {
+        expect(collision.keys.toSet(), containsAll({'module', 'methodName', 'typedFiles'}));
+        expect(collision['module'], isA<String>());
+        expect(collision['methodName'], isA<String>());
+        expect(collision['typedFiles'], isA<List<dynamic>>());
+      }
+      for (final collision in _jsonMapList(report['rawConvenienceAliasFacadeMethodCollisions'])) {
         expect(collision.keys.toSet(), containsAll({'module', 'methodName', 'typedFiles'}));
         expect(collision['module'], isA<String>());
         expect(collision['methodName'], isA<String>());
@@ -482,6 +515,11 @@ void main() {
         markdown,
         contains('| song_detail | songDetail | packages/netease_music_api/lib/src/endpoints/play/api.dart |'),
       );
+      expect(markdown, contains('- raw convenience aliases: ${apiEnhancedModules.length}'));
+      expect(markdown, contains('## Raw Convenience Aliases'));
+      expect(markdown, contains('- aliases: ${apiEnhancedModules.length}'));
+      expect(markdown, contains('- missing aliases: none'));
+      expect(markdown, contains('- alias facade method collisions: 0'));
       final specialCoverageStatusCounts = _jsonMap(report['specialCoverageStatusCounts']);
       expect(
         markdown,
@@ -766,8 +804,17 @@ void main() {
         '\n}\n',
         "\n  Future<dynamic> codexUnknownModule(Map<String, dynamic> query) =>\n      requestModule('codex_unknown_module', query);\n\n  Future<dynamic> api(Map<String, dynamic> query) =>\n      requestModule('api', query);\n}\n",
       );
-      expect(withUnknownAndDuplicate, isNot(rawMethods));
-      final rawMethodsFile = File('${tempDir.path}/api_enhanced_raw_methods.g.dart')..writeAsStringSync(withUnknownAndDuplicate);
+      final withMissingAlias = withUnknownAndDuplicate.replaceFirst(
+        """
+  /// Collision-safe raw api-enhanced module `album_detail`.
+  Future<dynamic> rawAlbumDetail(Map<String, dynamic> query) =>
+      requestModule('album_detail', query);
+
+""",
+        '',
+      );
+      expect(withMissingAlias, isNot(rawMethods));
+      final rawMethodsFile = File('${tempDir.path}/api_enhanced_raw_methods.g.dart')..writeAsStringSync(withMissingAlias);
 
       final result = await Process.run(
         'node',
@@ -789,6 +836,7 @@ void main() {
         _jsonMapList(report['rawConvenienceMethodNameMismatches']).map((item) => item['module']),
         contains('album_sub'),
       );
+      expect(report['rawConvenienceAliasMissingModules'], contains('album_detail'));
       final sdkDifferences = _jsonMapList(report['sdkDifferences']);
       expect(
         sdkDifferences.map((item) => item['status']).toSet(),
@@ -798,11 +846,12 @@ void main() {
           'duplicate_raw_convenience_module',
           'duplicate_raw_convenience_method_name',
           'raw_convenience_method_name_mismatch',
+          'missing_raw_convenience_alias',
         }),
       );
       expect(
         sdkDifferences.where((item) => item['status'].toString().contains('raw_convenience')).map((item) => item['scope']).toSet(),
-        {'raw_convenience_methods'},
+        {'raw_convenience_methods', 'raw_convenience_aliases'},
       );
     });
 
@@ -1150,6 +1199,7 @@ void main() {
       expect(_jsonMapList(report['manifestModuleOrderMismatches']), isNotEmpty);
       expect(_jsonMapList(report['manifestMapOrderMismatches']), isNotEmpty);
       expect(_jsonMapList(report['rawConvenienceOrderMismatches']), isNotEmpty);
+      expect(_jsonMapList(report['rawConvenienceAliasOrderMismatches']), isNotEmpty);
       final sdkDifferences = _jsonMapList(report['sdkDifferences']);
       expect(
         sdkDifferences.map((item) => item['status']).toSet(),
@@ -1157,6 +1207,7 @@ void main() {
           'manifest_module_order_mismatch',
           'manifest_map_order_mismatch',
           'raw_convenience_order_mismatch',
+          'raw_convenience_alias_order_mismatch',
         }),
       );
     });

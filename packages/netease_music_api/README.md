@@ -22,11 +22,12 @@ Raw API usage:
 final api = NeteaseMusicApi();
 final data = await api.requestModule('album_new', {'limit': 30});
 final same = await api.albumNew({'limit': 30});
+final collisionSafe = await api.rawSongDetail({'ids': '1'});
 ```
 
 Existing typed APIs are preserved. If a generated raw method has the same name
-as a typed method, call `requestModule('<module_name>', query)` to force the raw
-module.
+as a typed method, call the generated `rawXxx` alias or
+`requestModule('<module_name>', query)` to force the raw module.
 
 Regenerate the upstream module manifest after updating `third_party/api-enhanced`:
 
@@ -50,13 +51,14 @@ manifest differences so upstream refreshes are auditable from one command.
 The report also verifies that the package barrel keeps exporting both the
 typed SDK facade and the raw api-enhanced dispatcher, and that `NeteaseMusicApi`
 continues to mix in the typed endpoint APIs plus `ApiEnhancedRaw`. It exposes
-raw convenience methods that are shadowed by typed facade methods; these modules
-remain available through `requestModule('<module_name>', query)`. Runtime option
+raw convenience methods that are shadowed by typed facade methods and verifies
+that every module also has a collision-safe `rawXxx` alias. Runtime option
 limitations, such as unsupported PAC proxy URLs, are also included in
 `sdkDifferences`. Use `--json` when an automation or follow-up goal needs the
 full machine-readable report, and `--markdown` when reviewing the current
 baseline, public facade status, raw convenience method collisions,
-per-special-module coverage status, and SDK differences by hand.
+collision-safe aliases, per-special-module coverage status, and SDK differences
+by hand.
 
 Upstream protocol reference is tracked in the repository submodule:
 

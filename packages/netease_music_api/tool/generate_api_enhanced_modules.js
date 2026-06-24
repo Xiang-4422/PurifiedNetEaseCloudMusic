@@ -65,6 +65,14 @@ function camel(name) {
   return name.replace(/_([a-z0-9])/g, (_, c) => c.toUpperCase())
 }
 
+function upperFirst(name) {
+  return name.length === 0 ? name : `${name[0].toUpperCase()}${name.slice(1)}`
+}
+
+function rawAliasName(methodName) {
+  return `raw${upperFirst(methodName)}`
+}
+
 function esc(value) {
   return value
     .replace(/\\/g, '\\\\')
@@ -165,6 +173,7 @@ writeGeneratedFile(
 let methods = `// GENERATED CODE - DO NOT MODIFY BY HAND.\n// ignore_for_file: public_member_api_docs\n// Convenience methods for api-enhanced modules.\n\npart of 'api_enhanced_raw.dart';\n\n/// Generated convenience methods for every upstream api-enhanced module.\nextension ApiEnhancedRawConvenience on ApiEnhancedRaw {\n`
 for (const entry of entries) {
   methods += `  /// Raw api-enhanced module \`${entry.module}\`.\n  Future<dynamic> ${entry.methodName}(Map<String, dynamic> query) => requestModule('${esc(entry.module)}', query);\n\n`
+  methods += `  /// Collision-safe raw api-enhanced module \`${entry.module}\`.\n  Future<dynamic> ${rawAliasName(entry.methodName)}(Map<String, dynamic> query) => requestModule('${esc(entry.module)}', query);\n\n`
 }
 methods += `}\n`
 writeGeneratedFile(

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:bujuan/ui/pages/shell/app_body_page_view.dart';
 import 'package:bujuan/ui/pages/user/today_page_view.dart';
 import 'package:bujuan/ui/pages/user/user_setting_view.dart';
+import 'package:bujuan/ui/pages/user/widgets/library_shortcut_bar.dart';
 import 'package:bujuan/ui/pages/user/widgets/quick_start_card_rail.dart';
 import 'package:bujuan/ui/pages/user/widgets/recent_playback_strip.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -56,6 +57,30 @@ void main() {
         isCurrent: false,
       ),
       '播放最近播放：未知歌曲 - 未知艺人',
+    );
+  });
+
+  test('library shortcuts expose stable semantics labels', () {
+    expect(
+      libraryShortcutSemanticsLabel(
+        label: ' 我喜欢 ',
+        isAvailable: true,
+      ),
+      '我喜欢',
+    );
+    expect(
+      libraryShortcutSemanticsLabel(
+        label: '我喜欢',
+        isAvailable: false,
+      ),
+      '我喜欢（当前不可用）',
+    );
+    expect(
+      libraryShortcutSemanticsLabel(
+        label: '   ',
+        isAvailable: false,
+      ),
+      '资料库入口（当前不可用）',
     );
   });
 
@@ -217,6 +242,14 @@ void main() {
     expect(shortcutSource, contains('final PlaylistSummaryData Function() likedPlaylist'));
     expect(shortcutSource, contains('final WidgetBuilder userPlaylistsPageBuilder'));
     expect(shortcutSource, contains('final playlist = likedPlaylist();'));
+    expect(shortcutSource, contains('final playlistId = playlist.id.trim();'));
+    expect(shortcutSource, contains('playlistId: playlistId'));
+    expect(shortcutSource, contains('isAvailable: _hasLikedPlaylist()'));
+    expect(shortcutSource, contains('libraryShortcutSemanticsLabel('));
+    expect(shortcutSource, contains('label: semanticsLabel'));
+    expect(shortcutSource, contains('message: semanticsLabel'));
+    expect(shortcutSource, contains('excludeFromSemantics: true'));
+    expect(shortcutSource, contains('ExcludeSemantics('));
     expect(shortcutSource, contains('builder: userPlaylistsPageBuilder'));
     expect(sectionSource, contains('UserPlaylistLibraryPageView('));
     expect(sectionSource, contains('controller: libraryController'));

@@ -33,6 +33,7 @@ class LibraryShortcutBar extends StatelessWidget {
       _LibraryShortcutAction(
         label: '我喜欢',
         icon: TablerIcons.heart,
+        isAvailable: _hasLikedPlaylist(),
         onTap: () => _openLikedPlaylist(context),
       ),
       _LibraryShortcutAction(
@@ -90,13 +91,14 @@ class LibraryShortcutBar extends StatelessWidget {
 
   void _openLikedPlaylist(BuildContext context) {
     final playlist = likedPlaylist();
-    if (playlist.id.isEmpty) {
+    final playlistId = playlist.id.trim();
+    if (playlistId.isEmpty) {
       ToastService.show('暂无我喜欢歌单');
       return;
     }
     context.router.push(
       gr.PlayListRouteView(
-        playlistId: playlist.id,
+        playlistId: playlistId,
         playlistName: playlist.title,
         coverUrl: playlist.coverUrl,
         trackCount: playlist.trackCount,
@@ -119,6 +121,10 @@ class LibraryShortcutBar extends StatelessWidget {
       ),
     );
   }
+
+  bool _hasLikedPlaylist() {
+    return likedPlaylist().id.trim().isNotEmpty;
+  }
 }
 
 class _LibraryShortcutAction {
@@ -126,11 +132,13 @@ class _LibraryShortcutAction {
     required this.label,
     required this.icon,
     required this.onTap,
+    this.isAvailable = true,
   });
 
   final String label;
   final IconData icon;
   final VoidCallback onTap;
+  final bool isAvailable;
 }
 
 class _LibraryShortcutButton extends StatelessWidget {
@@ -142,47 +150,54 @@ class _LibraryShortcutButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final semanticsLabel = libraryShortcutSemanticsLabel(
+      label: action.label,
+      isAvailable: action.isAvailable,
+    );
     final backgroundColor = Color.alphaBlend(
       colorScheme.primary.withValues(alpha: 0.08),
       colorScheme.surface,
     );
 
     return Tooltip(
-      message: action.label,
+      message: semanticsLabel,
+      excludeFromSemantics: true,
       child: Semantics(
         button: true,
-        label: action.label,
-        child: Material(
-          color: backgroundColor,
-          borderRadius: AppDimensions.borderRadiusMedium,
-          child: InkWell(
+        label: semanticsLabel,
+        child: ExcludeSemantics(
+          child: Material(
+            color: backgroundColor,
             borderRadius: AppDimensions.borderRadiusMedium,
-            onTap: action.onTap,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppDimensions.paddingSmall / 2,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    action.icon,
-                    size: AppDimensions.iconSizeMedium,
-                    color: colorScheme.primary,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    action.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
+            child: InkWell(
+              borderRadius: AppDimensions.borderRadiusMedium,
+              onTap: action.onTap,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.paddingSmall / 2,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      action.icon,
+                      size: AppDimensions.iconSizeMedium,
+                      color: colorScheme.primary,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 6),
+                    Text(
+                      action.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -190,4 +205,14 @@ class _LibraryShortcutButton extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 生成资料库快捷入口的辅助语义标签。
+@visibleForTesting
+String libraryShortcutSemanticsLabel({
+  required String label,
+  required bool isAvailable,
+}) {
+  final resolvedLabel = label.trim().isEmpty ? '资料库入口' : label.trim();
+  return isAvailable ? resolvedLabel : '$resolvedLabel（当前不可用）';
 }

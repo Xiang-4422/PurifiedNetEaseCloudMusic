@@ -907,6 +907,25 @@ void main() {
       );
     });
 
+    test('playback selection service normalizes selected ids before status reset', () {
+      final serviceFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_selection_service.dart',
+      );
+      final service = serviceFile.readAsStringSync();
+      final violations = <String>[
+        if (!service.contains('String _normalizedQueueItemId(String id)')) '${_relativePath(serviceFile)} does not define selection id normalization',
+        if (!service.contains('final selectedIdChanged = _normalizedQueueItemId(_state.selectedItem.id) != _normalizedQueueItemId(queueState.selectedItem.id);'))
+          '${_relativePath(serviceFile)} can still reset source status through raw selected id comparison',
+        if (service.contains('final selectedIdChanged = _state.selectedItem.id != queueState.selectedItem.id')) '${_relativePath(serviceFile)} still compares selected ids raw before resetting source status',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'selection 从 queue fact 同步时只应在真实换歌后把 sourceStatus 重置为 idle，raw id 空格差异不能打断 mini player 的 ready/error 反馈。',
+      );
+    });
+
     test('playback repository rejects negative restore positions', () {
       final repositoryFile = File(
         '${projectRoot.path}/lib/features/playback/playback_repository.dart',

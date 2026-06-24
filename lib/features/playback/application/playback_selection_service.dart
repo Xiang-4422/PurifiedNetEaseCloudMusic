@@ -276,7 +276,7 @@ class PlaybackSelectionService {
   }
 
   void _syncFromQueueState(PlaybackQueueState queueState) {
-    final selectedIdChanged = _state.selectedItem.id != queueState.selectedItem.id;
+    final selectedIdChanged = _normalizedQueueItemId(_state.selectedItem.id) != _normalizedQueueItemId(queueState.selectedItem.id);
     final sourceStatus = selectedIdChanged ? PlaybackSelectionSourceStatus.idle : _state.sourceStatus;
     _emitSelection(
       queue: queueState.activeQueue,
@@ -297,6 +297,10 @@ class PlaybackSelectionService {
 
   bool _shouldRollbackToConfirmed(PlaybackSwitchTrigger trigger) {
     return trigger == PlaybackSwitchTrigger.userSelect || trigger == PlaybackSwitchTrigger.userNext || trigger == PlaybackSwitchTrigger.userPrevious;
+  }
+
+  String _normalizedQueueItemId(String id) {
+    return id.trim();
   }
 
   bool _shouldCoalesceUserSkip(

@@ -11,6 +11,7 @@ import 'package:bujuan/features/playback/application/playback_selection_service.
 import 'package:bujuan/features/playback/application/playback_source_resolver.dart';
 import 'package:bujuan/features/playback/application/playback_switch_coordinator.dart';
 import 'package:bujuan/features/playback/application/playback_switch_trigger.dart';
+import 'package:bujuan/features/playback/playback_queue_state.dart';
 import 'package:bujuan/features/playback/playback_selection_state.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -360,6 +361,37 @@ void main() {
       expect(selectionService.state.sourceStatus, PlaybackSelectionSourceStatus.ready);
       expect(playbackService.replacedIndexes, [0]);
     });
+
+    test('keeps source status when synced selected id only differs by whitespace', () async {
+      final queueService = _ManualPlaybackQueueService();
+      final selectionService = PlaybackSelectionService(
+        queueService: queueService,
+        navigator: const PlaybackSelectionNavigator(),
+        switchCoordinator: _SuccessfulPlaybackSwitchCoordinator(),
+        userSkipCoalesceDelay: Duration.zero,
+      );
+      addTearDown(selectionService.dispose);
+
+      await selectionService.selectQueue(
+        [_item('1')],
+        0,
+        playListName: 'Queue',
+        trigger: PlaybackSwitchTrigger.userSelect,
+      );
+
+      expect(selectionService.state.sourceStatus, PlaybackSelectionSourceStatus.ready);
+
+      queueService.emit(
+        PlaybackQueueState(
+          activeQueue: [_item(' 1 ')],
+          selectedIndex: 0,
+          selectionVersion: queueService.state.selectionVersion + 1,
+        ),
+      );
+
+      expect(selectionService.state.selectedItem.id, ' 1 ');
+      expect(selectionService.state.sourceStatus, PlaybackSelectionSourceStatus.ready);
+    });
   });
 }
 
@@ -538,6 +570,62 @@ class _FakePlaybackQueueStore implements PlaybackQueueStore {
 
   @override
   Future<void> saveRepeatMode(PlaybackRepeatMode repeatMode) async {}
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _ManualPlaybackQueueService implements PlaybackQueueService {
+  final StreamController<PlaybackQueueState> _controller = StreamController<PlaybackQueueState>.broadcast(sync: true);
+  PlaybackQueueState _state = const PlaybackQueueState();
+
+  @override
+  PlaybackQueueState get state => _state;
+
+  @override
+  Stream<PlaybackQueueState> get stream => _controller.stream;
+
+  @override
+  Future<PlaybackQueueState> replaceQueue(
+    List<PlaybackQueueItem> queue,
+    int index, {
+    required String playlistName,
+    String playlistHeader = '',
+    bool needStore = true,
+  }) async {
+    _state = PlaybackQueueState(
+      originalQueue: queue,
+      activeQueue: queue,
+      selectedIndex: index,
+      selectionVersion: _state.selectionVersion + 1,
+    );
+    return _state;
+  }
+
+  void emit(PlaybackQueueState state) {
+    _state = state;
+    _controller.add(state);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _SuccessfulPlaybackSwitchCoordinator implements PlaybackSwitchCoordinator {
+  @override
+  Future<PlaybackSwitchResult> switchToSelection({
+    required List<PlaybackQueueItem> queue,
+    required PlaybackQueueItem item,
+    required int activeIndex,
+    required int selectionVersion,
+    required PlaybackSwitchTrigger trigger,
+    required bool playNow,
+  }) async {
+    return PlaybackSwitchResult(
+      selectionVersion: selectionVersion,
+      success: true,
+    );
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

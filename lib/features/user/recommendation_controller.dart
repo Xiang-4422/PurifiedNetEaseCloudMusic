@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bujuan/core/entities/liked_song_ids.dart';
 import 'package:bujuan/ui/services/image_color_service.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
@@ -354,7 +355,7 @@ class RecommendationController extends GetxController {
     }
     return _repository.fetchTodayRecommendSongs(
       userId: userId,
-      likedSongIds: _libraryAccess.likedSongIds(),
+      likedSongIds: _likedSongIdsSnapshot(),
     );
   }
 
@@ -366,7 +367,7 @@ class RecommendationController extends GetxController {
     }
     return _repository.fetchFmSongs(
       userId: userId,
-      likedSongIds: _libraryAccess.likedSongIds(),
+      likedSongIds: _likedSongIdsSnapshot(),
     );
   }
 
@@ -374,7 +375,7 @@ class RecommendationController extends GetxController {
   Future<UserHomePlaylistPlaybackPlan> resolveFrequentPlaylistPlayback(
     PlaylistSummaryData playlist,
   ) async {
-    final likedSongIds = _libraryAccess.likedSongIds();
+    final likedSongIds = _likedSongIdsSnapshot();
     final userId = _currentUserId();
     final index = await _playlistRepository.fetchPlaylistIndex(
       playlist.id,
@@ -460,7 +461,7 @@ class RecommendationController extends GetxController {
     if (!_isSignedInUserId(userId)) {
       return const UserHomeLocalData.empty();
     }
-    final likedSongIds = _libraryAccess.likedSongIds();
+    final likedSongIds = _likedSongIdsSnapshot();
     final results = await Future.wait<Object>([
       _loadCachedPlaylistList(
         userId,
@@ -488,7 +489,7 @@ class RecommendationController extends GetxController {
     if (!_isSignedInUserId(userId)) {
       return const UserHomeLocalData.empty();
     }
-    final likedSongIds = _libraryAccess.likedSongIds();
+    final likedSongIds = _likedSongIdsSnapshot();
     final results = await Future.wait<Object>([
       _repository.fetchTodayRecommendSongs(
         userId: userId,
@@ -555,6 +556,10 @@ class RecommendationController extends GetxController {
 
   String _normalizedUserId(String userId) {
     return userId.trim();
+  }
+
+  List<int> _likedSongIdsSnapshot() {
+    return normalizeLikedSongIds(_libraryAccess.likedSongIds());
   }
 
   bool _isSignedInUserId(String userId) {

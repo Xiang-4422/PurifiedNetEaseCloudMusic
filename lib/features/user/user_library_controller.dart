@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:bujuan/core/entities/music_resource_id.dart';
+import 'package:bujuan/core/entities/liked_song_ids.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_summary_data.dart';
 import 'package:bujuan/core/entities/user_library_kinds.dart';
@@ -71,6 +72,9 @@ class UserLibraryController extends GetxController {
 
   /// 用户喜欢歌曲的网易云数字 id 列表。
   final RxList<int> likedSongIds = <int>[].obs;
+
+  /// 用户喜欢歌曲的稳定快照，供页面、播放和搜索边界注入使用。
+  List<int> get likedSongIdSnapshot => normalizeLikedSongIds(likedSongIds);
 
   /// 已加载的喜欢歌曲播放队列项。
   final RxList<PlaybackQueueItem> likedSongs = <PlaybackQueueItem>[].obs;
@@ -228,7 +232,7 @@ class UserLibraryController extends GetxController {
       return;
     }
     final userId = _currentUserId();
-    final requestedLikedSongIds = likedSongIds.toList();
+    final requestedLikedSongIds = uniqueLikedSongIds(likedSongIds);
     final generation = ++_likedSongsLoadGeneration;
     if (!_isSignedInUserId(userId) || requestedLikedSongIds.isEmpty) {
       likedSongs.clear();
@@ -281,7 +285,7 @@ class UserLibraryController extends GetxController {
       startSongId: startSongId,
       randomLikedSongId: randomLikedSongId,
       fromPlayAll: fromPlayAll,
-      likedSongIds: likedSongIds.toList(),
+      likedSongIds: likedSongIdSnapshot,
     );
   }
 
@@ -289,7 +293,7 @@ class UserLibraryController extends GetxController {
   Future<List<PlaybackQueueItem>> getSongsByIds(List<String> ids) {
     return _repository.fetchSongsByIds(
       ids: ids,
-      likedSongIds: likedSongIds.toList(),
+      likedSongIds: likedSongIdSnapshot,
     );
   }
 
@@ -304,7 +308,7 @@ class UserLibraryController extends GetxController {
       randomLikedSongAlbumUrl.value = '';
       return;
     }
-    final nextRandomLikedSong = await _resolveRandomLikedSong(likedSongIds);
+    final nextRandomLikedSong = await _resolveRandomLikedSong(uniqueLikedSongIds(likedSongIds));
     if (!_isActiveSession(userId)) {
       return;
     }
@@ -342,7 +346,7 @@ class UserLibraryController extends GetxController {
     }
 
     var hasCachedData = false;
-    final cachedLikedIds = await _loadCachedLikedSongIds(userId);
+    final cachedLikedIds = uniqueLikedSongIds(await _loadCachedLikedSongIds(userId));
     if (!_isCurrentLocalDataLoad(userId, generation)) {
       return;
     }
@@ -373,7 +377,7 @@ class UserLibraryController extends GetxController {
     userLikedSongPlayList.value = cachedLikedPlaylist.isEmpty ? const PlaylistSummaryData(id: '', title: '') : cachedLikedPlaylist.first;
     hasCachedData = hasCachedData || userLikedSongPlayList.value.id.isNotEmpty;
 
-    final nextRandomLikedSong = await _resolveRandomLikedSong(likedSongIds);
+    final nextRandomLikedSong = await _resolveRandomLikedSong(uniqueLikedSongIds(likedSongIds));
     if (!_isCurrentLocalDataLoad(userId, generation)) {
       return;
     }
@@ -467,10 +471,11 @@ class UserLibraryController extends GetxController {
   }
 
   void _applyLikedSongIds(List<int> nextLikedSongIds) {
-    final nextSongIds = nextLikedSongIds.map((songId) => songId.toString()).toList(growable: false);
+    final orderedLikedSongIds = uniqueLikedSongIds(nextLikedSongIds);
+    final nextSongIds = orderedLikedSongIds.map((songId) => songId.toString()).toList(growable: false);
     likedSongIds
       ..clear()
-      ..addAll(nextLikedSongIds);
+      ..addAll(orderedLikedSongIds);
     if (likedSongs.isEmpty) {
       return;
     }
@@ -505,11 +510,12 @@ class UserLibraryController extends GetxController {
   }
 
   bool _sameLikedSongIds(List<int> requestedLikedSongIds) {
-    if (likedSongIds.length != requestedLikedSongIds.length) {
+    final currentLikedSongIds = uniqueLikedSongIds(likedSongIds);
+    if (currentLikedSongIds.length != requestedLikedSongIds.length) {
       return false;
     }
     for (var index = 0; index < requestedLikedSongIds.length; index++) {
-      if (likedSongIds[index] != requestedLikedSongIds[index]) {
+      if (currentLikedSongIds[index] != requestedLikedSongIds[index]) {
         return false;
       }
     }

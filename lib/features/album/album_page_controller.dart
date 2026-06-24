@@ -1,3 +1,4 @@
+import 'package:bujuan/core/entities/liked_song_ids.dart';
 import 'package:bujuan/features/album/album_repository.dart';
 
 /// 专辑详情页初始数据。
@@ -57,6 +58,6 @@ class AlbumPageController {
   }
 
   List<int> _likedSongIdsSnapshot() {
-    return _likedSongIds().toSet().toList()..sort();
+    return normalizeLikedSongIds(_likedSongIds());
   }
 }

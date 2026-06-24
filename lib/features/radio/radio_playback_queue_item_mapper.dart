@@ -1,3 +1,4 @@
+import 'package:bujuan/core/entities/liked_song_ids.dart';
 import 'package:bujuan/core/entities/music_resource_id.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
@@ -13,6 +14,7 @@ class RadioPlaybackQueueItemMapper {
     List<RadioProgramData> programs, {
     required List<int> likedSongIds,
   }) {
+    final likedSongIdSet = normalizeLikedSongIds(likedSongIds).toSet();
     return programs.where((program) => _normalizedQueueItemId(program.mainTrackId).isNotEmpty).map(
       (program) {
         final trackId = _normalizedQueueItemId(program.mainTrackId);
@@ -29,7 +31,7 @@ class RadioPlaybackQueueItemMapper {
           mediaType: MediaType.playlist,
           playbackUrl: null,
           lyricKey: trackId,
-          isLiked: _isLikedTrack(trackId, likedSongIds),
+          isLiked: _isLikedTrack(trackId, likedSongIdSet),
           isCached: false,
         );
       },
@@ -40,7 +42,7 @@ class RadioPlaybackQueueItemMapper {
     return id.trim();
   }
 
-  static bool _isLikedTrack(String trackId, List<int> likedSongIds) {
+  static bool _isLikedTrack(String trackId, Set<int> likedSongIds) {
     final numericSongId = int.tryParse(MusicResourceId.toNeteaseSourceId(trackId));
     return numericSongId != null && likedSongIds.contains(numericSongId);
   }

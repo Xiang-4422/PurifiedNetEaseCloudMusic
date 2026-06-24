@@ -51,7 +51,7 @@ void registerPlaybackDependencies() {
   Get.put<PlaybackUserContentPort>(
     PlaybackUserContentPort(
       toggleLikeStatus: (item) => Get.find<UserLibraryController>().toggleLikeStatus(item),
-      likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
+      likedSongIds: _likedSongIdsSnapshot,
       ensureLikedSongsLoaded: () => Get.find<UserLibraryController>().ensureLikedSongsLoaded(),
       likedSongs: () => Get.find<UserLibraryController>().likedSongs.toList(),
       loadFmSongs: () => Get.find<RecommendationController>().getFmSongs(),
@@ -154,6 +154,10 @@ void registerPlaybackDependencies() {
     ),
     permanent: true,
   );
+}
+
+List<int> _likedSongIdsSnapshot() {
+  return Get.find<UserLibraryController>().likedSongIdSnapshot;
 }
 
 void _reportPlaybackSideEffectError(

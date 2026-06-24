@@ -1,10 +1,11 @@
 import 'package:bujuan/core/diagnostics/performance_logger.dart';
 import 'package:bujuan/core/diagnostics/performance_metric.dart';
-import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/album_entity.dart';
 import 'package:bujuan/core/entities/artist_entity.dart';
+import 'package:bujuan/core/entities/liked_song_ids.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
+import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/features/search/search_repository.dart';
 import 'package:flutter/foundation.dart';
 
@@ -115,9 +116,9 @@ class SearchPanelController {
       return;
     }
     final normalizedKeyword = keyword.trim();
-    final likedSongIds = _normalizedLikedSongIds(_likedSongIds());
+    final likedSongIds = normalizeLikedSongIds(_likedSongIds());
     final currentUserId = _normalizedCurrentUserId(_currentUserIdProvider());
-    final likedSongIdsSignature = _likedSongIdsSignature(likedSongIds);
+    final likedSongIdsSignatureValue = likedSongIdsSignature(likedSongIds);
     if (normalizedKeyword.isEmpty) {
       _currentKeyword = '';
       _currentUserId = '';
@@ -135,7 +136,7 @@ class SearchPanelController {
     }
     final sameKeyword = normalizedKeyword == _currentKeyword;
     final sameUser = currentUserId == _currentUserId;
-    final sameSearchContext = sameKeyword && sameUser && likedSongIdsSignature == _currentLikedSongIdsSignature;
+    final sameSearchContext = sameKeyword && sameUser && likedSongIdsSignatureValue == _currentLikedSongIdsSignature;
     if (!force && sameSearchContext) {
       return;
     }
@@ -146,7 +147,7 @@ class SearchPanelController {
     final previousArtists = canReusePreviousItems ? artistState.value.data : null;
     _currentKeyword = normalizedKeyword;
     _currentUserId = currentUserId;
-    _currentLikedSongIdsSignature = likedSongIdsSignature;
+    _currentLikedSongIdsSignature = likedSongIdsSignatureValue;
     final generation = ++_searchGeneration;
     songState.value = _loadingState(previousSongs);
     playlistState.value = _loadingState(previousPlaylists);
@@ -165,7 +166,7 @@ class SearchPanelController {
         generation,
         normalizedKeyword,
         currentUserId,
-        likedSongIdsSignature,
+        likedSongIdsSignatureValue,
       )) {
         return;
       }
@@ -389,14 +390,6 @@ class SearchPanelController {
     albumState.dispose();
     artistState.dispose();
   }
-}
-
-String _likedSongIdsSignature(List<int> likedSongIds) {
-  return _normalizedLikedSongIds(likedSongIds).join(',');
-}
-
-List<int> _normalizedLikedSongIds(List<int> likedSongIds) {
-  return likedSongIds.toSet().toList()..sort();
 }
 
 String _normalizedCurrentUserId(String userId) {

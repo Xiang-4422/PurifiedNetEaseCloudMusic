@@ -1,3 +1,4 @@
+import 'package:bujuan/core/entities/liked_song_ids.dart';
 import 'package:bujuan/features/playback/application/playback_queue_item_mapper.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/track.dart';
@@ -123,7 +124,7 @@ class CurrentTrackDownloadUseCase {
               resources: const TrackResourceBundle(),
             ),
       ],
-      likedSongIds: _userContentPort.likedSongIds(),
+      likedSongIds: normalizeLikedSongIds(_userContentPort.likedSongIds()),
     );
     return queueItems.isEmpty ? null : queueItems.first;
   }

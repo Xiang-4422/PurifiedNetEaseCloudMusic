@@ -1,3 +1,4 @@
+import 'package:bujuan/core/entities/liked_song_ids.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/util/image_url_normalizer.dart';
 import 'package:bujuan/core/entities/local_resource_entry.dart';
@@ -42,6 +43,7 @@ class PlaybackQueueItemMapper {
     required List<int> likedSongIds,
     MediaType? mediaType,
   }) {
+    final likedSongIdSet = normalizeLikedSongIds(likedSongIds).toSet();
     return tracks.where((item) => _normalizedQueueItemId(item.track.id).isNotEmpty).map((item) {
       final track = item.track;
       final trackId = _normalizedQueueItemId(track.id);
@@ -73,7 +75,7 @@ class PlaybackQueueItemMapper {
         isLiked: _isLikedTrack(
           trackId: trackId,
           sourceId: track.sourceId,
-          likedSongIds: likedSongIds,
+          likedSongIds: likedSongIdSet,
         ),
         isCached: _isCachedAudioResource(resources.audio),
         metadata: playbackQueueCustomMetadata(track.metadata),
@@ -140,7 +142,7 @@ class PlaybackQueueItemMapper {
   static bool _isLikedTrack({
     required String trackId,
     required String sourceId,
-    required List<int> likedSongIds,
+    required Set<int> likedSongIds,
   }) {
     final normalizedSourceId = MusicResourceId.toNeteaseSourceId(
       sourceId.trim().isNotEmpty ? sourceId : trackId,

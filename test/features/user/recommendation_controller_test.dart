@@ -324,6 +324,42 @@ void main() {
       expect(controller.hasLocalData, isTrue);
     });
 
+    test('normalizes liked song ids before home cache and remote requests', () async {
+      final sessionController = _buildSessionController('user-1');
+      final libraryController = _FakeUserLibraryController()..likedSongIds.addAll([202, 101, 202]);
+      final repository = _FakeUserRepository();
+      final controller = RecommendationController(
+        repository: repository,
+        playlistRepository: _FakePlaylistRepository(),
+        sessionAccess: _sessionAccess(sessionController),
+        libraryAccess: _libraryAccess(libraryController),
+      );
+      addTearDown(controller.onClose);
+
+      controller.onInit();
+      await controller.ensureCacheLoaded();
+
+      libraryController.likedSongIds
+        ..clear()
+        ..addAll([303, 202, 303]);
+      await controller.getTodayRecommendSongs();
+      await controller.getFmSongs();
+      await controller.updateData();
+
+      expect(repository.loadCachedTrackListLikedSongRequests, [
+        [101, 202],
+        [101, 202],
+      ]);
+      expect(repository.fetchTodayRecommendSongsLikedRequests, [
+        [202, 303],
+        [202, 303],
+      ]);
+      expect(repository.fetchFmSongsLikedRequests, [
+        [202, 303],
+        [202, 303],
+      ]);
+    });
+
     test('ignores home refresh completion after close', () async {
       final sessionController = _buildSessionController('user-1');
       final libraryController = _FakeUserLibraryController();
@@ -367,10 +403,10 @@ void main() {
       expect(controller.fmSongs.map((song) => song.id), ['visible-fm']);
     });
 
-    test('resolves frequent playlist playback plan with latest liked ids', () async {
+    test('resolves frequent playlist playback plan with normalized latest liked ids', () async {
       final sessionController = _buildSessionController('user-1');
       final libraryController = _FakeUserLibraryController();
-      libraryController.likedSongIds.addAll([101]);
+      libraryController.likedSongIds.addAll([101, 101]);
       final playlistRepository = _FakePlaylistRepository(
         playlistIndex: const PlaylistIndexData(
           id: 'playlist-1',
@@ -401,7 +437,7 @@ void main() {
       );
       libraryController.likedSongIds
         ..clear()
-        ..addAll([202, 303]);
+        ..addAll([303, 202, 202]);
       final secondPlan = await controller.resolveFrequentPlaylistPlayback(
         const PlaylistSummaryData(id: 'playlist-1', title: 'Playlist 1'),
       );
@@ -432,7 +468,7 @@ RecommendationLibraryAccess _libraryAccess(_FakeUserLibraryController controller
     loadScopedLocalData: controller.loadScopedLocalData,
     refreshUserLibrary: controller.refreshUserLibrary,
     hasPlaylistData: () => controller.hasPlaylistData,
-    likedSongIds: () => controller.likedSongIds.toList(),
+    likedSongIds: () => controller.likedSongIdSnapshot,
     randomLikedSongAlbumUrl: () => controller.randomLikedSongAlbumUrl.value,
   );
 }
@@ -570,6 +606,9 @@ class _FakeUserRepository implements UserRepository {
   final List<String> fetchTodayRecommendSongsUserIds = <String>[];
   final List<String> fetchFmSongsUserIds = <String>[];
   final List<String> markSyncMarkerUpdatedUserIds = <String>[];
+  final List<List<int>> loadCachedTrackListLikedSongRequests = <List<int>>[];
+  final List<List<int>> fetchTodayRecommendSongsLikedRequests = <List<int>>[];
+  final List<List<int>> fetchFmSongsLikedRequests = <List<int>>[];
 
   @override
   Future<List<PlaylistSummaryData>> loadCachedPlaylistList(
@@ -590,6 +629,7 @@ class _FakeUserRepository implements UserRepository {
     required List<int> likedSongIds,
   }) async {
     loadCachedTrackListUserIds.add(userId);
+    loadCachedTrackListLikedSongRequests.add(List<int>.from(likedSongIds));
     switch (kind) {
       case UserTrackListKind.dailyRecommend:
         final error = loadCachedDailyRecommendSongsError;
@@ -643,6 +683,7 @@ class _FakeUserRepository implements UserRepository {
     required List<int> likedSongIds,
   }) {
     fetchTodayRecommendSongsUserIds.add(userId);
+    fetchTodayRecommendSongsLikedRequests.add(List<int>.from(likedSongIds));
     final fetchWithArgs = fetchTodayRecommendSongsWithArgs;
     if (fetchWithArgs != null) {
       return fetchWithArgs(
@@ -659,6 +700,7 @@ class _FakeUserRepository implements UserRepository {
     required List<int> likedSongIds,
   }) {
     fetchFmSongsUserIds.add(userId);
+    fetchFmSongsLikedRequests.add(List<int>.from(likedSongIds));
     final fetchWithArgs = fetchFmSongsWithArgs;
     if (fetchWithArgs != null) {
       return fetchWithArgs(

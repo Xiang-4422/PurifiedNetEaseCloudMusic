@@ -1,3 +1,4 @@
+import 'package:bujuan/core/entities/liked_song_ids.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/playback_repeat_mode.dart';
 import 'package:bujuan/features/playback/application/playback_selection_service.dart';
@@ -26,7 +27,7 @@ class PlaybackModeCoordinator {
   }) async {
     await _userContentPort.ensureLikedSongsLoaded();
     final likedSongs = _userContentPort.likedSongs().map(_normalizedQueueItem).where((song) => song.id.isNotEmpty).toList(growable: false);
-    final likedSongIds = _userContentPort.likedSongIds();
+    final likedSongIds = normalizeLikedSongIds(_userContentPort.likedSongIds());
     final playList = [...likedSongs];
     final normalizedCurrentSong = _normalizedQueueItem(currentSong);
     final currentSongSourceId = int.tryParse(normalizedCurrentSong.sourceId);

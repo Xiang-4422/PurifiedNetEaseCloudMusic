@@ -14,7 +14,6 @@ import 'package:bujuan/features/album/album_repository.dart';
 import 'package:bujuan/features/artist/artist_page_controller_factory.dart';
 import 'package:bujuan/features/artist/artist_repository.dart';
 import 'package:bujuan/features/playback/player_controller.dart';
-import 'package:bujuan/features/user/user_library_controller.dart';
 import 'package:bujuan/ui/pages/album/album_page_view.dart';
 import 'package:bujuan/ui/pages/artist/artist_page_view.dart';
 import 'package:bujuan/ui/services/local_image_cache_service.dart';
@@ -36,7 +35,6 @@ void main() {
         },
       ),
     );
-    Get.put<UserLibraryController>(_FakeUserLibraryController());
     Get.put<PlayerController>(_FakePlayerController());
   });
 
@@ -273,7 +271,7 @@ void _putAlbumPageControllerFactory() {
   Get.put<AlbumPageControllerFactory>(
     AlbumPageControllerFactory(
       repository: Get.find<AlbumRepository>(),
-      likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
+      likedSongIds: () => const <int>[],
     ),
   );
 }
@@ -282,7 +280,7 @@ void _putArtistPageControllerFactory() {
   Get.put<ArtistPageControllerFactory>(
     ArtistPageControllerFactory(
       repository: Get.find<ArtistRepository>(),
-      likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
+      likedSongIds: () => const <int>[],
     ),
   );
 }
@@ -458,14 +456,6 @@ class _FakeArtistRepository implements ArtistRepository {
     }
     throw StateError('remote detail not configured');
   }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _FakeUserLibraryController extends GetxController implements UserLibraryController {
-  @override
-  final RxList<int> likedSongIds = <int>[].obs;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

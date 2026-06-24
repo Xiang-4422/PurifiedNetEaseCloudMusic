@@ -117,7 +117,7 @@ void registerUserControllers() {
         loadScopedLocalData: (userId) => Get.find<UserLibraryController>().loadScopedLocalData(userId),
         refreshUserLibrary: () => Get.find<UserLibraryController>().refreshUserLibrary(),
         hasPlaylistData: () => Get.find<UserLibraryController>().hasPlaylistData,
-        likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
+        likedSongIds: _likedSongIdsSnapshot,
         randomLikedSongAlbumUrl: () => Get.find<UserLibraryController>().randomLikedSongAlbumUrl.value,
       ),
       validateLoginStateInBackground: () => Get.find<AuthController>().validateLoginStateInBackgroundIfNeeded(),
@@ -212,7 +212,7 @@ void registerFeatureControllers() {
   Get.lazyPut(
     () => RecentPlaybackController(
       repository: Get.find<PlaybackRepository>(),
-      likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
+      likedSongIds: _likedSongIdsSnapshot,
     ),
     fenix: true,
   );
@@ -243,7 +243,7 @@ void registerFeatureControllers() {
     () => ExplorePageController(
       exploreRepository: Get.find<ExploreRepository>(),
       playlistRepository: Get.find<PlaylistRepository>(),
-      likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
+      likedSongIds: _likedSongIdsSnapshot,
       currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId,
       pageVisibility: ExplorePageVisibility(
         isVisible: () {
@@ -266,14 +266,14 @@ void registerFeatureControllers() {
   Get.lazyPut(
     () => AlbumPageControllerFactory(
       repository: Get.find<AlbumRepository>(),
-      likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
+      likedSongIds: _likedSongIdsSnapshot,
     ),
     fenix: true,
   );
   Get.lazyPut(
     () => ArtistPageControllerFactory(
       repository: Get.find<ArtistRepository>(),
-      likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
+      likedSongIds: _likedSongIdsSnapshot,
     ),
     fenix: true,
   );
@@ -281,7 +281,7 @@ void registerFeatureControllers() {
     () => CloudPageControllerFactory(
       repository: Get.find<CloudRepository>(),
       currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId,
-      likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
+      likedSongIds: _likedSongIdsSnapshot,
     ),
     fenix: true,
   );
@@ -289,7 +289,7 @@ void registerFeatureControllers() {
     () => RadioControllerFactory(
       repository: Get.find<RadioRepository>(),
       currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId,
-      likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
+      likedSongIds: _likedSongIdsSnapshot,
     ),
     fenix: true,
   );
@@ -304,7 +304,7 @@ void registerFeatureControllers() {
     () => PlaylistPageControllerFactory(
       repository: Get.find<PlaylistRepository>(),
       artworkColorService: Get.find<PlaylistArtworkColorService>(),
-      likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
+      likedSongIds: _likedSongIdsSnapshot,
       currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId,
     ),
     fenix: true,
@@ -326,7 +326,7 @@ void registerFeatureControllers() {
   Get.lazyPut(
     () => SearchPanelController(
       repository: Get.find<SearchRepository>(),
-      likedSongIds: () => Get.find<UserLibraryController>().likedSongIds.toList(),
+      likedSongIds: _likedSongIdsSnapshot,
       currentUserId: () => Get.find<UserSessionController>().userInfo.value.userId,
     ),
     fenix: true,
@@ -364,4 +364,8 @@ void _reportPlaybackBackgroundError(
     error: error,
     stackTrace: stackTrace,
   );
+}
+
+List<int> _likedSongIdsSnapshot() {
+  return Get.find<UserLibraryController>().likedSongIdSnapshot;
 }

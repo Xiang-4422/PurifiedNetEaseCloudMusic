@@ -219,7 +219,7 @@ extension PlayerStateSync on PlayerController {
     if (numericSongId == null) {
       return false;
     }
-    return _userContentPort.likedSongIds().contains(numericSongId);
+    return normalizeLikedSongIds(_userContentPort.likedSongIds()).contains(numericSongId);
   }
 
   /// 当前是否优先使用高音质播放源。

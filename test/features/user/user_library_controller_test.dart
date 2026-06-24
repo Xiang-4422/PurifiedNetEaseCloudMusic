@@ -321,6 +321,24 @@ void main() {
       expect(controller.userPlayLists, hasLength(10));
     });
 
+    test('exposes normalized liked id snapshot without reordering library list', () {
+      final repository = _FakeUserRepository();
+      final sessionController = UserSessionController(
+        repository: repository,
+        sessionStore: UserSessionStore(keyValueStore: _MemoryKeyValueStore()),
+        saveLoginFlag: (_) async {},
+        canRestoreCachedSession: () => true,
+      );
+      final controller = UserLibraryController(
+        repository: repository,
+        sessionAccess: _sessionAccess(sessionController),
+      );
+      controller.likedSongIds.addAll([303, 101, 303, 202]);
+
+      expect(controller.likedSongIds, [303, 101, 303, 202]);
+      expect(controller.likedSongIdSnapshot, [101, 202, 303]);
+    });
+
     test('syncs visible liked songs when liked id refresh succeeds', () async {
       final repository = _FakeUserRepository()..remoteLikedSongIds = [303, 202];
       final sessionController = UserSessionController(

@@ -1,3 +1,4 @@
+import 'package:bujuan/core/entities/liked_song_ids.dart';
 import 'package:bujuan/core/state/operation_result.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/features/playlist/playlist_detail_data.dart';
@@ -165,7 +166,7 @@ class PlaylistPageController {
   }
 
   List<int> _likedSongIdsSnapshot() {
-    return _likedSongIds().toSet().toList()..sort();
+    return normalizeLikedSongIds(_likedSongIds());
   }
 
   static String _normalizedCurrentUserId(String userId) {

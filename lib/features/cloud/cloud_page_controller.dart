@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bujuan/core/entities/liked_song_ids.dart';
 import 'package:bujuan/core/state/load_state.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/features/cloud/cloud_repository.dart';
@@ -216,7 +217,7 @@ class CloudPageController {
   }
 
   List<int> _likedSongIdsSnapshot() {
-    return _likedSongIds().toSet().toList()..sort();
+    return normalizeLikedSongIds(_likedSongIds());
   }
 
   void _setStateIfCurrent(

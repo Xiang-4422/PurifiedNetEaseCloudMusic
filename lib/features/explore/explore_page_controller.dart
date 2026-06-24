@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bujuan/core/entities/liked_song_ids.dart';
 import 'package:bujuan/features/explore/explore_playlist_catalogue_data.dart';
 import 'package:bujuan/features/explore/explore_repository.dart';
 import 'package:bujuan/features/explore/ranking_playlist_data.dart';
@@ -637,7 +638,7 @@ class ExplorePageController extends GetxController {
   }
 
   List<int> _likedSongIdsSnapshot() {
-    return _likedSongIds().toSet().toList()..sort();
+    return normalizeLikedSongIds(_likedSongIds());
   }
 
   String _normalizedCurrentUserId(String userId) {

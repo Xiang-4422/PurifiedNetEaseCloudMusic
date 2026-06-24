@@ -12,6 +12,12 @@ import 'package:bujuan/features/playback/application/playback_source_resolver.da
 import 'package:bujuan/features/playback/application/playback_switch_trigger.dart';
 import 'package:bujuan/features/playback/playback_service.dart';
 
+/// 单次底层 source 替换尝试超时时间。
+const Duration playbackSourceReplaceAttemptTimeout = Duration(seconds: 4);
+
+/// 整条底层 source 替换和 fallback 链路的总超时时间。
+const Duration playbackSourceReplaceFallbackTimeout = Duration(seconds: 12);
+
 /// 底层切源状态阶段。
 enum PlaybackSwitchPhase {
   /// 没有正在执行的底层切源任务。
@@ -109,13 +115,19 @@ class PlaybackSwitchCoordinator {
     required PlaybackQueueService queueService,
     required PlaybackSourceResolver sourceResolver,
     PlaybackSourcePrefetcher? sourcePrefetcher,
+    Duration replaceAttemptTimeout = playbackSourceReplaceAttemptTimeout,
+    Duration replaceFallbackTimeout = playbackSourceReplaceFallbackTimeout,
   })  : _playbackService = playbackService,
         _queueService = queueService,
-        _sourcePrefetcher = sourcePrefetcher ?? PlaybackSourcePrefetcher(resolver: sourceResolver);
+        _sourcePrefetcher = sourcePrefetcher ?? PlaybackSourcePrefetcher(resolver: sourceResolver),
+        _replaceAttemptTimeout = replaceAttemptTimeout,
+        _replaceFallbackTimeout = replaceFallbackTimeout;
 
   final PlaybackService _playbackService;
   final PlaybackQueueService _queueService;
   final PlaybackSourcePrefetcher _sourcePrefetcher;
+  final Duration _replaceAttemptTimeout;
+  final Duration _replaceFallbackTimeout;
   final StreamController<PlaybackSwitchState> _stateController = StreamController<PlaybackSwitchState>.broadcast(sync: true);
   int _latestVersion = 0;
   int _consecutiveAutoFailures = 0;
@@ -309,7 +321,7 @@ class PlaybackSwitchCoordinator {
         source: source,
         playNow: shouldAutoPlay,
       ).timeout(
-        const Duration(seconds: 12),
+        _replaceFallbackTimeout,
         onTimeout: () => false,
       );
       PlaybackPerformanceLogger.elapsed(
@@ -651,13 +663,15 @@ class PlaybackSwitchCoordinator {
   }) async {
     final stopwatch = PlaybackPerformanceLogger.start();
     try {
-      final success = await _playbackService.replaceSourceForQueueItem(
-        queue: queue,
-        item: item,
-        activeIndex: activeIndex,
-        source: source,
-        playNow: playNow,
-      );
+      final success = await _playbackService
+          .replaceSourceForQueueItem(
+            queue: queue,
+            item: item,
+            activeIndex: activeIndex,
+            source: source,
+            playNow: playNow,
+          )
+          .timeout(_replaceAttemptTimeout);
       _logSwitch(
         'replace-${success ? 'success' : 'failure'} id=${item.id} index=$activeIndex kind=${source.kind}',
       );
@@ -667,6 +681,14 @@ class PlaybackSwitchCoordinator {
         details: 'id=${item.id} index=$activeIndex queue=${queue.length} kind=${source.kind.name} playNow=$playNow success=$success',
       );
       return success;
+    } on TimeoutException catch (error) {
+      _logSwitch('replace-timeout id=${item.id} error=$error');
+      PlaybackPerformanceLogger.elapsed(
+        'switch.replaceSource',
+        stopwatch,
+        details: 'id=${item.id} index=$activeIndex queue=${queue.length} kind=${source.kind.name} playNow=$playNow success=false timeout=true',
+      );
+      return false;
     } catch (error) {
       _logSwitch('replace-exception id=${item.id} error=$error');
       PlaybackPerformanceLogger.elapsed(

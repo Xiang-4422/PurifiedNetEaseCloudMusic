@@ -272,6 +272,37 @@ void main() {
       expect(resolver.remoteForceRefreshValues, [true]);
     });
 
+    test('refreshes remote url when remote source replacement times out', () async {
+      final playbackService = _FakePlaybackService(timeoutFirstReplace: true);
+      final resolver = _RemoteRefreshSourceResolver();
+      final queueService = _queueService(playbackService);
+      final coordinator = PlaybackSwitchCoordinator(
+        playbackService: playbackService,
+        queueService: queueService,
+        sourceResolver: resolver,
+        replaceAttemptTimeout: const Duration(milliseconds: 10),
+      );
+      final queue = [_item('1')];
+      await queueService.replaceQueue(queue, 0, playlistName: 'Queue');
+
+      final result = await coordinator.switchToSelection(
+        queue: queue,
+        item: queue.first,
+        activeIndex: 0,
+        selectionVersion: queueService.state.selectionVersion,
+        trigger: PlaybackSwitchTrigger.userSelect,
+        playNow: true,
+      );
+
+      expect(result.success, isTrue);
+      expect(playbackService.replaceCalls.map((call) => call.source.url), [
+        'stale-url-1',
+        'fresh-url-1',
+      ]);
+      expect(resolver.remoteForceRefreshValues, [true]);
+      expect(queueService.state.confirmedItem.id, '1');
+    });
+
     test('source error retries current song with refreshed remote url first', () async {
       final playbackService = _FakePlaybackService();
       final resolver = _RemoteRefreshSourceResolver();
@@ -601,12 +632,14 @@ class _FakePlaybackService implements PlaybackService {
     this.failReplaceCount = 0,
     this.preferHighQuality = false,
     this.holdReplace = false,
+    this.timeoutFirstReplace = false,
   });
 
   final bool failFirstReplace;
   final int failReplaceCount;
   final bool preferHighQuality;
   final bool holdReplace;
+  final bool timeoutFirstReplace;
   final List<_ReplaceCall> replaceCalls = <_ReplaceCall>[];
   final List<Completer<bool>> _replaceCompleters = <Completer<bool>>[];
 
@@ -638,6 +671,9 @@ class _FakePlaybackService implements PlaybackService {
       final completer = Completer<bool>();
       _replaceCompleters.add(completer);
       return completer.future;
+    }
+    if (timeoutFirstReplace && replaceCalls.length == 1) {
+      return Completer<bool>().future;
     }
     return !(replaceCalls.length <= failReplaceCount || (failFirstReplace && replaceCalls.length == 1));
   }

@@ -163,32 +163,35 @@ class PlaybackStateSynchronizer {
     _subscriptions.add(
       _playbackService.mediaItemStream.listen((queueItem) {
         if (queueItem == null) return;
+        final queueItemId = _normalizedItemId(queueItem.id);
+        if (queueItemId.isEmpty) return;
+        final normalizedQueueItem = _normalizedQueueItem(queueItem);
         _backgroundTasks.run(
           taskName: 'playback.mediaItem.sync',
-          trackId: queueItem.id,
+          trackId: queueItemId,
           task: () async {
-            final trackChanged = _lastPositionTrackId.isNotEmpty && _lastPositionTrackId != queueItem.id;
+            final trackChanged = _lastPositionTrackId.isNotEmpty && _lastPositionTrackId != queueItemId;
             if (trackChanged) {
               _latestPosition = Duration.zero;
               _lastStoredPosition = Duration.zero;
             }
-            _lastPositionTrackId = queueItem.id;
+            _lastPositionTrackId = queueItemId;
             final queueState = _queueService.state;
             final confirmedIndex = queueState.confirmedIndex >= 0
                 ? queueState.confirmedIndex
                 : queueState.activeQueue.indexWhere(
-                    (item) => item.id == queueItem.id,
+                    (item) => _normalizedItemId(item.id) == queueItemId,
                   );
             syncRuntimeState(
-              currentSong: queueItem,
+              currentSong: normalizedQueueItem,
               currentIndex: confirmedIndex,
               currentPosition: trackChanged ? Duration.zero : null,
             );
             _backgroundTasks.run(
               taskName: 'playback.currentSong.save',
-              trackId: queueItem.id,
+              trackId: queueItemId,
               task: () => _queueStore.saveCurrentSong(
-                queueItem.id,
+                queueItemId,
                 position: trackChanged ? Duration.zero : null,
               ),
             );
@@ -207,7 +210,7 @@ class PlaybackStateSynchronizer {
         _backgroundTasks.run(
           taskName: 'playback.state.sync',
           task: () {
-            final trackId = runtimeState().currentSong.id;
+            final trackId = _normalizedItemId(runtimeState().currentSong.id);
             _scheduleConfirmedCurrentTrackSideEffects(
               playbackState: playbackState,
               runtimeState: runtimeState,
@@ -251,7 +254,7 @@ class PlaybackStateSynchronizer {
         _backgroundTasks.run(
           taskName: 'playback.positionStream.sync',
           task: () {
-            final trackId = runtimeState().currentSong.id;
+            final trackId = _normalizedItemId(runtimeState().currentSong.id);
             _latestPosition = newCurPlayingDuration;
             syncRuntimeState(currentPosition: newCurPlayingDuration);
             _backgroundTasks.run(
@@ -259,7 +262,7 @@ class PlaybackStateSynchronizer {
               trackId: trackId.isEmpty ? null : trackId,
               task: () => _savePlaybackPosition(),
             );
-            if (_selectionService.state.selectedItem.id != runtimeState().currentSong.id) {
+            if (_normalizedItemId(_selectionService.state.selectedItem.id) != trackId) {
               if (lyricState().currentIndex != -1) {
                 syncLyricState(currentIndex: -1);
               }
@@ -300,8 +303,12 @@ class PlaybackStateSynchronizer {
     required PlaybackRuntimeState Function() runtimeState,
   }) async {
     final currentRuntimeState = runtimeState();
+    final currentSongId = _normalizedItemId(currentRuntimeState.currentSong.id);
+    if (currentSongId.isEmpty) {
+      return;
+    }
     final newIndex = currentRuntimeState.queue.indexWhere(
-      (element) => element.id == currentRuntimeState.currentSong.id,
+      (element) => _normalizedItemId(element.id) == currentSongId,
     );
     if (playbackMode() != PlaybackMode.roaming || newIndex < currentRuntimeState.queue.length - 2 || _isFetchingFm) {
       return;
@@ -316,7 +323,7 @@ class PlaybackStateSynchronizer {
         await _queueCoordinator.appendRoamingSongs(
           currentQueue: currentRuntimeState.queue,
           incomingSongs: newFmPlayList,
-          currentSongId: currentRuntimeState.currentSong.id,
+          currentSongId: currentSongId,
           shouldAutoPlayNext: shouldAutoPlayNext,
           fallbackIndex: newIndex,
         );
@@ -331,15 +338,16 @@ class PlaybackStateSynchronizer {
     PlaybackRuntimeState Function() runtimeState,
     Future<void> Function(PlaybackQueueItem item) syncCurrentQueueItem,
   ) async {
-    if (item.id.isEmpty || item.mediaType == MediaType.local || item.mediaType == MediaType.neteaseCache) {
+    final itemId = _normalizedItemId(item.id);
+    if (itemId.isEmpty || item.mediaType == MediaType.local || item.mediaType == MediaType.neteaseCache) {
       return;
     }
     final updatedItem = await _downloadUseCase.cacheTrackForPlayback(
-      item.id,
+      itemId,
       preferHighQuality: _preferencePort.isHighQualityEnabled(),
     );
-    if (updatedItem != null && runtimeState().currentSong.id == item.id) {
-      await syncCurrentQueueItem(updatedItem);
+    if (updatedItem != null && _isStillCurrentTrack(itemId, runtimeState)) {
+      await syncCurrentQueueItem(_normalizedQueueItem(updatedItem));
     }
   }
 
@@ -349,21 +357,26 @@ class PlaybackStateSynchronizer {
     required Future<void> Function(PlaybackQueueItem item) syncCurrentQueueItem,
     required Future<void> Function(PlaybackQueueItem item) ensureCurrentTrackArtwork,
   }) {
+    final itemId = _normalizedItemId(item.id);
+    if (itemId.isEmpty) {
+      return;
+    }
+    final normalizedItem = _normalizedQueueItem(item);
     _sideEffectCoordinator.schedule(
       channel: 'confirmed-cache-artwork',
       delay: const Duration(milliseconds: 700),
-      trackId: item.id,
+      trackId: itemId,
       isStillCurrent: (trackId) => _isStillCurrentTrack(trackId, runtimeState),
       run: () async {
         await _cacheCurrentTrackForPlayback(
-          item,
+          normalizedItem,
           runtimeState,
           syncCurrentQueueItem,
         );
-        if (!_isStillCurrentTrack(item.id, runtimeState)) {
+        if (!_isStillCurrentTrack(itemId, runtimeState)) {
           return;
         }
-        await ensureCurrentTrackArtwork(item);
+        await ensureCurrentTrackArtwork(normalizedItem);
       },
     );
   }
@@ -382,22 +395,23 @@ class PlaybackStateSynchronizer {
     if (queueIndex == null || queueIndex < 0) {
       return;
     }
-    final item = runtimeState().currentSong;
-    if (item.id.isEmpty) {
+    final item = _normalizedQueueItem(runtimeState().currentSong);
+    final itemId = item.id;
+    if (itemId.isEmpty) {
       return;
     }
     final selection = _selectionService.state;
-    if (selection.selectedItem.id != item.id) {
+    if (_normalizedItemId(selection.selectedItem.id) != itemId) {
       return;
     }
-    final sideEffectKey = '${selection.selectionVersion}:$queueIndex:${item.id}';
+    final sideEffectKey = '${selection.selectionVersion}:$queueIndex:$itemId';
     if (_lastConfirmedSideEffectKey == sideEffectKey) {
       return;
     }
     _lastConfirmedSideEffectKey = sideEffectKey;
     _backgroundTasks.run(
       taskName: 'playback.currentIndex.updateConfirmed',
-      trackId: item.id,
+      trackId: itemId,
       task: () => updateCurrentPlayIndex(currentItemUpdated: true),
     );
     _scheduleCurrentTrackSideEffects(
@@ -481,7 +495,16 @@ class PlaybackStateSynchronizer {
     String itemId,
     PlaybackRuntimeState Function() runtimeState,
   ) {
-    return runtimeState().currentSong.id == itemId && _selectionService.state.selectedItem.id == itemId;
+    final normalizedItemId = _normalizedItemId(itemId);
+    return normalizedItemId.isNotEmpty && _normalizedItemId(runtimeState().currentSong.id) == normalizedItemId && _normalizedItemId(_selectionService.state.selectedItem.id) == normalizedItemId;
+  }
+
+  PlaybackQueueItem _normalizedQueueItem(PlaybackQueueItem item) {
+    final normalizedItemId = _normalizedItemId(item.id);
+    if (normalizedItemId == item.id) {
+      return item;
+    }
+    return item.copyWith(id: normalizedItemId);
   }
 
   String _normalizedItemId(String itemId) {

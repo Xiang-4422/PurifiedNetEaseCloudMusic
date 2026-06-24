@@ -814,9 +814,14 @@ void main() {
       final content = synchronizerFile.readAsStringSync();
       final violations = <String>[
         if (content.contains('playback.position.saveOnTrackChange')) 'saves previous track position as a separate background task',
-        if (!content.contains('final trackChanged = _lastPositionTrackId.isNotEmpty && _lastPositionTrackId != queueItem.id')) 'does not detect media item track changes',
+        if (!content.contains('final queueItemId = _normalizedItemId(queueItem.id);')) 'does not normalize confirmed media item id before sync',
+        if (!content.contains('final trackChanged = _lastPositionTrackId.isNotEmpty && _lastPositionTrackId != queueItemId')) 'does not detect media item track changes with normalized ids',
         if (!content.contains('_latestPosition = Duration.zero')) 'does not reset latest position on media item change',
+        if (!content.contains('_lastPositionTrackId = queueItemId')) 'stores raw media item id as last position track',
+        if (!content.contains('currentSong: normalizedQueueItem')) 'does not sync normalized media item into runtime state',
         if (!content.contains('currentPosition: trackChanged ? Duration.zero : null')) 'does not reset runtime position on media item change',
+        if (!content.contains('task: () => _queueStore.saveCurrentSong(')) 'does not save current song with position in the same semantic update',
+        if (!content.contains('queueItemId,')) 'does not save normalized current song id',
         if (!content.contains('position: trackChanged ? Duration.zero : null')) 'does not reset restore position with current song save',
       ];
 
@@ -824,6 +829,39 @@ void main() {
         violations,
         isEmpty,
         reason: '切歌时当前歌曲和恢复进度必须作为同一语义更新；不能把上一首的进度通过独立后台任务写到新歌恢复状态上。',
+      );
+    });
+
+    test('playback state synchronizer normalizes confirmed current track side effects', () {
+      final synchronizerFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_state_synchronizer.dart',
+      );
+      final content = synchronizerFile.readAsStringSync();
+      final violations = <String>[
+        if (!content.contains('PlaybackQueueItem _normalizedQueueItem(PlaybackQueueItem item)')) '${_relativePath(synchronizerFile)} does not normalize queue items before confirmed side effects',
+        if (!content.contains('final trackId = _normalizedItemId(runtimeState().currentSong.id);')) '${_relativePath(synchronizerFile)} can still save playback state positions with raw current song id',
+        if (!content.contains('if (_normalizedItemId(_selectionService.state.selectedItem.id) != trackId)')) '${_relativePath(synchronizerFile)} can still reset lyric state through raw selected/current id comparison',
+        if (!content.contains('final currentSongId = _normalizedItemId(currentRuntimeState.currentSong.id);')) '${_relativePath(synchronizerFile)} can still append roaming songs from raw current song id',
+        if (!content.contains('(element) => _normalizedItemId(element.id) == currentSongId')) '${_relativePath(synchronizerFile)} can still locate roaming index through raw queue ids',
+        if (!content.contains('final itemId = _normalizedItemId(item.id);')) '${_relativePath(synchronizerFile)} can still schedule confirmed cache/artwork work from raw item id',
+        if (!content.contains('cacheTrackForPlayback(') || !content.contains('itemId,\n      preferHighQuality')) '${_relativePath(synchronizerFile)} can still cache playback resources with raw item id',
+        if (!content.contains('if (updatedItem != null && _isStillCurrentTrack(itemId, runtimeState))')) '${_relativePath(synchronizerFile)} can still write cached queue item through raw stale check',
+        if (!content.contains('await syncCurrentQueueItem(_normalizedQueueItem(updatedItem));')) '${_relativePath(synchronizerFile)} can still write raw cached queue item ids',
+        if (!content.contains('final normalizedItem = _normalizedQueueItem(item);')) '${_relativePath(synchronizerFile)} can still pass raw item to confirmed side effects',
+        if (!content.contains('trackId: itemId')) '${_relativePath(synchronizerFile)} can still schedule confirmed side effects under raw track id',
+        if (!content.contains('_cacheCurrentTrackForPlayback(\n          normalizedItem,')) '${_relativePath(synchronizerFile)} can still cache from raw confirmed item',
+        if (!content.contains('await ensureCurrentTrackArtwork(normalizedItem);')) '${_relativePath(synchronizerFile)} can still ensure artwork from raw confirmed item',
+        if (!content.contains('final item = _normalizedQueueItem(runtimeState().currentSong);')) '${_relativePath(synchronizerFile)} can still branch on raw runtime current song',
+        if (!content.contains('if (_normalizedItemId(selection.selectedItem.id) != itemId)')) '${_relativePath(synchronizerFile)} can still compare raw selection id before confirmed side effects',
+        if (!content.contains("final sideEffectKey = '\${selection.selectionVersion}:\$queueIndex:\$itemId';")) '${_relativePath(synchronizerFile)} can still deduplicate confirmed side effects with raw item id',
+        if (!content.contains('_normalizedItemId(runtimeState().currentSong.id) == normalizedItemId')) '${_relativePath(synchronizerFile)} can still check runtime stale state with raw item id',
+        if (!content.contains('_normalizedItemId(_selectionService.state.selectedItem.id) == normalizedItemId')) '${_relativePath(synchronizerFile)} can still check selection stale state with raw item id',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '确认播放后的缓存、封面、歌词和漫游追加副作用都在异步路径中执行，任务 key、stale 判断和回写入参必须使用规范化歌曲 id。',
       );
     });
 

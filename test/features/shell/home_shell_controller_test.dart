@@ -22,36 +22,13 @@ void main() {
       ]);
     });
 
-    test('adds recommendations before settings on square screens', () {
-      final controller = HomeShellController();
+    test('keeps responsive layout out of shell menu state', () {
+      final source = File('lib/features/shell/home_shell_controller.dart').readAsStringSync();
 
-      controller.updateHomeLayoutMode(isSquareLike: true);
-
-      expect(controller.homePageCount, 3);
-      expect(
-        controller.leftMenus.map((menu) => menu.kind),
-        [
-          HomeShellPageKind.personal,
-          HomeShellPageKind.recommendedPlaylists,
-          HomeShellPageKind.settings,
-        ],
-      );
-      expect(controller.leftMenus.map((menu) => menu.title), [
-        '我的音乐',
-        '推荐',
-        '设置',
-      ]);
-    });
-
-    test('resets page index if a layout change removes the current page', () {
-      final controller = HomeShellController();
-      controller.updateHomeLayoutMode(isSquareLike: true);
-      controller.curHomePageIndex.value = 2;
-
-      controller.updateHomeLayoutMode(isSquareLike: false);
-
-      expect(controller.homePageCount, 2);
-      expect(controller.curHomePageIndex.value, 0);
+      expect(source, isNot(contains('_squareLeftMenus')));
+      expect(source, isNot(contains('squareHomeLayout')));
+      expect(source, isNot(contains('updateHomeLayoutMode')));
+      expect(source, isNot(contains('recommendedPlaylists')));
     });
 
     test('calculates stable page switch animation durations', () {

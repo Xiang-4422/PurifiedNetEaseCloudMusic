@@ -49,9 +49,6 @@ void main() {
       final sessionController = _buildSessionController('user-1');
       final libraryController = _FakeUserLibraryController();
       final repository = _FakeUserRepository(
-        cachedRecommendedPlaylists: const [
-          PlaylistSummaryData(id: 'cached-playlist', title: 'Cached Playlist'),
-        ],
         loadCachedDailyRecommendSongsError: StateError('broken daily cache'),
         cachedFmSongs: [_song('cached-fm')],
       );
@@ -66,19 +63,17 @@ void main() {
       controller.onInit();
       await controller.ensureCacheLoaded();
 
-      expect(controller.recoPlayLists.map((playlist) => playlist.id), ['cached-playlist']);
+      expect(controller.recoPlayLists, isEmpty);
       expect(controller.todayRecommendSongs, isEmpty);
       expect(controller.fmSongs.map((song) => song.id), ['cached-fm']);
       expect(controller.hasLocalData, isTrue);
+      expect(repository.loadCachedPlaylistListUserIds, isEmpty);
     });
 
     test('does not read local home cache for blank user id', () async {
       final sessionController = _buildSessionController('   ');
       final libraryController = _FakeUserLibraryController();
       final repository = _FakeUserRepository(
-        cachedRecommendedPlaylists: const [
-          PlaylistSummaryData(id: 'cached-playlist', title: 'Cached Playlist'),
-        ],
         cachedFmSongs: [_song('cached-fm')],
       );
       final controller = RecommendationController(
@@ -104,9 +99,7 @@ void main() {
       final sessionController = _buildSessionController('user-1');
       final libraryController = _FakeUserLibraryController();
       final repository = _FakeUserRepository(
-        cachedRecommendedPlaylists: const [
-          PlaylistSummaryData(id: 'cached-playlist', title: 'Cached Playlist'),
-        ],
+        cachedFmSongs: [_song('cached-fm')],
         isSyncMarkerFreshError: StateError('broken marker cache'),
       );
       final controller = RecommendationController(
@@ -316,7 +309,7 @@ void main() {
       await controller.updateData();
 
       expect(libraryController.refreshCalls, 1);
-      expect(repository.fetchRecommendedPlaylistsUserIds, ['user-1']);
+      expect(repository.fetchRecommendedPlaylistsUserIds, isEmpty);
       expect(repository.fetchTodayRecommendSongsUserIds, ['user-1']);
       expect(repository.fetchFmSongsUserIds, ['user-1']);
       expect(repository.markSyncMarkerUpdatedUserIds, ['user-1']);
@@ -363,13 +356,9 @@ void main() {
     test('ignores home refresh completion after close', () async {
       final sessionController = _buildSessionController('user-1');
       final libraryController = _FakeUserLibraryController();
-      final playlists = Completer<List<PlaylistSummaryData>>();
       final todaySongs = Completer<List<PlaybackQueueItem>>();
       final fmSongs = Completer<List<PlaybackQueueItem>>();
       final repository = _FakeUserRepository(
-        fetchRecommendedPlaylistsWithArgs: ({required userId, required offset, required limit}) {
-          return playlists.future;
-        },
         fetchTodayRecommendSongsWithArgs: ({required userId, required likedSongIds}) {
           return todaySongs.future;
         },
@@ -391,9 +380,6 @@ void main() {
       await _flushAsync();
 
       controller.onClose();
-      playlists.complete([
-        const PlaylistSummaryData(id: 'late-playlist', title: 'Late'),
-      ]);
       todaySongs.complete([_song('late-today')]);
       fmSongs.complete([_song('late-fm')]);
 
@@ -573,7 +559,6 @@ UserLibrarySessionAccess _userLibrarySessionAccess(UserSessionController control
 
 class _FakeUserRepository implements UserRepository {
   _FakeUserRepository({
-    this.cachedRecommendedPlaylists = const [],
     this.cachedFmSongs = const [],
     this.loadCachedDailyRecommendSongsError,
     this.isSyncMarkerFreshError,
@@ -582,7 +567,6 @@ class _FakeUserRepository implements UserRepository {
     this.fetchFmSongsWithArgs,
   });
 
-  final List<PlaylistSummaryData> cachedRecommendedPlaylists;
   final List<PlaybackQueueItem> cachedFmSongs;
   final Object? loadCachedDailyRecommendSongsError;
   final Object? isSyncMarkerFreshError;
@@ -616,10 +600,12 @@ class _FakeUserRepository implements UserRepository {
     UserPlaylistListKind kind,
   ) async {
     loadCachedPlaylistListUserIds.add(userId);
-    if (kind != UserPlaylistListKind.recommended) {
-      return const [];
+    switch (kind) {
+      case UserPlaylistListKind.likedCollection:
+      case UserPlaylistListKind.userPlaylists:
+      case UserPlaylistListKind.recommended:
+        return const [];
     }
-    return cachedRecommendedPlaylists;
   }
 
   @override

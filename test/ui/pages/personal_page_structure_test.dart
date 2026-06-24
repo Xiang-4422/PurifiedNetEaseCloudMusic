@@ -225,7 +225,7 @@ void main() {
     expect(quickStartSource, isNot(contains('openFmMode')));
   });
 
-  test('personal page exposes focused library shortcuts before recommendations', () {
+  test('personal page exposes focused library shortcuts without recommendation feed', () {
     final source = File('lib/ui/pages/user/personal_page.dart').readAsStringSync();
     final standardSource = File(
       'lib/ui/pages/user/widgets/standard_personal_home_page.dart',
@@ -241,12 +241,9 @@ void main() {
     ).readAsStringSync();
     final libraryIndex = standardSource.indexOf('LibraryShortcutSection(');
     final squareLibraryIndex = squareHomeSource.indexOf('SquareLibraryPage(');
-    final recommendedIndex = standardSource.indexOf('RecommendedPlaylistPinnedHeaderSliver(');
 
     expect(libraryIndex, isNonNegative);
     expect(squareLibraryIndex, isNonNegative);
-    expect(recommendedIndex, isNonNegative);
-    expect(libraryIndex, lessThan(recommendedIndex));
     expect(source, contains('standard_personal_home_page.dart'));
     expect(source, contains('square_personal_home_page.dart'));
     expect(source, isNot(contains('library_shortcut_section.dart')));
@@ -258,7 +255,10 @@ void main() {
     expect(sectionSource, contains("Header(\n      '资料库'"));
     expect(sectionSource, contains('LibraryShortcutBar('));
     expect(sectionSource, contains('likedPlaylist: () => libraryController.userLikedSongPlayList.value'));
-    expect(standardSource, contains('recommended_playlist_slivers.dart'));
+    expect(standardSource, isNot(contains('recommended_playlist_slivers.dart')));
+    expect(standardSource, isNot(contains('RecommendedPlaylist')));
+    expect(standardSource, isNot(contains('updateRecoPlayLists(getMore: true)')));
+    expect(standardSource, isNot(contains('enablePullUp: true')));
     expect(shortcutSource, contains("label: '我喜欢'"));
     expect(shortcutSource, contains("label: '我的歌单'"));
     expect(shortcutSource, contains("label: '本地音乐'"));
@@ -301,42 +301,34 @@ void main() {
     expect(source, isNot(contains('PlayListItem(widget.libraryController.userLikedSongPlayList.value)')));
   });
 
-  test('recommended playlists rendering stays in local user widgets', () {
+  test('recommendation feed stays out of the personal shell path', () {
     final source = File('lib/ui/pages/user/personal_page.dart').readAsStringSync();
     final standardSource = File(
       'lib/ui/pages/user/widgets/standard_personal_home_page.dart',
     ).readAsStringSync();
-    final sliverSource = File(
-      'lib/ui/pages/user/widgets/recommended_playlist_slivers.dart',
-    ).readAsStringSync();
-    final pageSource = File(
-      'lib/ui/pages/user/recommended_playlists_page.dart',
-    ).readAsStringSync();
     final appBodySource = File('lib/ui/pages/shell/app_body_page_view.dart').readAsStringSync();
+    final shellSource = File('lib/features/shell/home_shell_controller.dart').readAsStringSync();
 
     expect(source, contains('StandardPersonalHomePage('));
     expect(source, isNot(contains('RecommendedPlaylistPinnedHeaderSliver(')));
-    expect(standardSource, contains('RecommendedPlaylistPinnedHeaderSliver('));
-    expect(standardSource, contains('RecommendedPlaylistListSliver(controller: recommendationController)'));
+    expect(standardSource, isNot(contains('RecommendedPlaylistPinnedHeaderSliver(')));
+    expect(standardSource, isNot(contains('RecommendedPlaylistListSliver(controller: recommendationController)')));
     expect(standardSource, contains('const double standardPersonalHomeScrollCacheExtent = 360;'));
     expect(standardSource, contains('cacheExtent: standardPersonalHomeScrollCacheExtent'));
     expect(standardSource, isNot(contains('cacheExtent: 120')));
+    expect(standardSource, isNot(contains('enablePullUp: true')));
+    expect(standardSource, isNot(contains('onLoading: () => recommendationController.updateRecoPlayLists(getMore: true)')));
+    expect(standardSource, isNot(contains('PlayListItem(')));
     expect(source, isNot(contains('class RecommendedPlaylistsPageView')));
     expect(source, isNot(contains('SliverList.builder(')));
     expect(source, isNot(contains('PlayListItem(recommendationController.recoPlayLists')));
-    expect(sliverSource, contains('class RecommendedPlaylistPinnedHeaderSliver'));
-    expect(sliverSource, contains('Theme.of(context).colorScheme.surface'));
-    expect(sliverSource, contains('controller.recoPlayLists'));
-    expect(sliverSource, contains('PlayListItem('));
-    expect(pageSource, contains('class RecommendedPlaylistsPageView extends GetView<RecommendationController>'));
-    expect(pageSource, contains('const double recommendedPlaylistsPageScrollCacheExtent = 360;'));
-    expect(pageSource, contains('cacheExtent: recommendedPlaylistsPageScrollCacheExtent'));
-    expect(pageSource, isNot(contains('cacheExtent: 120')));
-    expect(pageSource, contains('RecommendedPlaylistHeaderSliver'));
-    expect(pageSource, contains('RecommendedPlaylistListSliver(controller: controller)'));
-    expect(pageSource, isNot(contains('RecommendationController.to')));
-    expect(pageSource, isNot(contains('PlayListItem(')));
-    expect(appBodySource, contains('recommended_playlists_page.dart'));
+    expect(File('lib/ui/pages/user/recommended_playlists_page.dart').existsSync(), isFalse);
+    expect(File('lib/ui/pages/user/widgets/recommended_playlist_slivers.dart').existsSync(), isFalse);
+    expect(appBodySource, isNot(contains('recommended_playlists_page.dart')));
+    expect(appBodySource, isNot(contains('RecommendedPlaylistsPageView')));
+    expect(appBodySource, isNot(contains('HomeShellPageKind.recommendedPlaylists')));
+    expect(shellSource, isNot(contains('recommendedPlaylists')));
+    expect(shellSource, isNot(contains('/home/recommended-playlists')));
     expect(appBodySource, contains('final homeShellController = HomeShellScope.of(context)'));
     expect(
       appBodySource,

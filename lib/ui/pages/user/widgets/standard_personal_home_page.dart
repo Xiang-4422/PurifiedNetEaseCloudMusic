@@ -7,7 +7,6 @@ import 'package:bujuan/ui/pages/user/widgets/frequent_playlist_section.dart';
 import 'package:bujuan/ui/pages/user/widgets/library_shortcut_section.dart';
 import 'package:bujuan/ui/pages/user/widgets/quick_start_section.dart';
 import 'package:bujuan/ui/pages/user/widgets/recent_playback_strip.dart';
-import 'package:bujuan/ui/pages/user/widgets/recommended_playlist_slivers.dart';
 import 'package:bujuan/ui/theme/app_constants.dart';
 import 'package:bujuan/ui/widgets/common/refresh/app_smart_refresher.dart';
 import 'package:flutter/material.dart';
@@ -55,8 +54,6 @@ class StandardPersonalHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppSmartRefresher(
       controller: recommendationController.refreshController,
-      enablePullUp: true,
-      onLoading: () => recommendationController.updateRecoPlayLists(getMore: true),
       child: CustomScrollView(
         cacheExtent: standardPersonalHomeScrollCacheExtent,
         physics: const ClampingScrollPhysics(),
@@ -95,8 +92,6 @@ class StandardPersonalHomePage extends StatelessWidget {
               headerTopMargin: AppDimensions.paddingSmall,
             ),
           ),
-          const RecommendedPlaylistPinnedHeaderSliver(),
-          RecommendedPlaylistListSliver(controller: recommendationController),
           const SliverToBoxAdapter(
             child: SizedBox(height: AppDimensions.bottomPanelHeaderHeight),
           ),

@@ -6,8 +6,6 @@ import 'package:bujuan/features/shell/personal_home_controller_bundle.dart';
 import 'package:bujuan/features/shell/shell_controller.dart';
 import 'package:bujuan/ui/pages/shell/home_shell_scope.dart';
 import 'package:bujuan/ui/pages/user/personal_page.dart';
-import 'package:bujuan/ui/pages/user/recommended_playlists_page.dart';
-import 'package:bujuan/ui/widgets/user/personal_home_layout_metrics.dart';
 import 'package:bujuan/app/routing/router.dart';
 import 'package:bujuan/ui/widgets/common/image/artwork_path_resolver.dart';
 import 'package:bujuan/ui/widgets/shell/custom_zoom_drawer/flutter_zoom_drawer.dart';
@@ -24,12 +22,6 @@ class AppBodyPageView extends GetView<ShellController> {
   Widget build(BuildContext context) {
     final homeShellController = HomeShellScope.of(context);
     final personalHomeControllers = Get.find<PersonalHomeControllerBundle>();
-    final isSquareLike = PersonalHomeLayoutMetrics(
-      MediaQuery.sizeOf(context),
-    ).isSquareLike;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      homeShellController.updateHomeLayoutMode(isSquareLike: isSquareLike);
-    });
     return Stack(
       children: [
         Container(
@@ -99,8 +91,6 @@ class DrawerMainScreenView extends GetView<ShellController> {
             shellController: controller,
           ),
         );
-      case HomeShellPageKind.recommendedPlaylists:
-        return _absorbed(const RecommendedPlaylistsPageView());
       case HomeShellPageKind.settings:
         return _absorbed(const SettingPageView());
       case null:

@@ -3534,24 +3534,41 @@ void main() {
       );
     });
 
-    test('recommended playlists page reads lists through page controller boundary', () {
-      final pageFile = File(
+    test('home shell does not expose recommended playlist feed as a main page', () {
+      final shellFile = File(
+        '${projectRoot.path}/lib/features/shell/home_shell_controller.dart',
+      );
+      final appBodyFile = File(
+        '${projectRoot.path}/lib/ui/pages/shell/app_body_page_view.dart',
+      );
+      final standardHomeFile = File(
+        '${projectRoot.path}/lib/ui/pages/user/widgets/standard_personal_home_page.dart',
+      );
+      final recommendedPageFile = File(
         '${projectRoot.path}/lib/ui/pages/user/recommended_playlists_page.dart',
       );
-      final page = pageFile.readAsStringSync();
+      final recommendedSliversFile = File(
+        '${projectRoot.path}/lib/ui/pages/user/widgets/recommended_playlist_slivers.dart',
+      );
+      final shell = shellFile.readAsStringSync();
+      final appBody = appBodyFile.readAsStringSync();
+      final standardHome = standardHomeFile.readAsStringSync();
       final violations = <String>[
-        if (page.contains('RecommendationController.to')) '${_relativePath(pageFile)} reads recommendation controller globally',
-        if (page.contains('PlaylistRepository')) '${_relativePath(pageFile)} names playlist repository directly',
-        if (page.contains('UserLibraryController')) '${_relativePath(pageFile)} reads user library directly',
-        if (!page.contains('class RecommendedPlaylistsPageView extends GetView<RecommendationController>')) '${_relativePath(pageFile)} does not use page controller boundary',
-        if (!page.contains('RecommendedPlaylistListSliver(controller: controller)')) '${_relativePath(pageFile)} does not pass page controller to playlist sliver',
-        if (!page.contains('controller.updateRecoPlayLists(getMore: true)')) '${_relativePath(pageFile)} does not load more through page controller boundary',
+        if (recommendedPageFile.existsSync()) '${_relativePath(recommendedPageFile)} still exposes a dedicated recommendation page',
+        if (recommendedSliversFile.existsSync()) '${_relativePath(recommendedSliversFile)} still exposes recommendation feed slivers',
+        if (shell.contains('recommendedPlaylists')) '${_relativePath(shellFile)} keeps recommendation page enum/menu state',
+        if (shell.contains('/home/recommended-playlists')) '${_relativePath(shellFile)} keeps recommendation page path',
+        if (appBody.contains('recommended_playlists_page.dart')) '${_relativePath(appBodyFile)} imports recommendation page UI',
+        if (appBody.contains('RecommendedPlaylistsPageView')) '${_relativePath(appBodyFile)} builds recommendation page UI',
+        if (standardHome.contains('RecommendedPlaylist')) '${_relativePath(standardHomeFile)} renders recommendation feed widgets',
+        if (standardHome.contains('updateRecoPlayLists(getMore: true)')) '${_relativePath(standardHomeFile)} keeps recommendation feed pagination',
+        if (standardHome.contains('enablePullUp: true')) '${_relativePath(standardHomeFile)} keeps home feed pull-up loading',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: '推荐歌单页只能展示 RecommendationController 暴露的推荐歌单并提交加载意图，不能直接读取资料库或 repository。',
+        reason: '自用播放器首页主路径只能保留继续播放、每日推荐、最近播放、常用歌单和资料库入口，不能重新暴露推荐歌单信息流。',
       );
     });
 

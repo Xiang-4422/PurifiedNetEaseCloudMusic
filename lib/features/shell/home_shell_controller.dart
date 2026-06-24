@@ -17,13 +17,9 @@ class HomeShellController extends GetxController with GetTickerProviderStateMixi
   bool _zoomDrawerListenerInitialized = false;
   Timer? _closeDrawerTimer;
   String _defaultHomePageTitle = '';
-  bool _homePageControllerInitialized = false;
 
   /// 抽屉是否完全关闭。
   RxBool isDrawerClosed = true.obs;
-
-  /// 首页是否使用方屏菜单结构。
-  final RxBool squareHomeLayout = false.obs;
 
   /// 首页主分页控制器。
   late PageController homePageController;
@@ -75,32 +71,8 @@ class HomeShellController extends GetxController with GetTickerProviderStateMixi
     ),
   ];
 
-  static final List<ShellMenuItemData> _squareLeftMenus = [
-    ShellMenuItemData(
-      HomeShellPageKind.personal,
-      '我的音乐',
-      TablerIcons.music,
-      Routes.user,
-      '/home/user',
-    ),
-    ShellMenuItemData(
-      HomeShellPageKind.recommendedPlaylists,
-      '推荐',
-      TablerIcons.playlist,
-      Routes.index,
-      '/home/recommended-playlists',
-    ),
-    ShellMenuItemData(
-      HomeShellPageKind.settings,
-      '设置',
-      TablerIcons.settings,
-      Routes.setting,
-      '/home/settingL',
-    ),
-  ];
-
   /// 左侧抽屉菜单项。
-  List<ShellMenuItemData> get leftMenus => squareHomeLayout.value ? _squareLeftMenus : _normalLeftMenus;
+  List<ShellMenuItemData> get leftMenus => _normalLeftMenus;
 
   /// 当前首页分页数量。
   int get homePageCount => leftMenus.length;
@@ -124,7 +96,6 @@ class HomeShellController extends GetxController with GetTickerProviderStateMixi
         curHomePageTitle.value = _resolveHomePageTitle(updatedPageIndex);
         _updateCloseDrawerTimer(3000);
       });
-    _homePageControllerInitialized = true;
   }
 
   /// 初始化首页默认标题。
@@ -138,27 +109,6 @@ class HomeShellController extends GetxController with GetTickerProviderStateMixi
     if (curHomePageIndex.value == 0) {
       curHomePageTitle.value = title;
     }
-  }
-
-  /// 根据屏幕比例同步首页菜单结构。
-  void updateHomeLayoutMode({required bool isSquareLike}) {
-    if (squareHomeLayout.value == isSquareLike) {
-      return;
-    }
-    squareHomeLayout.value = isSquareLike;
-    if (curHomePageIndex.value >= homePageCount) {
-      curHomePageIndex.value = 0;
-      curHomePageTitle.value = _resolveHomePageTitle(0);
-      if (_homePageControllerInitialized && homePageController.hasClients) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (homePageController.hasClients) {
-            homePageController.jumpToPage(0);
-          }
-        });
-      }
-      return;
-    }
-    curHomePageTitle.value = _resolveHomePageTitle(curHomePageIndex.value);
   }
 
   /// 返回指定首页索引对应的页面类型。
@@ -269,7 +219,6 @@ class HomeShellController extends GetxController with GetTickerProviderStateMixi
     switch (pageKind) {
       case HomeShellPageKind.personal:
         return _defaultHomePageTitle;
-      case HomeShellPageKind.recommendedPlaylists:
       case HomeShellPageKind.settings:
         return leftMenus[pageIndex].title;
       case null:
@@ -331,9 +280,6 @@ Duration homePageSwitchAnimationDuration({
 enum HomeShellPageKind {
   /// 我的音乐。
   personal,
-
-  /// 方屏下独立展示的推荐。
-  recommendedPlaylists,
 
   /// 设置页。
   settings,

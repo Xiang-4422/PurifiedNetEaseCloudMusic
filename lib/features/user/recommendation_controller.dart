@@ -11,23 +11,18 @@ import 'package:bujuan/features/user/user_repository.dart';
 import 'package:get/get.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
-/// 首页用户本地数据，包含推荐歌单、日推歌曲和 FM 候选歌曲。
+/// 首页用户本地数据，包含日推歌曲和 FM 候选歌曲。
 class UserHomeLocalData {
   /// 创建首页用户本地数据。
   const UserHomeLocalData({
-    required this.recommendedPlaylists,
     required this.todayRecommendSongs,
     required this.fmSongs,
   });
 
   /// 创建空首页用户本地数据。
   const UserHomeLocalData.empty()
-      : recommendedPlaylists = const [],
-        todayRecommendSongs = const [],
+      : todayRecommendSongs = const [],
         fmSongs = const [];
-
-  /// 推荐歌单数据。
-  final List<PlaylistSummaryData> recommendedPlaylists;
 
   /// 每日推荐歌曲数据。
   final List<PlaybackQueueItem> todayRecommendSongs;
@@ -36,7 +31,7 @@ class UserHomeLocalData {
   final List<PlaybackQueueItem> fmSongs;
 
   /// 是否包含任何可展示数据。
-  bool get hasData => recommendedPlaylists.isNotEmpty || todayRecommendSongs.isNotEmpty || fmSongs.isNotEmpty;
+  bool get hasData => todayRecommendSongs.isNotEmpty || fmSongs.isNotEmpty;
 }
 
 /// 首页推荐需要的当前账号 session 能力。
@@ -267,10 +262,7 @@ class RecommendationController extends GetxController {
       if (!_isCurrentHomeRefresh(userId, generation)) {
         return;
       }
-      await Future.wait([
-        _updateQuickStartCardData(userId, generation),
-        updateRecoPlayLists(),
-      ]);
+      await _updateQuickStartCardData(userId, generation);
       if (!_isCurrentHomeRefresh(userId, generation)) {
         return;
       }
@@ -437,7 +429,6 @@ class RecommendationController extends GetxController {
     if (!_isCurrentLocalDataLoad(userId, generation)) {
       return;
     }
-    recoPlayLists.addAll(localData.recommendedPlaylists);
     todayRecommendSongs.addAll(localData.todayRecommendSongs);
     fmSongs.addAll(localData.fmSongs);
     _hasLocalData = localData.hasData;
@@ -463,10 +454,6 @@ class RecommendationController extends GetxController {
     }
     final likedSongIds = _likedSongIdsSnapshot();
     final results = await Future.wait<Object>([
-      _loadCachedPlaylistList(
-        userId,
-        UserPlaylistListKind.recommended,
-      ),
       _loadCachedTrackList(
         userId: userId,
         kind: UserTrackListKind.dailyRecommend,
@@ -479,9 +466,8 @@ class RecommendationController extends GetxController {
       ),
     ]);
     return UserHomeLocalData(
-      recommendedPlaylists: results[0] as List<PlaylistSummaryData>,
-      todayRecommendSongs: results[1] as List<PlaybackQueueItem>,
-      fmSongs: results[2] as List<PlaybackQueueItem>,
+      todayRecommendSongs: results[0] as List<PlaybackQueueItem>,
+      fmSongs: results[1] as List<PlaybackQueueItem>,
     );
   }
 
@@ -501,21 +487,9 @@ class RecommendationController extends GetxController {
       ),
     ]);
     return UserHomeLocalData(
-      recommendedPlaylists: const [],
       todayRecommendSongs: results[0] as List<PlaybackQueueItem>,
       fmSongs: results[1] as List<PlaybackQueueItem>,
     );
-  }
-
-  Future<List<PlaylistSummaryData>> _loadCachedPlaylistList(
-    String userId,
-    UserPlaylistListKind kind,
-  ) async {
-    try {
-      return await _repository.loadCachedPlaylistList(userId, kind);
-    } catch (_) {
-      return const [];
-    }
   }
 
   Future<List<PlaybackQueueItem>> _loadCachedTrackList({
@@ -568,7 +542,7 @@ class RecommendationController extends GetxController {
   }
 
   bool get _hasVisibleHomeData {
-    return recoPlayLists.isNotEmpty || todayRecommendSongs.isNotEmpty || fmSongs.isNotEmpty;
+    return todayRecommendSongs.isNotEmpty || fmSongs.isNotEmpty;
   }
 
   void _clearHomeState() {

@@ -1,4 +1,5 @@
 import 'package:bujuan/core/util/playback_url_expiry.dart';
+import 'package:bujuan/core/util/local_file_path_normalizer.dart';
 
 /// Resolves playback URLs through a short-lived in-memory remote URL cache.
 typedef LocalPlaybackResourceResolver = Future<String?> Function(String trackId);
@@ -75,7 +76,8 @@ class PlaybackUrlCacheCoordinator {
   Future<String?> _resolveLocalResourceUrlOrNull(String trackId) async {
     try {
       final url = await _resolveLocalResourceUrl(trackId);
-      return url == null || url.trim().isEmpty ? null : url;
+      final normalizedUrl = LocalFilePathNormalizer.normalize(url);
+      return normalizedUrl.isEmpty ? null : normalizedUrl;
     } catch (_) {
       return null;
     }

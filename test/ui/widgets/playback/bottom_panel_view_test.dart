@@ -4,6 +4,7 @@ import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_artwork_widg
 import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_header.dart';
 import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_mini_player.dart';
 import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_now_playing_metadata.dart';
+import 'package:bujuan/ui/pages/shell/widgets/playback/bottom_panel_now_playing_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -192,6 +193,25 @@ void main() {
     });
   });
 
+  group('bottom panel now playing helpers', () {
+    test('builds lyric area control labels', () {
+      expect(
+        bottomPanelLyricAreaControlLabel(
+          title: ' Song ',
+          fullScreenLyricOpen: false,
+        ),
+        '放大封面：Song',
+      );
+      expect(
+        bottomPanelLyricAreaControlLabel(
+          title: '  ',
+          fullScreenLyricOpen: true,
+        ),
+        '退出全屏歌词：当前歌曲',
+      );
+    });
+  });
+
   test('bottom panel keeps mini player in a dedicated local widget file', () {
     final panelSource = File(
       'lib/ui/pages/shell/widgets/playback/bottom_panel_view.dart',
@@ -269,6 +289,9 @@ void main() {
     expect(nowPlayingSource, contains('BottomPanelNowPlayingMetadata('));
     expect(nowPlayingSource, contains('BottomPanelPlaybackControls('));
     expect(nowPlayingSource, contains('LyricView('));
+    expect(nowPlayingSource, contains('bottomPanelLyricAreaControlLabel('));
+    expect(nowPlayingSource, contains('Tooltip('));
+    expect(nowPlayingSource, contains('Semantics('));
     expect(nowPlayingSource, contains('required this.playerController'));
     expect(nowPlayingSource, contains('required this.settingsController'));
 

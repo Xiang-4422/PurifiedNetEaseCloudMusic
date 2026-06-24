@@ -9,6 +9,16 @@ import 'package:bujuan/ui/widgets/common/layout/keep_alive_wrapper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+/// 歌词区域点击入口的辅助语义标签。
+@visibleForTesting
+String bottomPanelLyricAreaControlLabel({
+  required String title,
+  required bool fullScreenLyricOpen,
+}) {
+  final resolvedTitle = title.trim().isEmpty ? '当前歌曲' : title.trim();
+  return fullScreenLyricOpen ? '退出全屏歌词：$resolvedTitle' : '放大封面：$resolvedTitle';
+}
+
 /// 底部播放面板的正在播放页，组合歌词、专辑歌手信息和控制区。
 class BottomPanelNowPlayingPage extends GetView<ShellController> {
   /// 创建正在播放页。
@@ -42,33 +52,37 @@ class BottomPanelNowPlayingPage extends GetView<ShellController> {
         child: Stack(
           children: [
             Obx(
-              () => Offstage(
-                offstage: controller.isBigAlbum.value,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onTap: () {
-                    if (playerController.isFullScreenLyricOpen.isTrue) {
-                      playerController.isFullScreenLyricOpen.value = false;
-                    } else {
-                      controller.isAlbumScaleEnded.value = false;
-                      controller.isBigAlbum.value = true;
-                      playerController.updateFullScreenLyricTimerCounter(
-                        cancelTimer: true,
-                      );
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: albumPadding,
-                    ),
-                    child: LyricView(
-                      const EdgeInsets.symmetric(vertical: 10),
-                      playerController: playerController,
-                      settingsController: settingsController,
+              () {
+                final currentSong = playerController.currentSongState.value;
+                final lyricAreaLabel = bottomPanelLyricAreaControlLabel(
+                  title: currentSong.title,
+                  fullScreenLyricOpen: playerController.isFullScreenLyricOpen.isTrue,
+                );
+                return Offstage(
+                  offstage: controller.isBigAlbum.value,
+                  child: Tooltip(
+                    message: lyricAreaLabel,
+                    child: Semantics(
+                      button: true,
+                      label: lyricAreaLabel,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.translucent,
+                        onTap: _handleLyricAreaTap,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: albumPadding,
+                          ),
+                          child: LyricView(
+                            const EdgeInsets.symmetric(vertical: 10),
+                            playerController: playerController,
+                            settingsController: settingsController,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
             Obx(
               () => Offstage(
@@ -98,6 +112,18 @@ class BottomPanelNowPlayingPage extends GetView<ShellController> {
           ],
         ),
       ),
+    );
+  }
+
+  void _handleLyricAreaTap() {
+    if (playerController.isFullScreenLyricOpen.isTrue) {
+      playerController.isFullScreenLyricOpen.value = false;
+      return;
+    }
+    controller.isAlbumScaleEnded.value = false;
+    controller.isBigAlbum.value = true;
+    playerController.updateFullScreenLyricTimerCounter(
+      cancelTimer: true,
     );
   }
 }

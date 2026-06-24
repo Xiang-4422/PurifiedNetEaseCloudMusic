@@ -1,8 +1,6 @@
-import 'dart:io';
-
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_resource_bundle.dart';
-import 'package:bujuan/core/util/local_file_path_normalizer.dart';
+import 'package:bujuan/core/util/track_resource_availability.dart';
 import 'package:bujuan/data/music_data/sources/local/resources/local_resource_index_repository.dart';
 
 /// 下载资源索引写入器，集中处理缓存资源和正式下载资源的归属。
@@ -72,7 +70,7 @@ class DownloadResourceWriter {
         },
       );
     }
-    final audioFile = _availableResourceFile(bundle.audio?.path);
+    final audioFile = TrackResourceAvailability.existingFileForPath(bundle.audio?.path);
     if (audioFile != null) {
       await _resourceIndexRepository.saveAudioResource(
         normalizedTrackId,
@@ -90,7 +88,7 @@ class DownloadResourceWriter {
     if (!audioAvailable) {
       return false;
     }
-    final artworkFile = _availableResourceFile(bundle.artwork?.path);
+    final artworkFile = TrackResourceAvailability.existingFileForPath(bundle.artwork?.path);
     if (artworkFile != null) {
       await _resourceIndexRepository.saveArtworkResource(
         normalizedTrackId,
@@ -98,7 +96,7 @@ class DownloadResourceWriter {
         origin: TrackResourceOrigin.managedDownload,
       );
     }
-    final lyricsFile = _availableResourceFile(bundle.lyrics?.path);
+    final lyricsFile = TrackResourceAvailability.existingFileForPath(bundle.lyrics?.path);
     if (lyricsFile != null) {
       await _resourceIndexRepository.saveLyricsResource(
         normalizedTrackId,
@@ -121,7 +119,7 @@ class DownloadResourceWriter {
     if (normalizedTrackId.isEmpty) {
       return false;
     }
-    final audioFile = _availableResourceFile(audioPath);
+    final audioFile = TrackResourceAvailability.existingFileForPath(audioPath);
     if (audioFile == null) {
       return false;
     }
@@ -137,7 +135,7 @@ class DownloadResourceWriter {
     if (!audioAvailable) {
       return false;
     }
-    final artworkFile = _availableResourceFile(artworkPath);
+    final artworkFile = TrackResourceAvailability.existingFileForPath(artworkPath);
     if (artworkFile != null) {
       await _resourceIndexRepository.saveArtworkResource(
         normalizedTrackId,
@@ -145,7 +143,7 @@ class DownloadResourceWriter {
         origin: origin,
       );
     }
-    final lyricsFile = _availableResourceFile(lyricsPath);
+    final lyricsFile = TrackResourceAvailability.existingFileForPath(lyricsPath);
     if (lyricsFile != null) {
       await _resourceIndexRepository.saveLyricsResource(
         normalizedTrackId,
@@ -161,20 +159,10 @@ class DownloadResourceWriter {
     required Set<TrackResourceOrigin> availableAudioOrigins,
   }) async {
     final audioResource = await _resourceIndexRepository.getPrimaryAudioResource(trackId);
-    if (audioResource == null || !availableAudioOrigins.contains(audioResource.origin)) {
-      return false;
-    }
-    final path = LocalFilePathNormalizer.normalize(audioResource.path);
-    return path.isNotEmpty && File(path).existsSync();
-  }
-
-  File? _availableResourceFile(String? rawPath) {
-    final path = LocalFilePathNormalizer.normalize(rawPath);
-    if (path.isEmpty) {
-      return null;
-    }
-    final file = File(path);
-    return file.existsSync() ? file : null;
+    return TrackResourceAvailability.isAvailableAudioResource(
+      audioResource,
+      allowedOrigins: availableAudioOrigins,
+    );
   }
 
   String _normalizedTrackId(String trackId) {

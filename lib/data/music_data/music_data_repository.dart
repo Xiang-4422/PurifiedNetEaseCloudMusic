@@ -14,7 +14,7 @@ import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_lyrics.dart';
 import 'package:bujuan/core/entities/track_resource_bundle.dart';
 import 'package:bujuan/core/entities/track_with_resources.dart';
-import 'package:bujuan/core/util/local_file_path_normalizer.dart';
+import 'package:bujuan/core/util/track_resource_availability.dart';
 
 import 'sources/local/resources/local_artwork_cache_repository.dart';
 import 'sources/local/resources/local_resource_index_repository.dart';
@@ -252,7 +252,13 @@ class MusicDataRepository {
   Future<String?> _resolvePlaybackUrl(String trackId) async {
     final trackWithResources = await getTrackWithResources(trackId);
     final localAudio = trackWithResources?.resources.audio;
-    final localAudioPath = localAudio == null ? null : await _localResourcePathIfExists(localAudio);
+    final localAudioPath = localAudio == null
+        ? null
+        : await _localResourcePathIfExists(
+            localAudio,
+            kind: LocalResourceKind.audio,
+            allowedOrigins: TrackResourceAvailability.playableAudioOrigins,
+          );
     if (localAudioPath != null) {
       return localAudioPath;
     }
@@ -290,7 +296,13 @@ class MusicDataRepository {
   }) async {
     final trackWithResources = await getTrackWithResources(trackId);
     final localAudio = trackWithResources?.resources.audio;
-    final localAudioPath = localAudio == null ? null : await _localResourcePathIfExists(localAudio);
+    final localAudioPath = localAudio == null
+        ? null
+        : await _localResourcePathIfExists(
+            localAudio,
+            kind: LocalResourceKind.audio,
+            allowedOrigins: TrackResourceAvailability.playableAudioOrigins,
+          );
     if (localAudioPath != null) {
       return localAudioPath;
     }
@@ -372,7 +384,13 @@ class MusicDataRepository {
 
   Future<String?> _resolveIndexedAudioResourceUrl(String trackId) async {
     final localAudio = (await _resourceIndexRepository.getTrackResourceBundle(trackId)).audio;
-    return localAudio == null ? null : _localResourcePathIfExists(localAudio);
+    return localAudio == null
+        ? null
+        : _localResourcePathIfExists(
+            localAudio,
+            kind: LocalResourceKind.audio,
+            allowedOrigins: TrackResourceAvailability.playableAudioOrigins,
+          );
   }
 
   /// 保存曲目歌词缓存。
@@ -544,11 +562,21 @@ class MusicDataRepository {
     return await _localResourcePathIfExists(resource) != null;
   }
 
-  Future<String?> _localResourcePathIfExists(LocalResourceEntry resource) async {
-    final path = _resourceFilePath(resource);
-    final file = path.isEmpty ? null : File(path);
-    if (file == null || !file.existsSync()) {
-      await _resourceIndexRepository.removeResource(resource.trackId, resource.kind);
+  Future<String?> _localResourcePathIfExists(
+    LocalResourceEntry resource, {
+    LocalResourceKind? kind,
+    Set<TrackResourceOrigin>? allowedOrigins,
+  }) async {
+    final path = TrackResourceAvailability.existingLocalPath(
+      resource,
+      kind: kind,
+      allowedOrigins: allowedOrigins,
+    );
+    if (path == null) {
+      final normalizedPath = TrackResourceAvailability.localPath(resource);
+      if (normalizedPath == null || !File(normalizedPath).existsSync()) {
+        await _resourceIndexRepository.removeResource(resource.trackId, resource.kind);
+      }
       return null;
     }
     await _resourceIndexRepository.touchResource(resource.trackId, resource.kind);
@@ -556,7 +584,7 @@ class MusicDataRepository {
   }
 
   String _resourceFilePath(LocalResourceEntry resource) {
-    return LocalFilePathNormalizer.normalize(resource.path);
+    return TrackResourceAvailability.localPath(resource) ?? '';
   }
 
   bool _isLocalTrackId(String trackId) {

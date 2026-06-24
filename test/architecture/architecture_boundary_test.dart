@@ -2631,16 +2631,16 @@ void main() {
       final availabilityMethod = writer.indexOf('Future<bool> _hasAvailableAudioResource');
       final violations = <String>[
         if (availabilityMethod < 0) '${_relativePath(writerFile)} is missing audio availability verification',
+        if (!writer.contains("import 'package:bujuan/core/util/track_resource_availability.dart';")) '${_relativePath(writerFile)} does not use the shared resource availability policy',
         if (!writer.contains('final normalizedTrackId = _normalizedTrackId(trackId);')) '${_relativePath(writerFile)} does not normalize track ids before writing resources',
         if (!writer.contains('if (normalizedTrackId.isEmpty)')) '${_relativePath(writerFile)} does not reject blank track ids before writing resources',
-        if (!writer.contains('final audioFile = _availableResourceFile(audioPath);')) '${_relativePath(writerFile)} does not validate the audio path before saving an audio index',
+        if (!writer.contains('final audioFile = TrackResourceAvailability.existingFileForPath(audioPath);')) '${_relativePath(writerFile)} does not validate the audio path before saving an audio index',
         if (!writer.contains('if (audioFile == null)')) '${_relativePath(writerFile)} can write resource indexes before audio file availability is known',
         if (!writer.contains('path: audioFile.path')) '${_relativePath(writerFile)} does not save normalized audio file paths',
-        if (!writer.contains('final artworkFile = _availableResourceFile(artworkPath);')) '${_relativePath(writerFile)} does not validate artwork files before saving indexes',
-        if (!writer.contains('final lyricsFile = _availableResourceFile(lyricsPath);')) '${_relativePath(writerFile)} does not validate lyrics files before saving indexes',
-        if (!writer.contains('LocalFilePathNormalizer.normalize(audioResource.path)')) '${_relativePath(writerFile)} does not normalize indexed audio paths before accepting them',
-        if (!writer.contains('File(path).existsSync()')) '${_relativePath(writerFile)} accepts indexed audio without checking the file exists',
-        if (!writer.contains('!availableAudioOrigins.contains(audioResource.origin)')) '${_relativePath(writerFile)} does not verify the expected audio resource origin',
+        if (!writer.contains('final artworkFile = TrackResourceAvailability.existingFileForPath(artworkPath);')) '${_relativePath(writerFile)} does not validate artwork files before saving indexes',
+        if (!writer.contains('final lyricsFile = TrackResourceAvailability.existingFileForPath(lyricsPath);')) '${_relativePath(writerFile)} does not validate lyrics files before saving indexes',
+        if (!writer.contains('TrackResourceAvailability.isAvailableAudioResource(')) '${_relativePath(writerFile)} does not verify indexed audio through the shared policy',
+        if (!writer.contains('allowedOrigins: availableAudioOrigins')) '${_relativePath(writerFile)} does not verify the expected audio resource origin',
       ];
 
       expect(
@@ -2677,10 +2677,9 @@ void main() {
       final planner = plannerFile.readAsStringSync();
       final violations = <String>[
         if (planner.contains('_isAvailableManagedDownload')) '${_relativePath(plannerFile)} only models managed download availability',
-        if (!planner.contains('TrackResourceOrigin.localImport')) '${_relativePath(plannerFile)} does not treat local import audio as already available',
-        if (!planner.contains('TrackResourceOrigin.managedDownload')) '${_relativePath(plannerFile)} does not treat managed download audio as already available',
-        if (!planner.contains('File(path).existsSync()')) '${_relativePath(plannerFile)} skips indexed resources without checking the file exists',
-        if (!planner.contains('track.sourceType == SourceType.local || _isAvailableLocalAudioResource(audioResource)')) '${_relativePath(plannerFile)} does not skip available local audio before queueing',
+        if (!planner.contains("import 'package:bujuan/core/util/track_resource_availability.dart';")) '${_relativePath(plannerFile)} does not use the shared resource availability policy',
+        if (!planner.contains('TrackResourceAvailability.isDownloadSatisfiedAudioResource(audioResource)')) '${_relativePath(plannerFile)} does not treat available local audio as already available',
+        if (!planner.contains('track.sourceType == SourceType.local || TrackResourceAvailability.isDownloadSatisfiedAudioResource(audioResource)')) '${_relativePath(plannerFile)} does not skip available local audio before queueing',
       ];
 
       expect(
@@ -4011,17 +4010,16 @@ void main() {
       final resolver = resolverFile.readAsStringSync();
       final violations = <String>[
         if (!resolver.contains("import 'package:bujuan/core/util/playback_source_reference.dart';")) '${_relativePath(resolverFile)} does not use the shared playback source reference boundary',
+        if (!resolver.contains("import 'package:bujuan/core/util/track_resource_availability.dart';")) '${_relativePath(resolverFile)} does not use the shared resource availability policy',
         if (!resolver.contains('PlaybackSourceReference.localPath(url)')) '${_relativePath(resolverFile)} does not normalize local playback URLs before final source resolution',
         if (!resolver.contains('PlaybackSourceReference.isExistingLocalPath(localPath)')) '${_relativePath(resolverFile)} does not verify repository local paths still exist',
         if (!resolver.contains('PlaybackSourceReference.remoteHttpUrl(url)')) '${_relativePath(resolverFile)} can return malformed remote playback URLs to the player',
         if (resolver.contains('PlaybackSourceReference.existingLocalPath(item.playbackUrl)')) '${_relativePath(resolverFile)} still trusts queue item playbackUrl as local resource fact',
         if (!resolver.contains('final indexedSource = await _resolveIndexedAudioSource(')) '${_relativePath(resolverFile)} does not check indexed local resources before remote resolving',
         if (!resolver.contains('final audio = trackWithResources?.resources.audio')) '${_relativePath(resolverFile)} does not resolve local audio from TrackWithResources',
-        if (!resolver.contains('PlaybackSourceReference.existingLocalPath(audio.path)')) '${_relativePath(resolverFile)} does not verify indexed audio paths through the shared boundary',
-        if (!resolver.contains('bool _shouldMarkIndexedAudioAsCached(TrackResourceOrigin origin)')) '${_relativePath(resolverFile)} does not derive cached state from indexed resource origin',
-        if (!resolver.contains('case TrackResourceOrigin.managedDownload:')) '${_relativePath(resolverFile)} does not mark managed downloads as cached',
-        if (!resolver.contains('case TrackResourceOrigin.playbackCache:')) '${_relativePath(resolverFile)} does not mark playback cache resources as cached',
-        if (!resolver.contains('case TrackResourceOrigin.localImport:')) '${_relativePath(resolverFile)} can still mark local imports as cached',
+        if (!resolver.contains('TrackResourceAvailability.existingLocalPath(')) '${_relativePath(resolverFile)} does not verify indexed audio paths through the shared resource policy',
+        if (!resolver.contains('allowedOrigins: TrackResourceAvailability.playableAudioOrigins')) '${_relativePath(resolverFile)} does not restrict indexed audio to playable origins',
+        if (!resolver.contains('TrackResourceAvailability.isCachedAudioResource(audio)')) '${_relativePath(resolverFile)} does not derive cached state from indexed resource origin',
         if (!resolver.contains('String _normalizedQueueItemId(String id)')) '${_relativePath(resolverFile)} does not define queue item id normalization',
         if (!resolver.contains('return id.trim();')) '${_relativePath(resolverFile)} does not trim queue item ids before repository calls',
         if (!resolver.contains('final itemId = _normalizedQueueItemId(item.id);')) '${_relativePath(resolverFile)} can still call repository with raw queue item ids',

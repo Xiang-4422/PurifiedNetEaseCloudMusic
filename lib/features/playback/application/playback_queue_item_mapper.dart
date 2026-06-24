@@ -1,14 +1,12 @@
 import 'package:bujuan/core/entities/liked_song_ids.dart';
 import 'package:bujuan/core/entities/playback_media_type.dart';
 import 'package:bujuan/core/util/image_url_normalizer.dart';
-import 'package:bujuan/core/entities/local_resource_entry.dart';
 import 'package:bujuan/core/entities/music_resource_id.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
-import 'package:bujuan/core/entities/source_type.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_resource_bundle.dart';
 import 'package:bujuan/core/entities/track_with_resources.dart';
-import 'package:bujuan/core/util/local_file_path_normalizer.dart';
+import 'package:bujuan/core/util/track_resource_availability.dart';
 import 'package:bujuan/features/playback/application/playback_queue_metadata_filter.dart';
 
 /// 播放队列项 mapper，负责从曲目领域实体构建播放队列模型。
@@ -48,8 +46,8 @@ class PlaybackQueueItemMapper {
       final track = item.track;
       final trackId = _normalizedQueueItemId(track.id);
       final resources = item.resources;
-      final localArtworkPath = _localResourcePath(resources.artwork);
-      final localLyricsPath = _localResourcePath(resources.lyrics);
+      final localArtworkPath = TrackResourceAvailability.localPath(resources.artwork);
+      final localLyricsPath = TrackResourceAvailability.localPath(resources.lyrics);
       final artworkUrl = _emptyToNull(ImageUrlNormalizer.normalize(track.artworkUrl));
       return PlaybackQueueItem(
         id: trackId,
@@ -63,12 +61,12 @@ class PlaybackQueueItemMapper {
         duration: track.durationMs == null ? null : Duration(milliseconds: track.durationMs!),
         artworkUrl: artworkUrl,
         localArtworkPath: localArtworkPath,
-        mediaType: _mediaTypeForTrack(
+        mediaType: TrackResourceAvailability.queueMediaType(
           track,
           resources,
           fallback: mediaType,
         ),
-        playbackUrl: _emptyToNull(_resolvePlaybackUrl(track, resources)),
+        playbackUrl: TrackResourceAvailability.queuePlaybackUrl(track, resources),
         lyricKey: track.lyricKey,
         localLyricsPath: localLyricsPath,
         availability: track.availability,
@@ -77,7 +75,7 @@ class PlaybackQueueItemMapper {
           sourceId: track.sourceId,
           likedSongIds: likedSongIdSet,
         ),
-        isCached: _isCachedAudioResource(resources.audio),
+        isCached: TrackResourceAvailability.isCachedAudioResource(resources.audio),
         customMetadata: PlaybackQueueItemMetadata.custom(
           playbackQueueCustomMetadata(track.metadata),
         ),
@@ -85,60 +83,11 @@ class PlaybackQueueItemMapper {
     }).toList();
   }
 
-  static String _resolvePlaybackUrl(
-    Track track,
-    TrackResourceBundle resources,
-  ) {
-    final audioPath = _localResourcePath(resources.audio);
-    if (audioPath != null) {
-      return audioPath;
-    }
-    return LocalFilePathNormalizer.normalize(track.remoteUrl);
-  }
-
-  static MediaType _mediaTypeForTrack(
-    Track track,
-    TrackResourceBundle resources, {
-    MediaType? fallback,
-  }) {
-    final audioPath = _localResourcePath(resources.audio);
-    if (audioPath != null) {
-      return audioPath.endsWith('.uc!') ? MediaType.neteaseCache : MediaType.local;
-    }
-    if (track.sourceType == SourceType.local) {
-      return MediaType.local;
-    }
-    if (fallback != null) {
-      return fallback;
-    }
-    return MediaType.playlist;
-  }
-
-  static bool _isCachedAudioResource(LocalResourceEntry? audio) {
-    if (_localResourcePath(audio) == null) {
-      return false;
-    }
-    switch (audio?.origin) {
-      case TrackResourceOrigin.managedDownload:
-      case TrackResourceOrigin.playbackCache:
-        return true;
-      case TrackResourceOrigin.localImport:
-      case TrackResourceOrigin.artworkCache:
-      case TrackResourceOrigin.none:
-      case null:
-        return false;
-    }
-  }
-
   static String? _emptyToNull(String? value) {
     if (value == null || value.isEmpty) {
       return null;
     }
     return value;
-  }
-
-  static String? _localResourcePath(LocalResourceEntry? resource) {
-    return _emptyToNull(LocalFilePathNormalizer.normalize(resource?.path));
   }
 
   static bool _isLikedTrack({

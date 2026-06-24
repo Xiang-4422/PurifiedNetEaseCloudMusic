@@ -20,7 +20,4 @@ enum UserPlaylistListKind {
 
   /// 用户创建或拥有的歌单列表。
   userPlaylists,
-
-  /// 推荐歌单列表。
-  recommended,
 }

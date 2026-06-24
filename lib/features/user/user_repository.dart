@@ -189,7 +189,7 @@ class UserRepository {
     );
   }
 
-  /// 拉取推荐歌单，并按分页位置更新本地推荐歌单数据。
+  /// 拉取推荐歌单。
   Future<List<PlaylistSummaryData>> fetchRecommendedPlaylists({
     required String userId,
     required int offset,
@@ -203,22 +203,7 @@ class UserRepository {
       offset: offset,
       limit: limit,
     );
-    final summaries = playlists.map(PlaylistSummaryData.fromEntity).toList();
-    if (offset == 0) {
-      await _userPlaylistListDataSource.replacePlaylistItems(
-        normalizedUserId,
-        UserPlaylistListKind.recommended,
-        summaries,
-      );
-    } else {
-      await _userPlaylistListDataSource.appendPlaylistItems(
-        normalizedUserId,
-        UserPlaylistListKind.recommended,
-        summaries,
-        startOrder: offset,
-      );
-    }
-    return summaries;
+    return playlists.map(PlaylistSummaryData.fromEntity).toList();
   }
 
   /// 拉取用户歌单，并拆分“我喜欢的音乐”和用户创建歌单数据。

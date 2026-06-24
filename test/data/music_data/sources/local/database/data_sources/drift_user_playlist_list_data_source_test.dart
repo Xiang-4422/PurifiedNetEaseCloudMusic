@@ -25,7 +25,7 @@ void main() {
     test('stores playlist summaries in playlists table and loads refs in order', () async {
       await dataSource.replacePlaylistItems(
         'user',
-        UserPlaylistListKind.recommended,
+        UserPlaylistListKind.userPlaylists,
         const [
           PlaylistSummaryData(id: '1', title: 'First', coverUrl: 'cover-1', trackCount: 10),
           PlaylistSummaryData(id: '2', title: 'Second', coverUrl: 'cover-2', trackCount: 20),
@@ -34,7 +34,7 @@ void main() {
 
       final items = await dataSource.loadPlaylistItems(
         'user',
-        UserPlaylistListKind.recommended,
+        UserPlaylistListKind.userPlaylists,
       );
       final playlistRows = await database.select(database.playlists).get();
 
@@ -89,7 +89,7 @@ void main() {
       );
       await dataSource.replacePlaylistItems(
         ' ',
-        UserPlaylistListKind.recommended,
+        UserPlaylistListKind.likedCollection,
         const [
           PlaylistSummaryData(id: '3', title: 'Blank User Playlist'),
         ],
@@ -105,7 +105,7 @@ void main() {
       );
       final blank = await dataSource.loadPlaylistItems(
         ' ',
-        UserPlaylistListKind.recommended,
+        UserPlaylistListKind.likedCollection,
       );
       final searchItems = await dataSource.searchPlaylistItems(' user ', 'Focus');
       final playlistRows = await database.select(database.playlists).get();

@@ -3573,6 +3573,37 @@ void main() {
       );
     });
 
+    test('recommended playlist endpoint stays out of local user playlist cache', () {
+      final userLibraryKindsFile = File(
+        '${projectRoot.path}/lib/core/entities/user_library_kinds.dart',
+      );
+      final userRepositoryFile = File(
+        '${projectRoot.path}/lib/features/user/user_repository.dart',
+      );
+      final userLibraryKinds = userLibraryKindsFile.readAsStringSync();
+      final userRepository = userRepositoryFile.readAsStringSync();
+      final recommendedMethodStart = userRepository.indexOf('Future<List<PlaylistSummaryData>> fetchRecommendedPlaylists');
+      final userPlaylistsMethodStart = userRepository.indexOf('Future<List<PlaylistSummaryData>> fetchUserPlaylists');
+      final recommendedMethod = recommendedMethodStart == -1 || userPlaylistsMethodStart == -1
+          ? ''
+          : userRepository.substring(
+              recommendedMethodStart,
+              userPlaylistsMethodStart,
+            );
+      final violations = <String>[
+        if (userLibraryKinds.contains('recommended')) '${_relativePath(userLibraryKindsFile)} keeps recommended playlist cache kind',
+        if (userRepository.contains('UserPlaylistListKind.recommended')) '${_relativePath(userRepositoryFile)} writes recommended playlists into local cache kind',
+        if (recommendedMethod.contains('replacePlaylistItems')) '${_relativePath(userRepositoryFile)} replaces local playlist cache from recommended endpoint',
+        if (recommendedMethod.contains('appendPlaylistItems')) '${_relativePath(userRepositoryFile)} appends local playlist cache from recommended endpoint',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '推荐歌单是上游接口复刻能力，不再作为首页或用户资料库本地缓存事实维护。',
+      );
+    });
+
     test('library shortcut bar keeps liked playlist behind injected provider', () {
       final shortcutFile = File(
         '${projectRoot.path}/lib/ui/pages/user/widgets/library_shortcut_bar.dart',

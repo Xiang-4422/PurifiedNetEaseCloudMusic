@@ -198,9 +198,38 @@ void main() {
       expect(trackListDataSource.deleteTrackRefUserIds, everyElement('user-1'));
       expect(playlistListDataSource.loadPlaylistItemsUserIds, everyElement('user-1'));
       expect(playlistListDataSource.replacePlaylistItemsUserIds, everyElement('user-1'));
-      expect(playlistListDataSource.appendPlaylistItemsUserIds, everyElement('user-1'));
+      expect(playlistListDataSource.appendPlaylistItemsUserIds, isEmpty);
       expect(syncMarkerDataSource.loadSyncMarkerUserIds, everyElement('user-1'));
       expect(syncMarkerDataSource.markSyncMarkerUpdatedUserIds, everyElement('user-1'));
+    });
+
+    test('fetches recommended playlists without writing local playlist cache', () async {
+      final remoteDataSource = _FakeNeteaseUserRemoteDataSource(
+        recommendedPlaylists: [
+          _playlist('recommend-1', title: 'Recommend 1'),
+          _playlist('recommend-2', title: 'Recommend 2'),
+        ],
+      );
+      final playlistListDataSource = _FakeUserPlaylistListDataSource();
+      final repository = _buildRepository(
+        musicDataRepository: _FakeMusicDataRepository(resourcesByTrackId: const {}),
+        remoteDataSource: remoteDataSource,
+        trackListDataSource: _FakeUserTrackListDataSource(),
+        playlistListDataSource: playlistListDataSource,
+      );
+
+      final playlists = await repository.fetchRecommendedPlaylists(
+        userId: ' user-1 ',
+        offset: 20,
+      );
+
+      expect(playlists.map((playlist) => playlist.id), ['recommend-1', 'recommend-2']);
+      expect(remoteDataSource.fetchRecommendedPlaylistsCalls, 1);
+      expect(remoteDataSource.fetchRecommendedPlaylistOffsets, [20]);
+      expect(remoteDataSource.fetchRecommendedPlaylistLimits, [10]);
+      expect(playlistListDataSource.replacePlaylistItemsCalls, 0);
+      expect(playlistListDataSource.appendPlaylistItemsCalls, 0);
+      expect(playlistListDataSource.replacedPlaylistItems, isEmpty);
     });
 
     test('builds fetched FM queue items from saved track resources', () async {
@@ -449,12 +478,14 @@ class _FakeNeteaseUserRemoteDataSource implements NeteaseUserRemoteDataSource {
     this.fmSongs = const [],
     this.likedSongIds = const [],
     this.userPlaylists = const [],
+    this.recommendedPlaylists = const [],
     this.userPlaylistsError,
   });
 
   final List<Track> fmSongs;
   final List<int> likedSongIds;
   final List<PlaylistEntity> userPlaylists;
+  final List<PlaylistEntity> recommendedPlaylists;
   final Object? userPlaylistsError;
   int fetchUserDetailCalls = 0;
   int fetchLikedSongIdsCalls = 0;
@@ -466,6 +497,8 @@ class _FakeNeteaseUserRemoteDataSource implements NeteaseUserRemoteDataSource {
   final List<String> fetchUserDetailUserIds = [];
   final List<String> fetchLikedSongIdsUserIds = [];
   final List<String> fetchUserPlaylistsUserIds = [];
+  final List<int> fetchRecommendedPlaylistOffsets = [];
+  final List<int> fetchRecommendedPlaylistLimits = [];
 
   @override
   Future<UserProfileData> fetchUserDetail(String userId) async {
@@ -506,7 +539,9 @@ class _FakeNeteaseUserRemoteDataSource implements NeteaseUserRemoteDataSource {
     required int limit,
   }) async {
     fetchRecommendedPlaylistsCalls++;
-    return const [];
+    fetchRecommendedPlaylistOffsets.add(offset);
+    fetchRecommendedPlaylistLimits.add(limit);
+    return recommendedPlaylists;
   }
 
   @override

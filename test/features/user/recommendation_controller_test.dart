@@ -502,7 +502,6 @@ class _FakeUserRepository implements UserRepository {
     switch (kind) {
       case UserPlaylistListKind.likedCollection:
       case UserPlaylistListKind.userPlaylists:
-      case UserPlaylistListKind.recommended:
         return const [];
     }
   }

@@ -2006,6 +2006,26 @@ void main() {
       );
     });
 
+    test('local song list controller normalizes track ids before visible removal', () {
+      final controllerFile = File(
+        '${projectRoot.path}/lib/features/download/local_song_list_controller.dart',
+      );
+      final controller = controllerFile.readAsStringSync();
+      final violations = <String>[
+        if (!controller.contains('String _normalizedTrackId(String trackId)')) '${_relativePath(controllerFile)} does not define track id normalization',
+        if (!controller.contains('final normalizedTrackId = _normalizedTrackId(trackId);')) '${_relativePath(controllerFile)} can still remove local tracks from a raw track id',
+        if (!controller.contains('await _downloadRepository.removeLocalTrack(normalizedTrackId);')) '${_relativePath(controllerFile)} can still pass raw track ids to download repository',
+        if (!controller.contains('(entry) => _normalizedTrackId(entry.track.id) == normalizedTrackId')) '${_relativePath(controllerFile)} can still remove visible fallback entries by raw ids',
+        if (controller.contains('entry.track.id == trackId')) '${_relativePath(controllerFile)} still compares visible entries by raw track id',
+      ];
+
+      expect(
+        violations,
+        isEmpty,
+        reason: '下载页本地歌曲列表删除后会先剔除可见 fallback；传入 id 和可见条目 id 都必须规范化，避免刷新失败时已删除资源继续显示。',
+      );
+    });
+
     test('download workflow rechecks cancellation before saving local resources', () {
       final workflowFile = File(
         '${projectRoot.path}/lib/features/download/download_repository_workflow.dart',

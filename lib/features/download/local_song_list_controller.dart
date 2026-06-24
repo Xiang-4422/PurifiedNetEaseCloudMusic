@@ -69,8 +69,14 @@ class LocalSongListController {
 
   /// 删除指定本地曲目的资源。
   Future<void> removeLocalTrack(String trackId) async {
-    await _downloadRepository.removeLocalTrack(trackId);
-    _removeVisibleEntries((entry) => entry.track.id == trackId);
+    final normalizedTrackId = _normalizedTrackId(trackId);
+    if (normalizedTrackId.isEmpty) {
+      return;
+    }
+    await _downloadRepository.removeLocalTrack(normalizedTrackId);
+    _removeVisibleEntries(
+      (entry) => _normalizedTrackId(entry.track.id) == normalizedTrackId,
+    );
     await refresh();
   }
 
@@ -116,5 +122,9 @@ class LocalSongListController {
       return;
     }
     state.value = nextEntries.isEmpty ? const LoadState.empty() : LoadState.data(nextEntries);
+  }
+
+  String _normalizedTrackId(String trackId) {
+    return trackId.trim();
   }
 }

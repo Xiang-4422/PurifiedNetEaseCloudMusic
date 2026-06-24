@@ -130,6 +130,30 @@ void main() {
       expect(_titles(controller.state.value), ['Track kept']);
     });
 
+    test('normalizes deleted track id before removing visible fallback entry', () async {
+      final error = StateError('refresh failed');
+      final musicDataRepository = _FakeMusicDataRepository()
+        ..enqueueLocalSongs([
+          _entry('removed', trackId: ' netease:removed '),
+          _entry('kept'),
+        ])
+        ..enqueueLocalSongsError(error);
+      final downloadRepository = _FakeDownloadRepository();
+      final controller = LocalSongListController(
+        musicDataRepository: musicDataRepository,
+        downloadRepository: downloadRepository,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.loadInitial();
+      await controller.removeLocalTrack(' netease:removed ');
+
+      expect(downloadRepository.removedTrackIds, ['netease:removed']);
+      expect(controller.state.value.status, LoadStatus.error);
+      expect(controller.state.value.error, same(error));
+      expect(_titles(controller.state.value), ['Track kept']);
+    });
+
     test('removes playback cache entries from visible fallback when refresh fails', () async {
       final error = StateError('refresh failed');
       final musicDataRepository = _FakeMusicDataRepository()
@@ -162,12 +186,13 @@ List<String> _titles(LoadState<List<LocalSongEntry>> state) {
 
 LocalSongEntry _entry(
   String id, {
+  String? trackId,
   TrackResourceOrigin origin = TrackResourceOrigin.managedDownload,
 }) {
   final resource = _audioResource(id, origin: origin);
   return LocalSongEntry(
     track: Track(
-      id: 'netease:$id',
+      id: trackId ?? 'netease:$id',
       sourceType: SourceType.netease,
       sourceId: id,
       title: 'Track $id',

@@ -109,14 +109,14 @@ void main() {
     test('builds mini player feedback metric details for success', () {
       expect(
         miniPlayerFeedbackMetricDetails(
-          wasPlaying: false,
+          action: 'play',
           succeeded: true,
         ),
         'action=play result=success',
       );
       expect(
         miniPlayerFeedbackMetricDetails(
-          wasPlaying: true,
+          action: 'pause',
           succeeded: true,
         ),
         'action=pause result=success',
@@ -126,7 +126,7 @@ void main() {
     test('builds mini player feedback metric details for failures', () {
       expect(
         miniPlayerFeedbackMetricDetails(
-          wasPlaying: false,
+          action: 'play',
           succeeded: false,
           error: StateError('play failed'),
         ),
@@ -134,11 +134,54 @@ void main() {
       );
       expect(
         miniPlayerFeedbackMetricDetails(
-          wasPlaying: true,
+          action: 'pause',
           succeeded: false,
         ),
         'action=pause result=error',
       );
+    });
+
+    test('builds mini player skip feedback metric details', () {
+      expect(
+        miniPlayerFeedbackMetricDetails(
+          action: 'skip_previous',
+          succeeded: true,
+        ),
+        'action=skip_previous result=success',
+      );
+      expect(
+        miniPlayerFeedbackMetricDetails(
+          action: 'skip_next',
+          succeeded: false,
+          error: StateError('skip failed'),
+        ),
+        'action=skip_next result=error error=StateError',
+      );
+    });
+
+    test('delegates mini player skip commands through feedback boundary', () async {
+      final commandService = _FakePlaybackUiCommandService();
+      final controller = _playerController(commandService: commandService);
+
+      await controller.skipToPreviousTrackFromMiniPlayer();
+      await controller.skipToNextTrackFromMiniPlayer();
+
+      expect(commandService.previousTrackCount, 1);
+      expect(commandService.nextTrackCount, 1);
+    });
+
+    test('keeps mini player skip command failures visible to callers', () async {
+      final commandService = _FakePlaybackUiCommandService(
+        nextTrackError: StateError('skip failed'),
+      );
+      final controller = _playerController(commandService: commandService);
+
+      await expectLater(
+        controller.skipToNextTrackFromMiniPlayer(),
+        throwsStateError,
+      );
+
+      expect(commandService.nextTrackCount, 1);
     });
   });
 }
@@ -146,13 +189,14 @@ void main() {
 PlayerController _playerController({
   _FakePlaybackService? playbackService,
   _FakePlaybackQueueService? queueService,
+  PlaybackUiCommandService? commandService,
   PlaybackPreferencePort? preferencePort,
   PlaybackUserContentPort? userContentPort,
 }) {
   return PlayerController(
     playbackService: playbackService ?? _FakePlaybackService(),
     queueService: queueService ?? _FakePlaybackQueueService(),
-    commandService: _FakePlaybackUiCommandService(),
+    commandService: commandService ?? _FakePlaybackUiCommandService(),
     modeCommandService: _FakePlaybackModeCommandService(),
     stateSynchronizer: _FakePlaybackStateSynchronizer(),
     selectionService: _FakePlaybackSelectionService(),
@@ -240,6 +284,28 @@ class _FakePlaybackQueueService implements PlaybackQueueService {
 }
 
 class _FakePlaybackUiCommandService implements PlaybackUiCommandService {
+  _FakePlaybackUiCommandService({
+    this.nextTrackError,
+  });
+
+  final Object? nextTrackError;
+  int previousTrackCount = 0;
+  int nextTrackCount = 0;
+
+  @override
+  Future<void> skipToPreviousTrack() async {
+    previousTrackCount++;
+  }
+
+  @override
+  Future<void> skipToNextTrack() async {
+    nextTrackCount++;
+    final error = nextTrackError;
+    if (error != null) {
+      throw error;
+    }
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

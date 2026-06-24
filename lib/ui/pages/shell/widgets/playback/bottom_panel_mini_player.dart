@@ -45,8 +45,8 @@ class BottomPanelHeaderView extends GetView<ShellController> {
           hint: swipeHint,
           decreasedValue: miniPlayerSkipActionLabel(skipToNext: false),
           increasedValue: miniPlayerSkipActionLabel(skipToNext: true),
-          onDecrease: playerController.skipToPreviousTrack,
-          onIncrease: playerController.skipToNextTrack,
+          onDecrease: playerController.skipToPreviousTrackFromMiniPlayer,
+          onIncrease: playerController.skipToNextTrackFromMiniPlayer,
           child: Tooltip(
             message: expandLabel,
             child: GestureDetector(
@@ -76,8 +76,8 @@ class BottomPanelHeaderView extends GetView<ShellController> {
                             height: AppDimensions.bottomPanelHeaderHeight,
                             child: Swipeable(
                               background: const SizedBox.shrink(),
-                              onSwipeLeft: () => playerController.skipToPreviousTrack(),
-                              onSwipeRight: () => playerController.skipToNextTrack(),
+                              onSwipeLeft: () => playerController.skipToPreviousTrackFromMiniPlayer(),
+                              onSwipeRight: () => playerController.skipToNextTrackFromMiniPlayer(),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.start,

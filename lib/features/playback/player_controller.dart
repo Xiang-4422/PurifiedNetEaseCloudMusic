@@ -184,13 +184,23 @@ class PlayerController extends GetxController {
   }
 
   /// 播放或暂停当前歌曲。
-  Future<void> playOrPause() async {
-    final stopwatch = PlaybackPerformanceLogger.start();
+  Future<void> playOrPause() {
     final wasPlaying = isPlaying.value;
+    return _runMiniPlayerFeedbackCommand(
+      action: wasPlaying ? 'pause' : 'play',
+      command: () => _commandService.playOrPause(isPlaying: wasPlaying),
+    );
+  }
+
+  Future<void> _runMiniPlayerFeedbackCommand({
+    required String action,
+    required Future<void> Function() command,
+  }) async {
+    final stopwatch = PlaybackPerformanceLogger.start();
     Object? commandError;
     var succeeded = false;
     try {
-      await _commandService.playOrPause(isPlaying: wasPlaying);
+      await command();
       succeeded = true;
     } catch (error) {
       commandError = error;
@@ -200,7 +210,7 @@ class PlayerController extends GetxController {
         AppPerformanceMetrics.miniPlayerFeedback,
         stopwatch,
         details: miniPlayerFeedbackMetricDetails(
-          wasPlaying: wasPlaying,
+          action: action,
           succeeded: succeeded,
           error: commandError,
         ),
@@ -254,9 +264,25 @@ class PlayerController extends GetxController {
     return _commandService.skipToPreviousTrack();
   }
 
+  /// 从 mini player 跳到上一首，并记录控制反馈耗时。
+  Future<void> skipToPreviousTrackFromMiniPlayer() {
+    return _runMiniPlayerFeedbackCommand(
+      action: 'skip_previous',
+      command: _commandService.skipToPreviousTrack,
+    );
+  }
+
   /// 跳到下一首。
   Future<void> skipToNextTrack() {
     return _commandService.skipToNextTrack();
+  }
+
+  /// 从 mini player 跳到下一首，并记录控制反馈耗时。
+  Future<void> skipToNextTrackFromMiniPlayer() {
+    return _runMiniPlayerFeedbackCommand(
+      action: 'skip_next',
+      command: _commandService.skipToNextTrack,
+    );
   }
 
   /// 设置重复播放模式。
@@ -398,11 +424,10 @@ class PlayerController extends GetxController {
 /// 生成 mini player 控制反馈指标的补充信息。
 @visibleForTesting
 String miniPlayerFeedbackMetricDetails({
-  required bool wasPlaying,
+  required String action,
   required bool succeeded,
   Object? error,
 }) {
-  final action = wasPlaying ? 'pause' : 'play';
   final result = succeeded ? 'success' : 'error';
   if (succeeded || error == null) {
     return 'action=$action result=$result';

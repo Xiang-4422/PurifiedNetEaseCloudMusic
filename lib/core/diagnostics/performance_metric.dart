@@ -85,7 +85,7 @@ class AppPerformanceMetrics {
     eventName: 'miniPlayer.feedback.total',
     label: 'mini player 控制反馈',
     targetMs: 120,
-    description: '播放、暂停等高频控制命令完成反馈。',
+    description: 'mini player 播放、暂停、切歌等高频控制命令完成反馈。',
   );
 
   /// 当前核心指标集合。

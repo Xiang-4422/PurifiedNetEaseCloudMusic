@@ -2885,19 +2885,28 @@ void main() {
       final gateFile = File(
         '${projectRoot.path}/lib/features/playback/application/playback_source_error_recovery_gate.dart',
       );
+      final synchronizerFile = File(
+        '${projectRoot.path}/lib/features/playback/application/playback_state_synchronizer.dart',
+      );
       final gate = gateFile.readAsStringSync();
+      final synchronizer = synchronizerFile.readAsStringSync();
       final violations = <String>[
         if (!gate.contains('String _normalizedItemId(String itemId)')) '${_relativePath(gateFile)} does not define item id normalization',
         if (!gate.contains('final normalizedCurrentItemId = _normalizedItemId(currentItemId);')) '${_relativePath(gateFile)} can still branch on raw current item id',
         if (!gate.contains('final normalizedSelectedItemId = _normalizedItemId(selection.selectedItem.id);')) '${_relativePath(gateFile)} can still compare raw selected item id',
         if (!gate.contains('normalizedSelectedItemId != normalizedCurrentItemId')) '${_relativePath(gateFile)} does not compare normalized item ids',
         if (!gate.contains("final recoveryKey = '\${selection.selectionVersion}:\$normalizedCurrentItemId';")) '${_relativePath(gateFile)} can still generate recovery keys from raw item ids',
+        if (!synchronizer.contains('final normalizedItemId = _normalizedItemId(item.id);')) '${_relativePath(synchronizerFile)} can still start source recovery from raw current item id',
+        if (!synchronizer.contains('currentItemId: normalizedItemId,')) '${_relativePath(synchronizerFile)} does not pass normalized item id to recovery gate',
+        if (!synchronizer.contains('final recoveryItemId = normalizedItemId;')) '${_relativePath(synchronizerFile)} can still store raw recovery item id',
+        if (!synchronizer.contains('final normalizedSelectedItemId = _normalizedItemId(selection.selectedItem.id);')) '${_relativePath(synchronizerFile)} can still compare raw selected item id before retry',
+        if (!synchronizer.contains('normalizedSelectedItemId != normalizedItemId')) '${_relativePath(synchronizerFile)} does not compare normalized retry item ids',
       ];
 
       expect(
         violations,
         isEmpty,
-        reason: '播放源错误恢复负责远程 URL 失败后的强刷重试，同一首歌的 current/selected id 必须先归一再判断和去重。',
+        reason: '播放源错误恢复负责远程 URL 失败后的强刷重试，同一首歌的 current/selected id 必须先归一再判断、去重和提交重试。',
       );
     });
 

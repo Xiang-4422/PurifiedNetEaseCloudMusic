@@ -416,19 +416,20 @@ class PlaybackStateSynchronizer {
     PlaybackRuntimeState Function() runtimeState,
   ) {
     final item = runtimeState().currentSong;
+    final normalizedItemId = _normalizedItemId(item.id);
     final selection = _selectionService.state;
     final recoveryKey = _sourceErrorRecoveryGate.startRecovery(
-      currentItemId: item.id,
+      currentItemId: normalizedItemId,
       selection: selection,
     );
     if (recoveryKey == null) {
       return;
     }
-    final recoveryItemId = item.id;
+    final recoveryItemId = normalizedItemId;
     final recoverySelectionVersion = selection.selectionVersion;
     _backgroundTasks.run(
       taskName: 'playback.sourceError.recover',
-      trackId: item.id,
+      trackId: normalizedItemId,
       task: () => _submitCurrentAfterPlaybackSourceError(
         itemId: recoveryItemId,
         selectionVersion: recoverySelectionVersion,
@@ -443,8 +444,10 @@ class PlaybackStateSynchronizer {
     required String recoveryKey,
   }) async {
     try {
+      final normalizedItemId = _normalizedItemId(itemId);
       final selection = _selectionService.state;
-      if (selection.selectionVersion != selectionVersion || selection.selectedItem.id != itemId) {
+      final normalizedSelectedItemId = _normalizedItemId(selection.selectedItem.id);
+      if (normalizedItemId.isEmpty || selection.selectionVersion != selectionVersion || normalizedSelectedItemId != normalizedItemId) {
         return;
       }
       await _selectionService.submitCurrent(
@@ -479,6 +482,10 @@ class PlaybackStateSynchronizer {
     PlaybackRuntimeState Function() runtimeState,
   ) {
     return runtimeState().currentSong.id == itemId && _selectionService.state.selectedItem.id == itemId;
+  }
+
+  String _normalizedItemId(String itemId) {
+    return itemId.trim();
   }
 
   /// 停止所有播放状态订阅。

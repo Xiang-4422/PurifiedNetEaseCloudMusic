@@ -37,6 +37,30 @@ void main() {
       expect(miniPlayerPlayPauseControlLabel(isPlaying: true), '暂停');
     });
 
+    test('resolves artwork path once with local first display semantics', () {
+      expect(
+        miniPlayerArtworkDisplayPath(
+          artworkUrl: 'https://p1.music.126.net/remote.jpg?param=80y80',
+          localArtworkPath: '/local/artwork.jpg',
+        ),
+        '/local/artwork.jpg',
+      );
+      expect(
+        miniPlayerArtworkDisplayPath(
+          artworkUrl: 'https://p1.music.126.net/remote.jpg?param=80y80',
+          localArtworkPath: null,
+        ),
+        'https://p1.music.126.net/remote.jpg',
+      );
+      expect(
+        miniPlayerArtworkDisplayPath(
+          artworkUrl: 'file://media-server/shared.jpg',
+          localArtworkPath: null,
+        ),
+        '',
+      );
+    });
+
     test('builds swipe skip labels', () {
       expect(miniPlayerSwipeControlHint(), '左滑上一首，右滑下一首');
       expect(miniPlayerSkipActionLabel(skipToNext: false), '上一首');
@@ -270,8 +294,12 @@ void main() {
     expect(miniPlayerSource, contains('required this.settingsController'));
     expect(miniPlayerSource, contains('miniPlayerExpandControlLabel'));
     expect(miniPlayerSource, contains('miniPlayerPlayPauseControlLabel'));
+    expect(miniPlayerSource, contains('miniPlayerArtworkDisplayPath'));
     expect(miniPlayerSource, contains('miniPlayerSwipeControlHint'));
     expect(miniPlayerSource, contains('miniPlayerSkipActionLabel'));
+    expect(miniPlayerSource, contains('class _MiniPlayerPlaybackArea'));
+    expect(miniPlayerSource, contains('class _MiniPlayerProgressRing'));
+    expect(miniPlayerSource, contains('class _MiniPlayerPlayPauseButton'));
     expect(miniPlayerSource, contains('onDecrease'));
     expect(miniPlayerSource, contains('onIncrease'));
     expect(miniPlayerSource, contains('playbackProgressSemanticsLabel('));

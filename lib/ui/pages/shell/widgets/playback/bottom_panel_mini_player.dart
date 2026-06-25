@@ -41,6 +41,10 @@ class BottomPanelHeaderView extends StatelessWidget {
         artist: currentSong.artist,
       );
       final swipeHint = miniPlayerSwipeControlHint();
+      final artworkDisplayPath = miniPlayerArtworkDisplayPath(
+        artworkUrl: currentSong.artworkUrl,
+        localArtworkPath: currentSong.localArtworkPath,
+      );
       return Offstage(
         offstage: shellController.bottomPanelFullyOpened.isTrue,
         child: Semantics(
@@ -127,12 +131,7 @@ class BottomPanelHeaderView extends StatelessWidget {
                               ),
                               clipBehavior: Clip.hardEdge,
                               child: SimpleExtendedImage(
-                                ArtworkPathResolver.resolveDisplayPath(
-                                  ArtworkPathResolver.resolvePlaybackArtwork(
-                                    artworkUrl: currentSong.artworkUrl,
-                                    localArtworkPath: currentSong.localArtworkPath,
-                                  ),
-                                ),
+                                artworkDisplayPath,
                                 width: layout.albumWidth,
                                 height: layout.albumWidth,
                               ),
@@ -153,12 +152,7 @@ class BottomPanelHeaderView extends StatelessWidget {
                               left: layout.smallAlbumLeft,
                             ),
                             child: SimpleExtendedImage(
-                              ArtworkPathResolver.resolveDisplayPath(
-                                ArtworkPathResolver.resolvePlaybackArtwork(
-                                  artworkUrl: currentSong.artworkUrl,
-                                  localArtworkPath: currentSong.localArtworkPath,
-                                ),
-                              ),
+                              artworkDisplayPath,
                               width: AppDimensions.albumMinSize,
                               height: AppDimensions.albumMinSize,
                               shape: BoxShape.circle,
@@ -166,64 +160,11 @@ class BottomPanelHeaderView extends StatelessWidget {
                           ),
                         ),
                         // 播放按钮
-                        Obx(
-                          () => Offstage(
-                            offstage: shellController.bottomPanelFullyClosed.isFalse,
-                            child: Container(
-                              alignment: Alignment.centerRight,
-                              margin: const EdgeInsets.all(
-                                AppDimensions.paddingSmall,
-                              ),
-                              child: Stack(
-                                children: [
-                                  // 播放进度
-                                  if ((currentSong.duration?.inMilliseconds ?? 0) > 0)
-                                    Obx(() {
-                                      final currentDuration = playerController.currentPositionState.value;
-                                      final progressLabel = playbackProgressSemanticsLabel(
-                                        position: currentDuration,
-                                        total: currentSong.duration,
-                                      );
-                                      return Tooltip(
-                                        message: progressLabel,
-                                        excludeFromSemantics: true,
-                                        child: Semantics(
-                                          label: progressLabel,
-                                          child: CircularPlaybackProgress(
-                                            progress: playbackProgressFraction(
-                                              position: currentDuration,
-                                              total: currentSong.duration,
-                                            ),
-                                            size: AppDimensions.albumMinSize,
-                                            strokeWidth: 2,
-                                            progressColor: settingsController.panelWidgetColor.value,
-                                            backgroundColor: settingsController.panelWidgetColor.value.withAlpha(50),
-                                          ),
-                                        ),
-                                      );
-                                    }),
-                                  // 播放按钮
-                                  Obx(() {
-                                    final isPlaying = playerController.isPlaying.value;
-                                    return IconButton(
-                                      tooltip: miniPlayerPlayPauseControlLabel(
-                                        isPlaying: isPlaying,
-                                      ),
-                                      onPressed: () => playerController.playOrPause(),
-                                      padding: const EdgeInsets.all(
-                                        AppDimensions.albumMinSize * 1 / 3 / 2,
-                                      ),
-                                      icon: Icon(
-                                        isPlaying ? TablerIcons.player_pause_filled : TablerIcons.player_play_filled,
-                                        color: settingsController.panelWidgetColor.value,
-                                        size: AppDimensions.albumMinSize * 2 / 3,
-                                      ),
-                                    );
-                                  }),
-                                ],
-                              ),
-                            ),
-                          ),
+                        _MiniPlayerPlaybackArea(
+                          shellController: shellController,
+                          playerController: playerController,
+                          settingsController: settingsController,
+                          currentSongDuration: currentSong.duration,
                         ),
                       ],
                     ),
@@ -232,6 +173,117 @@ class BottomPanelHeaderView extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      );
+    });
+  }
+}
+
+class _MiniPlayerPlaybackArea extends StatelessWidget {
+  const _MiniPlayerPlaybackArea({
+    required this.shellController,
+    required this.playerController,
+    required this.settingsController,
+    required this.currentSongDuration,
+  });
+
+  final ShellController shellController;
+  final PlayerController playerController;
+  final SettingsController settingsController;
+  final Duration? currentSongDuration;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(
+      () => Offstage(
+        offstage: shellController.bottomPanelFullyClosed.isFalse,
+        child: Container(
+          alignment: Alignment.centerRight,
+          margin: const EdgeInsets.all(AppDimensions.paddingSmall),
+          child: Stack(
+            children: [
+              _MiniPlayerProgressRing(
+                playerController: playerController,
+                settingsController: settingsController,
+                total: currentSongDuration,
+              ),
+              _MiniPlayerPlayPauseButton(
+                playerController: playerController,
+                settingsController: settingsController,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MiniPlayerProgressRing extends StatelessWidget {
+  const _MiniPlayerProgressRing({
+    required this.playerController,
+    required this.settingsController,
+    required this.total,
+  });
+
+  final PlayerController playerController;
+  final SettingsController settingsController;
+  final Duration? total;
+
+  @override
+  Widget build(BuildContext context) {
+    if ((total?.inMilliseconds ?? 0) <= 0) {
+      return const SizedBox.shrink();
+    }
+    return Obx(() {
+      final currentDuration = playerController.currentPositionState.value;
+      final panelColor = settingsController.panelWidgetColor.value;
+      final progressLabel = playbackProgressSemanticsLabel(
+        position: currentDuration,
+        total: total,
+      );
+      return Tooltip(
+        message: progressLabel,
+        excludeFromSemantics: true,
+        child: Semantics(
+          label: progressLabel,
+          child: CircularPlaybackProgress(
+            progress: playbackProgressFraction(
+              position: currentDuration,
+              total: total,
+            ),
+            size: AppDimensions.albumMinSize,
+            strokeWidth: 2,
+            progressColor: panelColor,
+            backgroundColor: panelColor.withAlpha(50),
+          ),
+        ),
+      );
+    });
+  }
+}
+
+class _MiniPlayerPlayPauseButton extends StatelessWidget {
+  const _MiniPlayerPlayPauseButton({
+    required this.playerController,
+    required this.settingsController,
+  });
+
+  final PlayerController playerController;
+  final SettingsController settingsController;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final isPlaying = playerController.isPlaying.value;
+      return IconButton(
+        tooltip: miniPlayerPlayPauseControlLabel(isPlaying: isPlaying),
+        onPressed: () => playerController.playOrPause(),
+        padding: const EdgeInsets.all(AppDimensions.albumMinSize * 1 / 3 / 2),
+        icon: Icon(
+          isPlaying ? TablerIcons.player_pause_filled : TablerIcons.player_play_filled,
+          color: settingsController.panelWidgetColor.value,
+          size: AppDimensions.albumMinSize * 2 / 3,
         ),
       );
     });
@@ -342,6 +394,20 @@ String miniPlayerExpandControlLabel({
 @visibleForTesting
 String miniPlayerPlayPauseControlLabel({required bool isPlaying}) {
   return isPlaying ? '暂停' : '播放';
+}
+
+/// 生成 mini player 当前封面展示路径。
+@visibleForTesting
+String miniPlayerArtworkDisplayPath({
+  required String? artworkUrl,
+  required String? localArtworkPath,
+}) {
+  return ArtworkPathResolver.resolveDisplayPath(
+    ArtworkPathResolver.resolvePlaybackArtwork(
+      artworkUrl: artworkUrl,
+      localArtworkPath: localArtworkPath,
+    ),
+  );
 }
 
 /// 生成 mini player 滑动切歌的辅助提示。

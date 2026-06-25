@@ -6,7 +6,7 @@ const vm = require('vm')
 const { execFileSync } = require('child_process')
 
 validateArgs(process.argv.slice(2), {
-  flags: new Set(['--json', '--markdown']),
+  flags: new Set(['--json', '--markdown', '--check']),
   pathPrefixes: [
     '--generated-manifest=',
     '--raw-methods=',
@@ -58,6 +58,7 @@ const checkDifferencesDocPath = checkDifferencesDocArg
   : null
 const jsonOutput = process.argv.includes('--json')
 const markdownOutput = process.argv.includes('--markdown')
+const checkOutput = process.argv.includes('--check')
 const coverageReportSchemaVersion = 1
 const sdkDifferencesDocStart = '<!-- SDK_DIFFERENCES_START -->'
 const sdkDifferencesDocEnd = '<!-- SDK_DIFFERENCES_END -->'
@@ -1819,6 +1820,22 @@ if (jsonOutput) {
   console.log(JSON.stringify(report, null, 2))
 } else if (markdownOutput) {
   console.log(renderMarkdownReport(report))
+} else if (checkOutput) {
+  console.log(`api-enhanced coverage check ${hasFailure || differencesDocStale ? 'failed' : 'passed'}`)
+  console.log(`schema version: ${report.schemaVersion}`)
+  console.log(`upstream version: ${report.upstreamVersion}`)
+  console.log(`upstream commit: ${report.upstreamCommit || 'unknown'}`)
+  console.log(`modules: ${report.moduleCount}/${report.upstreamModuleFileCount}`)
+  console.log(
+    `special status: covered ${report.specialCoverageStatusCounts.covered || 0}, limited ${report.specialCoverageStatusCounts.limited || 0}, missing ${report.specialCoverageStatusCounts.missing || 0}`,
+  )
+  console.log(
+    `runtime options: supported ${report.runtimeOptionStatusCounts.supported || 0}, limited ${report.runtimeOptionStatusCounts.limited || 0}`,
+  )
+  console.log(`SDK differences: ${report.sdkDifferences.length}`)
+  if (hasFailure) {
+    console.error('coverage report failed; run with --json for machine-readable details')
+  }
 } else {
   console.log('api-enhanced coverage report')
   console.log(`schema version: ${report.schemaVersion}`)

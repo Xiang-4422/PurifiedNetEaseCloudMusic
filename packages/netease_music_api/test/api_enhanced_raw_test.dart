@@ -740,6 +740,37 @@ void main() {
       expect(markdown, contains('unblockmusic-utils'));
     });
 
+    test('coverage report check mode renders concise gate summary', () async {
+      final repoRoot = _findRepoRoot();
+      final result = await Process.run(
+        'node',
+        [
+          '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js',
+          '--check',
+          '--check-differences-doc=${repoRoot.path}/docs/网易云接口开发包.md',
+        ],
+        workingDirectory: repoRoot.path,
+      );
+
+      expect(
+        result.exitCode,
+        0,
+        reason: '${result.stdout}\n${result.stderr}',
+      );
+      final output = result.stdout as String;
+      expect(output, contains('api-enhanced coverage check passed'));
+      expect(output, contains('schema version: 1'));
+      expect(output, contains('upstream version: $apiEnhancedUpstreamVersion'));
+      expect(output, contains('upstream commit: $apiEnhancedUpstreamCommit'));
+      expect(output, contains('modules: ${apiEnhancedModules.length}/${apiEnhancedModules.length}'));
+      expect(output, contains('special status: covered '));
+      expect(output, contains('limited '));
+      expect(output, contains('missing 0'));
+      expect(output, contains('runtime options: supported '));
+      expect(output, contains('SDK differences: '));
+      expect(output, isNot(contains('# api-enhanced coverage report')));
+    });
+
     test('coverage report keeps Chinese SDK differences doc in sync', () async {
       final repoRoot = _findRepoRoot();
       final reportPath = '${repoRoot.path}/packages/netease_music_api/tool/api_enhanced_coverage_report.js';

@@ -60,7 +60,7 @@ void main() {
         contains('AppPerformanceMetrics.coldStartInteractive'),
       );
       expect(
-        File('lib/ui/pages/playlist/playlist_page_view.dart').readAsStringSync(),
+        File('lib/features/playlist/playlist_performance_logger.dart').readAsStringSync(),
         contains('AppPerformanceMetrics.cachedPlaylistOpen'),
       );
       expect(

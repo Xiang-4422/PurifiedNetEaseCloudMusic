@@ -2,6 +2,7 @@ import 'dart:developer' as developer;
 
 import 'package:bujuan/core/diagnostics/performance_logger.dart';
 import 'package:bujuan/core/diagnostics/performance_metric.dart';
+import 'package:bujuan/features/playlist/playlist_open_performance.dart';
 import 'package:flutter/foundation.dart';
 
 /// 歌单详情加载性能诊断日志。
@@ -58,6 +59,18 @@ class PlaylistPerformanceLogger {
       details: details,
       name: _name,
       warnAfterMs: warnAfterMs,
+    );
+  }
+
+  /// 输出缓存歌单打开首个可展示结果指标。
+  static void cachedPlaylistOpen(
+    Stopwatch stopwatch,
+    CachedPlaylistOpenSnapshot snapshot,
+  ) {
+    elapsedMetric(
+      AppPerformanceMetrics.cachedPlaylistOpen,
+      stopwatch,
+      details: snapshot.toLogDetails(),
     );
   }
 

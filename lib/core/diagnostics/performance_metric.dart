@@ -55,10 +55,10 @@ class AppPerformanceMetrics {
   /// 已缓存歌单打开耗时。
   static const cachedPlaylistOpen = AppPerformanceMetric(
     key: 'cached_playlist_open',
-    eventName: 'page.loadInitial.total',
+    eventName: 'page.cachedPlaylistOpen.firstDisplay',
     label: '打开已有缓存歌单',
     targetMs: 500,
-    description: '歌单页读取本地缓存并完成首屏列表展示。',
+    description: '歌单页读取本地缓存并完成首个可展示结果。',
   );
 
   /// 用户切歌到播放源替换完成。

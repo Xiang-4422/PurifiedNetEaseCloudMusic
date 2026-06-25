@@ -1,8 +1,5 @@
 import 'dart:io';
 
-import 'package:bujuan/features/playlist/playlist_page_controller.dart';
-import 'package:bujuan/ui/pages/playlist/playlist_page_state.dart';
-import 'package:bujuan/ui/pages/playlist/playlist_page_view.dart';
 import 'package:bujuan/ui/pages/playlist/widgets/playlist_header_sliver.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -57,28 +54,15 @@ void main() {
 
   test('playlist page records cached playlist open performance metric', () {
     final source = File('lib/ui/pages/playlist/playlist_page_view.dart').readAsStringSync();
+    final loggerSource = File(
+      'lib/features/playlist/playlist_performance_logger.dart',
+    ).readAsStringSync();
 
-    expect(source, contains('PlaylistPerformanceLogger.elapsedMetric('));
-    expect(source, contains('AppPerformanceMetrics.cachedPlaylistOpen'));
-    expect(source, contains('cachedPlaylistOpenLocalMetricDetails('));
-    expect(source, contains('cachedPlaylistOpenRemoteMetricDetails('));
-  });
-
-  test('playlist page keeps cached playlist metric details stable', () {
-    expect(
-      cachedPlaylistOpenLocalMetricDetails(
-        state: PlaylistLocalDetailState.partial,
-        songs: 30,
-      ),
-      'source=local state=partial songs=30',
-    );
-    expect(
-      cachedPlaylistOpenRemoteMetricDetails(
-        songs: 12,
-        state: PlaylistPageLoadState.showingPartial,
-      ),
-      'source=remote songs=12 state=showingPartial',
-    );
+    expect(source, contains('PlaylistPerformanceLogger.cachedPlaylistOpen('));
+    expect(source, contains('CachedPlaylistOpenSnapshot.local('));
+    expect(source, contains('CachedPlaylistOpenSnapshot.remote('));
+    expect(loggerSource, contains('AppPerformanceMetrics.cachedPlaylistOpen'));
+    expect(source, isNot(contains('AppPerformanceMetrics.cachedPlaylistOpen')));
   });
 
   test('playlist page keeps display state rules in a local state model', () {

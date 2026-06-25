@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:bujuan/core/diagnostics/performance_metric.dart';
 import 'package:bujuan/ui/services/toast_service.dart';
 import 'package:bujuan/ui/services/image_color_service.dart';
 import 'package:bujuan/core/util/extensions.dart';
+import 'package:bujuan/features/playlist/playlist_open_performance.dart';
 import 'package:bujuan/features/playlist/playlist_performance_logger.dart';
 import 'package:bujuan/core/entities/playlist_entity.dart';
 import 'package:bujuan/features/music_detail/music_detail_controller_bundle.dart';
@@ -116,6 +116,16 @@ class _PlayListPageViewState extends State<PlayListPageView> {
 
   Future<void> _loadPlaylistData() async {
     final stopwatch = PlaylistPerformanceLogger.start();
+    var didRecordCachedOpen = false;
+
+    void recordCachedOpen(CachedPlaylistOpenSnapshot snapshot) {
+      if (didRecordCachedOpen) {
+        return;
+      }
+      PlaylistPerformanceLogger.cachedPlaylistOpen(stopwatch, snapshot);
+      didRecordCachedOpen = true;
+    }
+
     PlaylistPerformanceLogger.log('page.loadInitial.start playlistId=${widget.playlistId}');
     final localStopwatch = PlaylistPerformanceLogger.start();
     final initialDetail = await _controller.loadInitialDetail(widget.playlistId);
@@ -129,6 +139,16 @@ class _PlayListPageViewState extends State<PlayListPageView> {
     }
     if (initialDetail.localPlaylist != null) {
       _applyLocalPlaylist(initialDetail.localPlaylist!);
+      if (initialDetail.localDetail == null && _playlistState.hasPlaylistMetadata) {
+        recordCachedOpen(
+          CachedPlaylistOpenSnapshot.local(
+            state: initialDetail.localState,
+            songs: _playlistState.songs.length,
+            hasMetadata: _playlistState.hasPlaylistMetadata,
+            expectedTracks: _playlistState.trackCount,
+          ),
+        );
+      }
     }
     if (initialDetail.localState != PlaylistLocalDetailState.empty && initialDetail.localDetail != null) {
       await _applyPlaylistDetail(
@@ -141,23 +161,23 @@ class _PlayListPageViewState extends State<PlayListPageView> {
         );
         unawaited(_loadRemainingPlaylistSongs(offset: initialDetail.localDetail!.songs.length));
       }
-      PlaylistPerformanceLogger.elapsedMetric(
-        AppPerformanceMetrics.cachedPlaylistOpen,
-        stopwatch,
-        details: cachedPlaylistOpenLocalMetricDetails(
+      recordCachedOpen(
+        CachedPlaylistOpenSnapshot.local(
           state: initialDetail.localState,
           songs: _playlistState.songs.length,
+          hasMetadata: _playlistState.hasPlaylistMetadata,
+          expectedTracks: initialDetail.localDetail!.expectedTrackCount,
         ),
       );
       return;
     }
     await _loadFirstPageAndRemaining(showLoadingState: true);
-    PlaylistPerformanceLogger.elapsedMetric(
-      AppPerformanceMetrics.cachedPlaylistOpen,
-      stopwatch,
-      details: cachedPlaylistOpenRemoteMetricDetails(
+    recordCachedOpen(
+      CachedPlaylistOpenSnapshot.remote(
         songs: _playlistState.songs.length,
-        state: _playlistState.loadState,
+        state: _playlistState.loadState.name,
+        hasMetadata: _playlistState.hasPlaylistMetadata,
+        expectedTracks: _playlistState.trackCount,
       ),
     );
   }
@@ -460,22 +480,4 @@ class _PlayListPageViewState extends State<PlayListPageView> {
       });
     }
   }
-}
-
-/// 生成本地优先展示的缓存歌单打开指标详情。
-@visibleForTesting
-String cachedPlaylistOpenLocalMetricDetails({
-  required PlaylistLocalDetailState state,
-  required int songs,
-}) {
-  return 'source=local state=${state.name} songs=$songs';
-}
-
-/// 生成远程兜底展示的缓存歌单打开指标详情。
-@visibleForTesting
-String cachedPlaylistOpenRemoteMetricDetails({
-  required int songs,
-  required PlaylistPageLoadState state,
-}) {
-  return 'source=remote songs=$songs state=${state.name}';
 }

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:bujuan/core/entities/liked_song_ids.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
-import 'package:bujuan/features/playback/application/playback_queue_item_mapper.dart';
+import 'package:bujuan/features/playback/application/track_playback_queue_builder.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 import 'package:get/get.dart';
 
@@ -65,7 +65,7 @@ class RecentPlaybackController extends GetxController {
     isLoading.value = true;
     try {
       final tracks = await _repository.loadRecentPlayedTracks(limit: limit);
-      final items = PlaybackQueueItemMapper.fromTrackWithResourcesList(
+      final items = TrackPlaybackQueueBuilder.fromTrackResources(
         tracks,
         likedSongIds: normalizeLikedSongIds(_likedSongIds()),
       );

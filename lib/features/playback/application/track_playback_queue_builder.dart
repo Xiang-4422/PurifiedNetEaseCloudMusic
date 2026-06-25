@@ -74,6 +74,19 @@ class TrackPlaybackQueueBuilder {
     required List<int> likedSongIds,
     MediaType? mediaType,
   }) {
+    return fromTrackResources(
+      tracks,
+      likedSongIds: likedSongIds,
+      mediaType: mediaType,
+    );
+  }
+
+  /// 用已经携带本地资源的曲目构建播放队列项。
+  static List<PlaybackQueueItem> fromTrackResources(
+    List<TrackWithResources> tracks, {
+    required List<int> likedSongIds,
+    MediaType? mediaType,
+  }) {
     return PlaybackQueueItemMapper.fromTrackWithResourcesList(
       tracks,
       likedSongIds: likedSongIds,

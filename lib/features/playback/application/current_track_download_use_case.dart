@@ -1,10 +1,10 @@
 import 'package:bujuan/core/entities/liked_song_ids.dart';
-import 'package:bujuan/features/playback/application/playback_queue_item_mapper.dart';
 import 'package:bujuan/core/entities/playback_queue_item.dart';
 import 'package:bujuan/core/entities/track.dart';
 import 'package:bujuan/core/entities/track_resource_bundle.dart';
 import 'package:bujuan/core/entities/track_with_resources.dart';
 import 'package:bujuan/features/download/download_repository.dart';
+import 'package:bujuan/features/playback/application/track_playback_queue_builder.dart';
 import 'package:bujuan/features/playback/application/playback_user_content_port.dart';
 import 'package:bujuan/features/playback/playback_repository.dart';
 
@@ -116,7 +116,7 @@ class CurrentTrackDownloadUseCase {
 
   Future<PlaybackQueueItem?> _buildQueueItem(Track track) async {
     final trackWithResources = await _playbackRepository.getTrackWithResources(track.id);
-    final queueItems = PlaybackQueueItemMapper.fromTrackWithResourcesList(
+    final queueItems = TrackPlaybackQueueBuilder.fromTrackResources(
       [
         trackWithResources ??
             TrackWithResources(

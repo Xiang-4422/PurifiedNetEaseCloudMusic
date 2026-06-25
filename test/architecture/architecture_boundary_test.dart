@@ -1480,6 +1480,24 @@ void main() {
       );
     });
 
+    test('playback queue item mapper stays behind queue builder boundary', () {
+      final mapperFile = '${projectRoot.path}/lib/features/playback/application/playback_queue_item_mapper.dart';
+      final builderFile = '${projectRoot.path}/lib/features/playback/application/track_playback_queue_builder.dart';
+      final violations = _dartFiles(Directory('${projectRoot.path}/lib/features'))
+          .where((file) => file.path != mapperFile && file.path != builderFile)
+          .where(
+            (file) => file.readAsStringSync().contains('playback_queue_item_mapper.dart'),
+          )
+          .map(_relativePath)
+          .toList();
+
+      expect(
+        violations,
+        isEmpty,
+        reason: 'PlaybackQueueItemMapper 只能作为 TrackPlaybackQueueBuilder 的内部实现，feature 入口不能绕过统一的资源补齐和 id 归一边界。',
+      );
+    });
+
     test('UI reads explicit queue item fields instead of metadata keys', () {
       final uiFiles = _dartFiles(Directory('${projectRoot.path}/lib/ui'));
       final violations = uiFiles
